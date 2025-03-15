@@ -133,6 +133,10 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
         .single();
       
       if (existingData && existingData.status !== 'processing' && existingData.result_data) {
+        // Calculate the total count from the results array
+        const totalCount = Array.isArray(existingData.result_data) ? 
+          existingData.result_data.length : 0;
+          
         return {
           data: existingData.result_data,
           status: existingData.status,
@@ -141,7 +145,7 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
             location: `${existingData.country} - ${existingData.states}`,
             fields: existingData.fields
           },
-          total_count: existingData.result_data?.length || 0
+          total_count: totalCount
         };
       }
     }
@@ -164,7 +168,7 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
     const data = await response.json();
     
     // If we have results and a task ID, update the record in Supabase
-    if (data.data && data.data.length > 0 && taskId) {
+    if (data.data && Array.isArray(data.data) && data.data.length > 0 && taskId) {
       const { error: updateError } = await supabase
         .from('user_csv_files')
         .update({
