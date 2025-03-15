@@ -1,16 +1,22 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { withDelay, animationClasses } from "@/lib/animations";
+import { toast } from "sonner";
+import { startScraping } from "@/services/scraper";
 
 // Import the new component modules
 import CategorySelector from "./scraper/CategorySelector";
 import LocationSelector from "./scraper/LocationSelector";
 import DataTypeSelector from "./scraper/DataTypeSelector";
+import RatingSelector from "./scraper/RatingSelector";
 
 export default function ScraperForm() {
+  const navigate = useNavigate();
+  
   // Form state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -24,15 +30,60 @@ export default function ScraperForm() {
   // Data type multi-selection state
   const [selectedDataTypes, setSelectedDataTypes] = useState<string[]>([]);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  // Rating state
+  const [selectedRating, setSelectedRating] = useState<string>("");
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Validate form
+      if (!useKeyword && !selectedCategory) {
+        toast.error("Please select a category or use a keyword");
+        return;
+      }
+      
+      if (!selectedCountry) {
+        toast.error("Please select a country");
+        return;
+      }
+      
+      if (selectedStates.length === 0) {
+        toast.error("Please select at least one state");
+        return;
+      }
+      
+      if (selectedDataTypes.length === 0) {
+        toast.error("Please select at least one data type to extract");
+        return;
+      }
+      
+      // Prepare keywords
+      const keywords = useKeyword ? searchQuery : selectedCategory;
+      
+      // Start scraping
+      const result = await startScraping({
+        keywords,
+        country: selectedCountry,
+        states: selectedStates,
+        fields: selectedDataTypes,
+        rating: selectedRating || undefined
+      });
+      
+      if (result.success) {
+        toast.success("Scraping started successfully");
+        // Redirect to results page with task ID
+        navigate(`/get${result.task_id ? `?task_id=${result.task_id}` : ''}`);
+      } else {
+        toast.error(result.error || "Failed to start scraping");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("An error occurred while processing your request");
+    } finally {
       setIsLoading(false);
-      // Here you would normally handle the response
-    }, 2000);
+    }
   };
 
   return (
@@ -71,6 +122,11 @@ export default function ScraperForm() {
                   <DataTypeSelector 
                     selectedDataTypes={selectedDataTypes}
                     setSelectedDataTypes={setSelectedDataTypes}
+                  />
+                  
+                  <RatingSelector
+                    selectedRating={selectedRating}
+                    setSelectedRating={setSelectedRating}
                   />
                   
                   <Button type="submit" className="w-full" disabled={isLoading}>
