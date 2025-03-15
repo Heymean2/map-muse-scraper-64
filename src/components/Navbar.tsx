@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { Menu, X, LayoutDashboard } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -18,7 +20,9 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +32,37 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Check for user on mount
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+    };
+    
+    checkUser();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("You have been signed out");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Error signing out");
+    }
+  };
 
   return (
     <header
@@ -70,12 +105,30 @@ export default function Navbar() {
           </ul>
           
           <div className="pl-4 flex space-x-2">
-            <Button variant="outline" className={withDelay(animationClasses.fadeIn, 400)}>
-              Sign In
-            </Button>
-            <Button className={withDelay(animationClasses.fadeIn, 450)}>
-              Get Started
-            </Button>
+            {user ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  className={withDelay(animationClasses.fadeIn, 400)}
+                  onClick={handleSignOut}
+                >
+                  <LogOut size={16} className="mr-2" /> Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" className={withDelay(animationClasses.fadeIn, 400)}>
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth?tab=signup">
+                  <Button className={withDelay(animationClasses.fadeIn, 450)}>
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -117,12 +170,31 @@ export default function Navbar() {
                 </li>
               ))}
               <li className="pt-2 flex flex-col space-y-2">
-                <Button variant="outline" className="w-full">
-                  Sign In
-                </Button>
-                <Button className="w-full">
-                  Get Started
-                </Button>
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <LogOut size={16} className="mr-2" /> Sign Out
+                  </Button>
+                ) : (
+                  <>
+                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="w-full">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </li>
             </ul>
           </Container>
