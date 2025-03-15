@@ -23,10 +23,41 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { MapPin, Search, Clock, Filter } from "lucide-react";
+import { MapPin, Search, Clock, Filter, Type } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+
+const categories = [
+  "bus stop",
+  "doctor",
+  "dentist",
+  "insurance agency",
+  "atm",
+  "attorney",
+  "real estate agency",
+  "real estate agent",
+  "church",
+  "building",
+  "restaurant",
+  "beauty salon",
+  "auto repair shop",
+  "corporate office",
+  "medical clinic",
+  "family practice physician",
+  "pharmacy",
+  "counselor",
+  "internist",
+  "general contractor",
+  "chiropractor",
+  "non-profit organization",
+  "convenience store",
+  "construction company",
+  "park"
+];
 
 export default function ScraperForm() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [useKeyword, setUseKeyword] = useState(false);
   const [location, setLocation] = useState("");
   const [radius, setRadius] = useState([10]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +80,7 @@ export default function ScraperForm() {
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
             Start Scraping in Minutes
           </h2>
-          <p className={`text-lg text-slate-600 ${withDelay(animationClasses.slideUp, 200)}`}>
+          <p className={`text-lg text-slate-600 dark:text-slate-400 ${withDelay(animationClasses.slideUp, 200)}`}>
             Our intuitive interface makes it easy to extract the data you need from Google Maps.
           </p>
         </div>
@@ -67,18 +98,47 @@ export default function ScraperForm() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="query">What are you looking for?</Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-                        <Input 
-                          id="query"
-                          placeholder="Restaurants, Hotels, Dentists, etc."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10"
-                          required
-                        />
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="search-type">{useKeyword ? "What are you looking for?" : "Select a category"}</Label>
+                        <div className="flex items-center space-x-2">
+                          <Label htmlFor="use-keyword" className="text-sm">Use Keyword</Label>
+                          <Switch 
+                            id="use-keyword" 
+                            checked={useKeyword} 
+                            onCheckedChange={setUseKeyword} 
+                          />
+                        </div>
                       </div>
+                      
+                      {useKeyword ? (
+                        <div className="relative">
+                          <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+                          <Input 
+                            id="query"
+                            placeholder="Enter search keyword..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <Select 
+                          value={selectedCategory} 
+                          onValueChange={setSelectedCategory}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-80">
+                            {categories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     
                     <div className="space-y-2">
@@ -99,7 +159,7 @@ export default function ScraperForm() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <Label htmlFor="radius">Search Radius (km)</Label>
-                        <span className="text-sm text-slate-500">{radius[0]} km</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400">{radius[0]} km</span>
                       </div>
                       <Slider
                         id="radius"
@@ -151,7 +211,7 @@ export default function ScraperForm() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="aspect-video rounded-md overflow-hidden shadow-inner bg-slate-100">
+                    <div className="aspect-video rounded-md overflow-hidden shadow-inner bg-slate-100 dark:bg-slate-800">
                       <div className="w-full h-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/0,0,1,0,0/800x450?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')] bg-cover bg-center rounded-md"></div>
                     </div>
                     <div className="mt-4 flex justify-center">
@@ -173,8 +233,8 @@ export default function ScraperForm() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-slate-50 p-4 rounded-md overflow-auto max-h-[400px]">
-                      <pre className="text-xs text-slate-800">
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md overflow-auto max-h-[400px]">
+                      <pre className="text-xs text-slate-800 dark:text-slate-200">
 {`[
   {
     "name": "Central Coffee Shop",
@@ -241,10 +301,10 @@ console.log(data);`}
               </TabsContent>
             </Tabs>
             
-            <div className="mt-8 bg-slate-50 rounded-xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+            <div className="mt-8 bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-6 items-center">
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-2">Advanced Filtering</h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
                   Need more specific data? Use our advanced filters to refine your search results.
                 </p>
                 <Button variant="outline" className="gap-2">
@@ -253,22 +313,22 @@ console.log(data);`}
                 </Button>
               </div>
               <div className="flex-1">
-                <div className="bg-white rounded-xl p-4 shadow-soft">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Rating</span>
+                      <span className="text-slate-600 dark:text-slate-400">Rating</span>
                       <span className="font-medium">4+ stars</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Open Now</span>
+                      <span className="text-slate-600 dark:text-slate-400">Open Now</span>
                       <span className="font-medium">Yes</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Categories</span>
+                      <span className="text-slate-600 dark:text-slate-400">Categories</span>
                       <span className="font-medium">Coffee, Bakery</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Price Level</span>
+                      <span className="text-slate-600 dark:text-slate-400">Price Level</span>
                       <span className="font-medium">$$-$$$</span>
                     </div>
                   </div>
