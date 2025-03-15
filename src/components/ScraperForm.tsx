@@ -1,0 +1,283 @@
+
+import { useState } from "react";
+import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Card,
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { withDelay, animationClasses } from "@/lib/animations";
+import { MapPin, Search, Clock, Filter } from "lucide-react";
+
+export default function ScraperForm() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState("");
+  const [radius, setRadius] = useState([10]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      // Here you would normally handle the response
+    }, 2000);
+  };
+
+  return (
+    <section id="how-it-works" className="py-24">
+      <Container className="max-w-6xl">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
+            Start Scraping in Minutes
+          </h2>
+          <p className={`text-lg text-slate-600 ${withDelay(animationClasses.slideUp, 200)}`}>
+            Our intuitive interface makes it easy to extract the data you need from Google Maps.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-2">
+            <div className="sticky top-24">
+              <Card className={`glass-card ${withDelay(animationClasses.fadeIn, 300)}`}>
+                <CardHeader>
+                  <CardTitle>Extract Map Data</CardTitle>
+                  <CardDescription>
+                    Fill in the form to start extracting valuable data from Google Maps.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="query">What are you looking for?</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+                        <Input 
+                          id="query"
+                          placeholder="Restaurants, Hotels, Dentists, etc."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+                        <Input 
+                          id="location"
+                          placeholder="City, State, or Address"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="radius">Search Radius (km)</Label>
+                        <span className="text-sm text-slate-500">{radius[0]} km</span>
+                      </div>
+                      <Slider
+                        id="radius"
+                        defaultValue={[10]}
+                        max={50}
+                        step={1}
+                        value={radius}
+                        onValueChange={setRadius}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="data-type">Data Type</Label>
+                      <Select defaultValue="business">
+                        <SelectTrigger id="data-type">
+                          <SelectValue placeholder="Select data type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="business">Business Listings</SelectItem>
+                          <SelectItem value="reviews">Reviews</SelectItem>
+                          <SelectItem value="photos">Photos</SelectItem>
+                          <SelectItem value="all">All Available Data</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Processing..." : "Start Scraping"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-3">
+            <Tabs defaultValue="preview" className={withDelay(animationClasses.fadeIn, 400)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+                <TabsTrigger value="data">Sample Data</TabsTrigger>
+                <TabsTrigger value="code">API</TabsTrigger>
+              </TabsList>
+              <TabsContent value="preview" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Interactive Map Preview</CardTitle>
+                    <CardDescription>
+                      See the area your search will cover
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-video rounded-md overflow-hidden shadow-inner bg-slate-100">
+                      <div className="w-full h-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/0,0,1,0,0/800x450?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')] bg-cover bg-center rounded-md"></div>
+                    </div>
+                    <div className="mt-4 flex justify-center">
+                      <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock size={16} />
+                        <span>Estimated completion time: 2-5 minutes</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="data" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sample Data Output</CardTitle>
+                    <CardDescription>
+                      Preview of the data you'll receive
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-slate-50 p-4 rounded-md overflow-auto max-h-[400px]">
+                      <pre className="text-xs text-slate-800">
+{`[
+  {
+    "name": "Central Coffee Shop",
+    "address": "123 Main St, New York, NY 10001",
+    "phone": "(212) 555-1234",
+    "website": "https://centralcoffee.example.com",
+    "rating": 4.7,
+    "reviews": 324,
+    "categories": ["Café", "Coffee Shop", "Breakfast"],
+    "hours": {
+      "Monday": "7:00 AM – 8:00 PM",
+      "Tuesday": "7:00 AM – 8:00 PM",
+      "Wednesday": "7:00 AM – 8:00 PM",
+      "Thursday": "7:00 AM – 8:00 PM",
+      "Friday": "7:00 AM – 9:00 PM",
+      "Saturday": "8:00 AM – 9:00 PM",
+      "Sunday": "8:00 AM – 7:00 PM"
+    },
+    "coordinates": {
+      "latitude": 40.7128,
+      "longitude": -74.0060
+    }
+  },
+  // More entries...
+]`}
+                      </pre>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="code" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>API Integration</CardTitle>
+                    <CardDescription>
+                      Use our API for programmatic access
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-slate-900 p-4 rounded-md overflow-auto max-h-[400px]">
+                      <pre className="text-xs text-slate-200">
+{`// Example API request
+const response = await fetch('https://api.mapscraper.com/v1/search', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    query: 'restaurants',
+    location: 'New York, NY',
+    radius: 10,
+    dataType: 'business'
+  })
+});
+
+const data = await response.json();
+console.log(data);`}
+                      </pre>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="mt-8 bg-slate-50 rounded-xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold mb-2">Advanced Filtering</h3>
+                <p className="text-slate-600 mb-4">
+                  Need more specific data? Use our advanced filters to refine your search results.
+                </p>
+                <Button variant="outline" className="gap-2">
+                  <Filter size={16} />
+                  <span>Open Advanced Filters</span>
+                </Button>
+              </div>
+              <div className="flex-1">
+                <div className="bg-white rounded-xl p-4 shadow-soft">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Rating</span>
+                      <span className="font-medium">4+ stars</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Open Now</span>
+                      <span className="font-medium">Yes</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Categories</span>
+                      <span className="font-medium">Coffee, Bakery</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Price Level</span>
+                      <span className="font-medium">$$-$$$</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </section>
+  );
+}
