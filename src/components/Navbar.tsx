@@ -44,8 +44,8 @@ export default function Navbar() {
           </span>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
+        {/* Desktop Navigation - Centered */}
+        <nav className="hidden md:flex items-center justify-center flex-1">
           <ul className="flex space-x-2">
             {navLinks.map((link, index) => (
               <li key={link.label} className={withDelay(animationClasses.fadeIn, 150 + (index * 50))}>
@@ -68,16 +68,16 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          
-          <div className="pl-4 flex space-x-2">
-            <Button variant="outline" className={withDelay(animationClasses.fadeIn, 400)}>
-              Sign In
-            </Button>
-            <Button className={withDelay(animationClasses.fadeIn, 450)}>
-              Get Started
-            </Button>
-          </div>
         </nav>
+          
+        <div className="hidden md:flex space-x-2">
+          <Button variant="outline" className={withDelay(animationClasses.fadeIn, 400)}>
+            Sign In
+          </Button>
+          <Button className={withDelay(animationClasses.fadeIn, 450)}>
+            Get Started
+          </Button>
+        </div>
 
         {/* Mobile Menu Button */}
         <button
