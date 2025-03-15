@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { MapPin, Search, Clock, Filter, Type, AlertCircle, ListChecks } from "lucide-react";
+import { MapPin, Search, Clock, Filter, Type, AlertCircle, ListChecks, Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,7 +39,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
 
 // Business categories
 const categories = [
@@ -118,6 +117,7 @@ export default function ScraperForm() {
   
   // Data type multi-selection state
   const [selectedDataTypes, setSelectedDataTypes] = useState<string[]>([]);
+  const [dataTypeOpen, setDataTypeOpen] = useState(false);
   
   // Handle country change
   const handleCountryChange = (country: string) => {
@@ -165,8 +165,8 @@ export default function ScraperForm() {
     }
   };
   
-  // Handle data type selection - modified to remove the "all" option logic
-  const handleDataTypeChange = (dataTypeId: string) => {
+  // Handle data type selection - modified to use dropdown multi-select
+  const handleDataTypeSelect = (dataTypeId: string) => {
     setSelectedDataTypes(current => {
       if (current.includes(dataTypeId)) {
         return current.filter(id => id !== dataTypeId);
@@ -408,23 +408,66 @@ export default function ScraperForm() {
                         </span>
                       </div>
                       
-                      <div className="bg-white dark:bg-slate-800 rounded-md border border-input p-3 space-y-3">
-                        {dataTypes.map((dataType) => (
-                          <div key={dataType.id} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`data-type-${dataType.id}`} 
-                              checked={selectedDataTypes.includes(dataType.id)}
-                              onCheckedChange={() => handleDataTypeChange(dataType.id)}
-                            />
-                            <Label 
-                              htmlFor={`data-type-${dataType.id}`}
-                              className="cursor-pointer text-sm font-normal"
-                            >
-                              {dataType.label}
-                            </Label>
+                      {/* Data Type Dropdown Multi-select */}
+                      <Popover open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={dataTypeOpen}
+                            className="w-full justify-between h-10"
+                          >
+                            {selectedDataTypes.length > 0
+                              ? `${selectedDataTypes.length} data type${selectedDataTypes.length > 1 ? 's' : ''} selected`
+                              : "Select data types..."}
+                            <ListChecks className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search data types..." className="h-9" />
+                            <CommandEmpty>No data type found.</CommandEmpty>
+                            <CommandGroup>
+                              <CommandList className="max-h-60 overflow-y-auto">
+                                {dataTypes.map((dataType) => (
+                                  <CommandItem
+                                    key={dataType.id}
+                                    value={dataType.id}
+                                    onSelect={() => handleDataTypeSelect(dataType.id)}
+                                    className="cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-2 w-full">
+                                      <Checkbox 
+                                        id={`data-type-${dataType.id}`}
+                                        checked={selectedDataTypes.includes(dataType.id)}
+                                        className="data-[state=checked]:bg-primary"
+                                        onCheckedChange={() => {}}
+                                      />
+                                      <span>{dataType.label}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandList>
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {/* Display selected data types */}
+                      {selectedDataTypes.length > 0 && (
+                        <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
+                          <div className="flex flex-wrap gap-1">
+                            {selectedDataTypes.map((dataTypeId) => {
+                              const dataType = dataTypes.find(dt => dt.id === dataTypeId);
+                              return (
+                                <div key={dataTypeId} className="bg-white dark:bg-slate-700 px-2 py-1 rounded text-xs flex items-center">
+                                  {dataType?.label}
+                                </div>
+                              );
+                            })}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={isLoading}>
@@ -488,7 +531,7 @@ export default function ScraperForm() {
     "hours": {
       "Monday": "7:00 AM – 8:00 PM",
       "Tuesday": "7:00 AM – 8:00 PM",
-      "Wednesday": "7:00 AM – 8:00 PM",
+      "Wednesday": "7:00 AM ��� 8:00 PM",
       "Thursday": "7:00 AM – 8:00 PM",
       "Friday": "7:00 AM – 9:00 PM",
       "Saturday": "8:00 AM – 9:00 PM",
