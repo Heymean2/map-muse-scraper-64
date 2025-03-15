@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { MapPin, Search, Clock, Filter, Type, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -96,7 +95,6 @@ export default function ScraperForm() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [useKeyword, setUseKeyword] = useState(false);
-  const [radius, setRadius] = useState([10]);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   
@@ -375,30 +373,19 @@ export default function ScraperForm() {
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor="radius">Search Radius (km)</Label>
-                        <span className="text-sm text-slate-500 dark:text-slate-400">{radius[0]} km</span>
-                      </div>
-                      <Slider
-                        id="radius"
-                        defaultValue={[10]}
-                        max={50}
-                        step={1}
-                        value={radius}
-                        onValueChange={setRadius}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
                       <Label htmlFor="data-type">Data Type</Label>
                       <Select defaultValue="business">
                         <SelectTrigger id="data-type">
                           <SelectValue placeholder="Select data type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="business">Business Listings</SelectItem>
-                          <SelectItem value="reviews">Reviews</SelectItem>
-                          <SelectItem value="photos">Photos</SelectItem>
+                          <SelectItem value="title">Title</SelectItem>
+                          <SelectItem value="avg-rating">Average Rating</SelectItem>
+                          <SelectItem value="rating-count">Rating Count</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                          <SelectItem value="website">Website</SelectItem>
+                          <SelectItem value="address">Address</SelectItem>
+                          <SelectItem value="images">Images</SelectItem>
                           <SelectItem value="all">All Available Data</SelectItem>
                         </SelectContent>
                       </Select>
