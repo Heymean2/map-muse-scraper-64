@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { MapPin, Search, Clock, Filter, Type, AlertCircle } from "lucide-react";
+import { MapPin, Search, Clock, Filter, Type, AlertCircle, ListChecks } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -91,6 +91,18 @@ const statesByCountry = {
   ]
 };
 
+// Data types for multi-selection
+const dataTypes = [
+  { id: "title", label: "Title" },
+  { id: "avg-rating", label: "Average Rating" },
+  { id: "rating-count", label: "Rating Count" },
+  { id: "phone", label: "Phone" },
+  { id: "website", label: "Website" },
+  { id: "address", label: "Address" },
+  { id: "images", label: "Images" },
+  { id: "all", label: "All Available Data" }
+];
+
 export default function ScraperForm() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -104,6 +116,9 @@ export default function ScraperForm() {
   const [showCountryError, setShowCountryError] = useState(false);
   const [selectAllStates, setSelectAllStates] = useState(false);
   const [stateSelectOpen, setStateSelectOpen] = useState(false);
+  
+  // Data type multi-selection state
+  const [selectedDataTypes, setSelectedDataTypes] = useState<string[]>([]);
   
   // Handle country change
   const handleCountryChange = (country: string) => {
@@ -149,6 +164,34 @@ export default function ScraperForm() {
     } else {
       setStateSelectOpen(!stateSelectOpen);
     }
+  };
+  
+  // Handle data type selection
+  const handleDataTypeChange = (dataTypeId: string) => {
+    if (dataTypeId === "all") {
+      if (selectedDataTypes.includes("all")) {
+        setSelectedDataTypes([]);
+      } else {
+        setSelectedDataTypes(dataTypes.map(type => type.id));
+      }
+      return;
+    }
+    
+    setSelectedDataTypes(current => {
+      if (current.includes(dataTypeId)) {
+        return current.filter(id => id !== dataTypeId && id !== "all");
+      } 
+      else {
+        const newSelection = [...current, dataTypeId];
+        const allIndividualItems = dataTypes.filter(type => type.id !== "all").map(type => type.id);
+        const allIndividualSelected = allIndividualItems.every(id => newSelection.includes(id));
+        
+        if (allIndividualSelected) {
+          return [...newSelection, "all"];
+        }
+        return newSelection;
+      }
+    });
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -373,22 +416,33 @@ export default function ScraperForm() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="data-type">Data Type</Label>
-                      <Select defaultValue="business">
-                        <SelectTrigger id="data-type">
-                          <SelectValue placeholder="Select data type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="title">Title</SelectItem>
-                          <SelectItem value="avg-rating">Average Rating</SelectItem>
-                          <SelectItem value="rating-count">Rating Count</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="website">Website</SelectItem>
-                          <SelectItem value="address">Address</SelectItem>
-                          <SelectItem value="images">Images</SelectItem>
-                          <SelectItem value="all">All Available Data</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="data-type" className="flex items-center gap-2">
+                          <ListChecks className="h-4 w-4" />
+                          Data Types to Extract
+                        </Label>
+                        <span className="text-xs text-slate-500">
+                          {selectedDataTypes.length} selected
+                        </span>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-slate-800 rounded-md border border-input p-3 space-y-3">
+                        {dataTypes.map((dataType) => (
+                          <div key={dataType.id} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`data-type-${dataType.id}`} 
+                              checked={selectedDataTypes.includes(dataType.id)}
+                              onCheckedChange={() => handleDataTypeChange(dataType.id)}
+                            />
+                            <Label 
+                              htmlFor={`data-type-${dataType.id}`}
+                              className="cursor-pointer text-sm font-normal"
+                            >
+                              {dataType.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={isLoading}>
