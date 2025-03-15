@@ -25,6 +25,21 @@ import { Slider } from "@/components/ui/slider";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { MapPin, Search, Clock, Filter, Type } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 const categories = [
   "bus stop",
@@ -61,6 +76,7 @@ export default function ScraperForm() {
   const [location, setLocation] = useState("");
   const [radius, setRadius] = useState([10]);
   const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,21 +139,52 @@ export default function ScraperForm() {
                           />
                         </div>
                       ) : (
-                        <Select 
-                          value={selectedCategory} 
-                          onValueChange={setSelectedCategory}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-80">
-                            {categories.map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={open}
+                              className="w-full justify-between h-10"
+                            >
+                              {selectedCategory
+                                ? selectedCategory
+                                : "Select a category..."}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Search category..." className="h-9" />
+                              <CommandEmpty>No category found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList className="max-h-60 overflow-y-auto">
+                                  {categories.map((category) => (
+                                    <CommandItem
+                                      key={category}
+                                      value={category}
+                                      onSelect={(currentValue) => {
+                                        setSelectedCategory(currentValue);
+                                        setOpen(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      {category}
+                                      <Check
+                                        className={cn(
+                                          "ml-auto h-4 w-4",
+                                          selectedCategory === category
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </div>
                     
