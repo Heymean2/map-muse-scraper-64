@@ -9,7 +9,6 @@ import { withDelay, animationClasses } from "@/lib/animations";
 import CategorySelector from "./scraper/CategorySelector";
 import LocationSelector from "./scraper/LocationSelector";
 import DataTypeSelector from "./scraper/DataTypeSelector";
-import AdvancedFilters from "./scraper/AdvancedFilters";
 
 export default function ScraperForm() {
   // Form state
@@ -73,8 +72,6 @@ export default function ScraperForm() {
                     selectedDataTypes={selectedDataTypes}
                     setSelectedDataTypes={setSelectedDataTypes}
                   />
-                  
-                  <AdvancedFilters />
                   
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Processing..." : "Start Scraping"}
