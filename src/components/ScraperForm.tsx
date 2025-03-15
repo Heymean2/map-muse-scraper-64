@@ -7,8 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { toast } from "sonner";
 import { startScraping } from "@/services/scraper";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Import the new component modules
+// Import the component modules
 import CategorySelector from "./scraper/CategorySelector";
 import LocationSelector from "./scraper/LocationSelector";
 import DataTypeSelector from "./scraper/DataTypeSelector";
@@ -16,6 +17,7 @@ import RatingSelector from "./scraper/RatingSelector";
 
 export default function ScraperForm() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Form state
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,6 +37,14 @@ export default function ScraperForm() {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is authenticated
+    if (!user) {
+      toast.error("You must be logged in to use this feature");
+      navigate("/auth");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -74,7 +84,7 @@ export default function ScraperForm() {
       if (result.success) {
         toast.success("Scraping started successfully");
         // Redirect to results page with task ID
-        navigate(`/get${result.task_id ? `?task_id=${result.task_id}` : ''}`);
+        navigate(`/result${result.task_id ? `?task_id=${result.task_id}` : ''}`);
       } else {
         toast.error(result.error || "Failed to start scraping");
       }

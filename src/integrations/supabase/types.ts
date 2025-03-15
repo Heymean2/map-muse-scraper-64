@@ -30,6 +30,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_csv_files: {
+        Row: {
+          country: string | null
+          created_at: string
+          fields: string | null
+          filename: string
+          id: string
+          keywords: string | null
+          rating: string | null
+          result_data: Json | null
+          states: string | null
+          status: string | null
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          fields?: string | null
+          filename: string
+          id?: string
+          keywords?: string | null
+          rating?: string | null
+          result_data?: Json | null
+          states?: string | null
+          status?: string | null
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          fields?: string | null
+          filename?: string
+          id?: string
+          keywords?: string | null
+          rating?: string | null
+          result_data?: Json | null
+          states?: string | null
+          status?: string | null
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
