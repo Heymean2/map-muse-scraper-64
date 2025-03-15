@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 
 // Base URL for the scraper API
-const BASE_URL = "https://young-colts-chew.loca.lt/scrape";
+const BASE_URL = "https://loose-rings-add.loca.lt/scrape";
 
 // User ID storage key
 const USER_ID_KEY = "scraper_user_id";
@@ -45,29 +45,27 @@ export async function startScraping(params: ScraperParams): Promise<ScraperRespo
   try {
     const userId = getUserId();
     
-    // Build query parameters
-    const queryParams = new URLSearchParams({
+    // Build request body
+    const requestData = {
       keywords: params.keywords,
       country: params.country,
       states: params.states.join(','),
       user_id: userId,
       fields: params.fields.join(',')
-    });
+    };
     
     // Add optional rating parameter
     if (params.rating) {
-      queryParams.append('rating', params.rating);
+      requestData.rating = params.rating;
     }
     
-    // Construct the full URL
-    const url = `${BASE_URL}?${queryParams.toString()}`;
-    
     // Make the API request
-    const response = await fetch(url, {
+    const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
-      }
+      },
+      body: JSON.stringify(requestData)
     });
     
     if (!response.ok) {
