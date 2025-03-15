@@ -46,7 +46,14 @@ export async function startScraping(params: ScraperParams): Promise<ScraperRespo
     const userId = getUserId();
     
     // Build request body
-    const requestData = {
+    const requestData: {
+      keywords: string;
+      country: string;
+      states: string;
+      user_id: string;
+      fields: string;
+      rating?: string;
+    } = {
       keywords: params.keywords,
       country: params.country,
       states: params.states.join(','),
