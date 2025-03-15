@@ -3,14 +3,16 @@ import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
 
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
+  { label: "Dashboard", href: "/dashboard", isPage: true },
 ];
 
 export default function Navbar() {
@@ -47,12 +49,22 @@ export default function Navbar() {
           <ul className="flex space-x-2">
             {navLinks.map((link, index) => (
               <li key={link.label} className={withDelay(animationClasses.fadeIn, 150 + (index * 50))}>
-                <a
-                  href={link.href}
-                  className="px-4 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
-                >
-                  {link.label}
-                </a>
+                {link.isPage ? (
+                  <Link
+                    to={link.href}
+                    className="px-4 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-1"
+                  >
+                    {link.label === "Dashboard" && <LayoutDashboard size={16} />}
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    href={link.href}
+                    className="px-4 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                  >
+                    {link.label}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
@@ -84,13 +96,24 @@ export default function Navbar() {
             <ul className="flex flex-col space-y-2">
               {navLinks.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="block px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
+                  {link.isPage ? (
+                    <Link
+                      to={link.href}
+                      className="flex items-center gap-1 px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.label === "Dashboard" && <LayoutDashboard size={16} />}
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="block px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
               <li className="pt-2 flex flex-col space-y-2">
