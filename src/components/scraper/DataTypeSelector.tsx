@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Check, ListChecks } from "lucide-react";
+import { ListChecks } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
@@ -42,13 +42,13 @@ export default function DataTypeSelector({
   
   // Handle data type selection
   const handleDataTypeSelect = (dataTypeId: string) => {
-    setSelectedDataTypes(current => {
-      if (current.includes(dataTypeId)) {
-        return current.filter(id => id !== dataTypeId);
-      } else {
-        return [...current, dataTypeId];
-      }
-    });
+    // Create a new array based on the current selection
+    const updatedDataTypes = selectedDataTypes.includes(dataTypeId)
+      ? selectedDataTypes.filter(id => id !== dataTypeId)
+      : [...selectedDataTypes, dataTypeId];
+    
+    // Call the setter with the new array directly
+    setSelectedDataTypes(updatedDataTypes);
   };
 
   return (
