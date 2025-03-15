@@ -91,7 +91,7 @@ const statesByCountry = {
   ]
 };
 
-// Data types for multi-selection
+// Data types for multi-selection - removed "all" option
 const dataTypes = [
   { id: "title", label: "Title" },
   { id: "avg-rating", label: "Average Rating" },
@@ -99,8 +99,7 @@ const dataTypes = [
   { id: "phone", label: "Phone" },
   { id: "website", label: "Website" },
   { id: "address", label: "Address" },
-  { id: "images", label: "Images" },
-  { id: "all", label: "All Available Data" }
+  { id: "images", label: "Images" }
 ];
 
 export default function ScraperForm() {
@@ -166,30 +165,13 @@ export default function ScraperForm() {
     }
   };
   
-  // Handle data type selection
+  // Handle data type selection - modified to remove the "all" option logic
   const handleDataTypeChange = (dataTypeId: string) => {
-    if (dataTypeId === "all") {
-      if (selectedDataTypes.includes("all")) {
-        setSelectedDataTypes([]);
-      } else {
-        setSelectedDataTypes(dataTypes.map(type => type.id));
-      }
-      return;
-    }
-    
     setSelectedDataTypes(current => {
       if (current.includes(dataTypeId)) {
-        return current.filter(id => id !== dataTypeId && id !== "all");
-      } 
-      else {
-        const newSelection = [...current, dataTypeId];
-        const allIndividualItems = dataTypes.filter(type => type.id !== "all").map(type => type.id);
-        const allIndividualSelected = allIndividualItems.every(id => newSelection.includes(id));
-        
-        if (allIndividualSelected) {
-          return [...newSelection, "all"];
-        }
-        return newSelection;
+        return current.filter(id => id !== dataTypeId);
+      } else {
+        return [...current, dataTypeId];
       }
     });
   };
