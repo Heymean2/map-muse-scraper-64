@@ -161,7 +161,9 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
             location: `${typedData.country} - ${typedData.states}`,
             fields: typedData.fields
           },
-          total_count: totalCount
+          total_count: totalCount,
+          result_url: typedData.result_url,
+          created_at: typedData.created_at
         };
       }
     }
@@ -266,6 +268,24 @@ export async function checkUserFreeTierLimit(): Promise<{
     };
   } catch (error) {
     console.error("Error checking free tier limit:", error);
+    throw error;
+  }
+}
+
+/**
+ * Download CSV file from result_url
+ */
+export async function downloadCsvFromUrl(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download CSV: ${response.statusText}`);
+    }
+    
+    const csvText = await response.text();
+    return csvText;
+  } catch (error) {
+    console.error("Error downloading CSV:", error);
     throw error;
   }
 }

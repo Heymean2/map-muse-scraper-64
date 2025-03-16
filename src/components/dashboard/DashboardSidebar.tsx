@@ -17,10 +17,12 @@ import {
   UserCircle, 
   CreditCard, 
   Settings, 
-  LogOut 
+  LogOut,
+  User
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardSidebar() {
   const location = useLocation();
@@ -66,16 +68,10 @@ export default function DashboardSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-            {user?.email?.charAt(0).toUpperCase() || 'U'}
-          </div>
-          <div className="flex flex-col">
-            <span className="font-medium text-sm truncate max-w-[140px]">
-              {user?.email}
-            </span>
-            <span className="text-xs text-gray-500">Free Plan</span>
-          </div>
+        <div className="flex items-center justify-center">
+          <Link to="/dashboard" className="text-2xl font-bold text-primary">
+            G-Scraper
+          </Link>
         </div>
       </SidebarHeader>
       
@@ -101,15 +97,29 @@ export default function DashboardSidebar() {
       </SidebarContent>
       
       <SidebarFooter className="p-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full flex items-center gap-2"
-          onClick={() => signOut()}
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Log Out</span>
-        </Button>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+              <User className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-sm truncate max-w-[140px]">
+                {user?.email}
+              </span>
+              <span className="text-xs text-gray-500">Free Plan</span>
+            </div>
+          </div>
+          <Separator />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full flex items-center gap-2"
+            onClick={() => signOut()}
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Log Out</span>
+          </Button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
