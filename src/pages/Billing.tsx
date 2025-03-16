@@ -1,189 +1,191 @@
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useQuery } from "@tanstack/react-query";
-import { checkUserFreeTierLimit } from "@/services/scraper";
-import { CircleDollarSign, CheckCircle, CreditCard, Lock } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Check, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
-// Define the PricingPlan type
-interface PricingPlan {
-  id: number;
-  name: string;
-  price: number;
-  billing_period: string;
-  row_limit: number;
-  features: string[];
-  is_recommended: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Billing() {
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<PricingPlan | null>(null);
+  const { toast } = useToast();
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   
-  const { data: usageLimitData, isLoading } = useQuery({
-    queryKey: ['userFreeTierLimit'],
-    queryFn: checkUserFreeTierLimit
+  // Fetch pricing plans from Supabase
+  const { data: pricingPlans, isLoading } = useQuery({
+    queryKey: ['pricingPlans', billingPeriod],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pricing_plans')
+        .select('*')
+        .eq('billing_period', billingPeriod)
+        .order('price', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    }
   });
-
-  useEffect(() => {
-    async function fetchPricingPlans() {
+  
+  const handleUpgrade = (planId: number, planName: string) => {
+    // For demo purposes - this would connect to a payment processor in a real app
+    toast({
+      title: "Upgrade initiated",
+      description: `You selected the ${planName} plan. This would connect to a payment processor in a real application.`,
+    });
+  };
+  
+  // Function to parse features from JSON to array
+  const getFeatures = (featuresJson: any): string[] => {
+    if (!featuresJson) return [];
+    if (typeof featuresJson === 'string') {
       try {
-        const { data, error } = await supabase
-          .from('pricing_plans')
-          .select('*')
-          .order('price', { ascending: true });
-          
-        if (error) throw error;
-        
-        if (data) {
-          // Parse the JSON features
-          const plansWithParsedFeatures = data.map(plan => ({
-            ...plan,
-            features: Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features)
-          }));
-          
-          setPricingPlans(plansWithParsedFeatures);
-          
-          // Set the Free Plan as current
-          const freePlan = plansWithParsedFeatures.find(plan => plan.price === 0);
-          if (freePlan) setCurrentPlan(freePlan);
-        }
-      } catch (error) {
-        console.error('Error fetching pricing plans:', error);
-        toast.error('Failed to load pricing plans');
+        return JSON.parse(featuresJson);
+      } catch (e) {
+        return [];
       }
     }
-    
-    fetchPricingPlans();
-  }, []);
-
-  const calculateUsagePercentage = () => {
-    if (!usageLimitData) return 0;
-    return Math.min(Math.round((usageLimitData.totalRows / usageLimitData.freeRowsLimit) * 100), 100);
+    return Array.isArray(featuresJson) ? featuresJson.map(f => String(f)) : [];
   };
-
-  const handleUpgrade = (planId: number) => {
-    toast('Upgrade functionality coming soon!');
-  };
-
+  
   return (
     <DashboardLayout>
       <Container>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Billing & Subscription</h1>
-          <p className="text-muted-foreground">Manage your plan and payment details</p>
+          <h1 className="text-3xl font-bold">Billing & Plans</h1>
+          <p className="text-muted-foreground">Manage your subscription and payment details</p>
         </div>
         
-        {/* Current plan status */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Current Plan</CardTitle>
-            <CardDescription>Your subscription details and usage</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between bg-primary/5 rounded-lg p-4">
-              <div>
-                <h3 className="font-bold text-xl">{currentPlan?.name || 'Free Plan'}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Limited to {currentPlan?.row_limit || 500} rows of data
-                </p>
+        <Tabs defaultValue="plans" className="w-full">
+          <TabsList className="mb-8">
+            <TabsTrigger value="plans">Plans</TabsTrigger>
+            <TabsTrigger value="payment">Payment Methods</TabsTrigger>
+            <TabsTrigger value="history">Billing History</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="plans">
+            <div className="flex justify-end mb-6">
+              <div className="inline-flex items-center rounded-lg border p-1 bg-background">
+                <Button
+                  variant={billingPeriod === "monthly" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setBillingPeriod("monthly")}
+                >
+                  Monthly
+                </Button>
+                <Button
+                  variant={billingPeriod === "yearly" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setBillingPeriod("yearly")}
+                >
+                  Yearly
+                  <Badge variant="outline" className="ml-2 bg-primary/20">Save 20%</Badge>
+                </Button>
               </div>
-              <Button onClick={() => handleUpgrade(2)}>
-                <CircleDollarSign className="mr-2 h-4 w-4" />
-                Upgrade Plan
-              </Button>
             </div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Data Usage</span>
-                <span className="text-sm">
-                  {isLoading ? 'Loading...' : `${usageLimitData?.totalRows || 0} / ${currentPlan?.row_limit || 500} rows`}
-                </span>
-              </div>
-              <Progress value={calculateUsagePercentage()} className="h-2" />
-              <p className="text-xs text-muted-foreground">
-                {usageLimitData?.isExceeded 
-                  ? "You've exceeded the free tier limit. Upgrade to continue accessing all your data."
-                  : "You're currently within the free tier limits."}
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoading ? (
+                // Loading skeleton
+                Array(3).fill(0).map((_, i) => (
+                  <Card key={i} className="flex flex-col">
+                    <CardHeader>
+                      <div className="h-8 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-6 w-1/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {Array(4).fill(0).map((_, j) => (
+                          <div key={j} className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="mt-auto pt-4">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    </CardFooter>
+                  </Card>
+                ))
+              ) : (
+                pricingPlans?.map((plan) => (
+                  <Card 
+                    key={plan.id} 
+                    className={`flex flex-col ${plan.is_recommended ? 'border-primary' : ''}`}
+                  >
+                    <CardHeader>
+                      <CardTitle>{plan.name}</CardTitle>
+                      <CardDescription>
+                        ${plan.price}{billingPeriod === "monthly" ? "/month" : "/year"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <div className="space-y-2">
+                        {getFeatures(plan.features).map((feature, index) => (
+                          <div key={index} className="flex items-center">
+                            <Check className="mr-2 h-4 w-4 text-primary" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        variant={plan.price > 0 ? "default" : "outline"} 
+                        className="w-full"
+                        onClick={() => handleUpgrade(plan.id, plan.name)}
+                      >
+                        {plan.price > 0 ? (
+                          <>
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Upgrade Now
+                          </>
+                        ) : "Current Plan"}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* Plan comparison */}
-        <h2 className="text-2xl font-bold mb-4">Available Plans</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {pricingPlans.map((plan) => (
-            <Card key={plan.id} className={plan.is_recommended ? "border-primary/50" : ""}>
+          </TabsContent>
+          
+          <TabsContent value="payment">
+            <Card>
               <CardHeader>
-                {plan.is_recommended && (
-                  <div className="bg-primary/5 absolute -top-3 -right-3 px-3 py-1 rounded-full text-xs font-bold text-primary">
-                    RECOMMENDED
-                  </div>
-                )}
-                <CardTitle className="flex items-center">
-                  {plan.name}
-                  {plan.price === 0 && (
-                    <Badge className="ml-2 bg-green-500">Current</Badge>
-                  )}
-                </CardTitle>
+                <CardTitle>Payment Methods</CardTitle>
                 <CardDescription>
-                  {plan.price === 0 ? "Basic features for personal use" : "Advanced features for power users"}
+                  Manage your payment methods and billing settings
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-3xl font-bold">
-                  ${plan.price}<span className="text-base font-normal text-muted-foreground">/{plan.billing_period}</span>
+              <CardContent>
+                <p className="text-center py-8 text-muted-foreground">
+                  No payment methods added yet
                 </p>
-                
-                <Separator />
-                
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                  
-                  {plan.price === 0 && (
-                    <>
-                      <li className="flex items-center gap-2 opacity-50">
-                        <Lock className="h-4 w-4" />
-                        <span>Unlimited data storage</span>
-                      </li>
-                      <li className="flex items-center gap-2 opacity-50">
-                        <Lock className="h-4 w-4" />
-                        <span>Priority processing</span>
-                      </li>
-                    </>
-                  )}
-                </ul>
+                <Button className="w-full md:w-auto">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Add Payment Method
+                </Button>
               </CardContent>
-              <CardFooter>
-                {plan.price === 0 ? (
-                  <Button variant="outline" className="w-full" disabled>Current Plan</Button>
-                ) : (
-                  <Button className="w-full" onClick={() => handleUpgrade(plan.id)}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Upgrade Now
-                  </Button>
-                )}
-              </CardFooter>
             </Card>
-          ))}
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>Billing History</CardTitle>
+                <CardDescription>
+                  View your previous invoices and payment history
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center py-8 text-muted-foreground">
+                  No billing history available
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </Container>
     </DashboardLayout>
   );

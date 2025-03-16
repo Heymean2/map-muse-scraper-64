@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import Billing from "./pages/Billing";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/result" element={<Results />} />
             <Route path="/dashboard/profile" element={<Profile />} />
             <Route path="/dashboard/billing" element={<Billing />} />
+            <Route path="/dashboard/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CircleDollarSign, FilePlus2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import Settings from "@/pages/Settings";
 
 function DashboardHome() {
   const navigate = useNavigate();
@@ -143,7 +144,8 @@ export default function Dashboard() {
       <Routes>
         <Route path="/" element={<DashboardHome />} />
         <Route path="/scrape" element={<ScraperForm />} />
-        {/* Additional routes will be added for profile, billing, settings */}
+        <Route path="/settings" element={<Settings />} />
+        {/* Additional routes for profile, billing (already exist) */}
       </Routes>
     </DashboardLayout>
   );

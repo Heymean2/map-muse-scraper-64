@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { CalendarDays, Search, MapPin, Tag, Star, List } from 'lucide-react';
+import { CalendarDays, Search, MapPin, Tag, Star, List, FileText } from 'lucide-react';
 
 interface SearchInfoProps {
   totalCount: number;
@@ -23,11 +23,25 @@ export default function SearchInfoCard({ totalCount, searchInfo, completedAt }: 
   const fieldsArray = searchInfo.fields 
     ? (typeof searchInfo.fields === 'string' ? searchInfo.fields.split(',') : searchInfo.fields) 
     : [];
+    
+  // Parse location if it contains country and states
+  let country = '';
+  let states = '';
+  
+  if (searchInfo.location) {
+    const locationParts = searchInfo.location.split(' - ');
+    if (locationParts.length > 1) {
+      country = locationParts[0];
+      states = locationParts[1];
+    } else {
+      country = searchInfo.location;
+    }
+  }
 
   return (
     <div className="mt-6 bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-      <h3 className="font-medium mb-2">Search Details</h3>
-      <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+      <h3 className="font-medium mb-3">Search Details</h3>
+      <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-slate-400" />
           <p><span className="font-medium">Keywords:</span> {searchInfo.keywords || 'N/A'}</p>
@@ -35,8 +49,15 @@ export default function SearchInfoCard({ totalCount, searchInfo, completedAt }: 
         
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-slate-400" />
-          <p><span className="font-medium">Location:</span> {searchInfo.location || 'N/A'}</p>
+          <p><span className="font-medium">Country:</span> {country || 'N/A'}</p>
         </div>
+        
+        {states && (
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-slate-400" />
+            <p><span className="font-medium">States/Regions:</span> {states}</p>
+          </div>
+        )}
         
         {searchInfo.rating && (
           <div className="flex items-center gap-2">

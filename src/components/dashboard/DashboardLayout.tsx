@@ -5,8 +5,6 @@ import Footer from "@/components/Footer";
 import DashboardSidebar from "./DashboardSidebar";
 import { 
   SidebarProvider, 
-  Sidebar, 
-  SidebarContent, 
   SidebarInset 
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";

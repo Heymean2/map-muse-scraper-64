@@ -67,23 +67,21 @@ export default function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
-        <div className="flex items-center justify-center">
-          {/* Removed G-Scraper text as requested */}
+      <SidebarHeader className="p-4 mt-16">
+        <div className="flex items-center">
+          {/* Empty header as requested */}
         </div>
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          {/* Added justify-center for centering menu items */}
-          <SidebarMenu className="justify-center">
+          <SidebarMenu>
             {menuItems.map((item) => (
-              <SidebarMenuItem key={item.path} className="flex justify-center">
+              <SidebarMenuItem key={item.path}>
                 <SidebarMenuButton 
                   asChild 
                   isActive={isActive(item.path)}
                   tooltip={item.title}
-                  className="flex justify-center"
                 >
                   <Link to={item.path}>
                     <item.icon className="w-5 h-5" />

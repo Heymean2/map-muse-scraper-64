@@ -78,6 +78,7 @@ export type Database = {
           keywords: string
           rating: string | null
           result_url: string | null
+          row_count: number | null
           states: string
           status: string | null
           task_id: string
@@ -92,6 +93,7 @@ export type Database = {
           keywords: string
           rating?: string | null
           result_url?: string | null
+          row_count?: number | null
           states: string
           status?: string | null
           task_id: string
@@ -106,6 +108,7 @@ export type Database = {
           keywords?: string
           rating?: string | null
           result_url?: string | null
+          row_count?: number | null
           states?: string
           status?: string | null
           task_id?: string

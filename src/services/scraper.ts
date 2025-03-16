@@ -35,6 +35,7 @@ interface ScrapingRequest {
   task_id: string;
   updated_at: string | null;
   user_id: string;
+  row_count: number | null;
   result_data?: any[]; // Adding result_data as an optional array property
 }
 
@@ -142,7 +143,7 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
         
         // Check if result_data exists and is an array
         let dataArray: any[] = [];
-        let totalCount = 0;
+        let totalCount = typedData.row_count || 0;
         
         if (typedData.result_data) {
           // Ensure result_data is an array
@@ -150,7 +151,10 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
             ? typedData.result_data 
             : [];
           
-          totalCount = dataArray.length;
+          // Use row_count from database if available, otherwise use length of result_data
+          if (!totalCount) {
+            totalCount = dataArray.length;
+          }
         }
         
         return {
@@ -159,7 +163,8 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
           search_info: {
             keywords: typedData.keywords,
             location: `${typedData.country} - ${typedData.states}`,
-            fields: typedData.fields
+            fields: typedData.fields,
+            rating: typedData.rating
           },
           total_count: totalCount,
           result_url: typedData.result_url,
@@ -233,6 +238,19 @@ export async function checkUserFreeTierLimit(): Promise<{
       throw new Error("Authentication required");
     }
     
+    // Get pricing plan row limit
+    const { data: pricingData, error: pricingError } = await supabase
+      .from('pricing_plans')
+      .select('row_limit')
+      .eq('name', 'Free Plan')
+      .single();
+      
+    if (pricingError) {
+      console.error("Error fetching pricing plan:", pricingError);
+    }
+    
+    const freeRowsLimit = pricingData?.row_limit || 500;
+    
     // Get all completed tasks for this user
     const { data, error } = await supabase
       .from('scraping_requests')
@@ -244,21 +262,24 @@ export async function checkUserFreeTierLimit(): Promise<{
       throw error;
     }
     
-    // Calculate total rows across all tasks
+    // Calculate total rows across all tasks, using row_count if available
     let totalRows = 0;
     
     if (data && data.length > 0) {
       data.forEach(task => {
-        // Cast to our interface that includes result_data
+        // Cast to our interface that includes row_count
         const typedTask = task as ScrapingRequest;
         
-        if (typedTask.result_data && Array.isArray(typedTask.result_data)) {
+        if (typedTask.row_count) {
+          // Use row_count if available
+          totalRows += Number(typedTask.row_count);
+        } else if (typedTask.result_data && Array.isArray(typedTask.result_data)) {
+          // Fallback to result_data length if row_count not available
           totalRows += typedTask.result_data.length;
         }
       });
     }
     
-    const freeRowsLimit = 500;
     const isExceeded = totalRows > freeRowsLimit;
     
     return {
