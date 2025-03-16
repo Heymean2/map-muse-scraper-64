@@ -1,9 +1,11 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ResultsTable from "./ResultsTable";
 import SearchInfoCard from "./SearchInfoCard";
-import { FileDown, Lock, Download, AlertTriangle, Clock } from "lucide-react";
+import CSVPreview from "./CSVPreview";
+import { FileDown, Lock, Download, AlertTriangle, Clock, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
@@ -24,6 +26,8 @@ export default function ResultsContent({
   exportCSV,
   isLimited = false
 }: ResultsContentProps) {
+  const [showCsvPreview, setShowCsvPreview] = useState(false);
+  
   if (loading) {
     return (
       <div className="md:col-span-3 space-y-4">
@@ -82,22 +86,48 @@ export default function ResultsContent({
           <p className="text-green-700 dark:text-green-400">
             Your data is ready to be downloaded. No preview is available, but you can download the full CSV file.
           </p>
-          {results.result_url && (
-            <Button 
-              className="mt-2 gap-2" 
-              onClick={() => window.open(results.result_url, '_blank')}
-            >
-              <Download className="h-4 w-4" />
-              Download Results
-            </Button>
-          )}
+          
+          <div className="flex gap-2 mt-2">
+            {results.result_url && (
+              <>
+                <Button 
+                  className="gap-2" 
+                  onClick={() => window.open(results.result_url, '_blank')}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Results
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="gap-2" 
+                  onClick={() => setShowCsvPreview(true)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Preview CSV
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         
         <SearchInfoCard 
           totalCount={results.total_count || 0} 
-          searchInfo={results.search_info}
+          searchInfo={{
+            keywords: results.search_info?.keywords,
+            location: results.search_info?.location,
+            fields: results.search_info?.fields,
+            rating: results.search_info?.rating
+          }}
           completedAt={results.updated_at}
         />
+        
+        {showCsvPreview && results.result_url && (
+          <CSVPreview 
+            url={results.result_url} 
+            onClose={() => setShowCsvPreview(false)} 
+          />
+        )}
       </div>
     );
   }
@@ -134,14 +164,25 @@ export default function ResultsContent({
         
         <div className="flex gap-2">
           {results.result_url && (
-            <Button 
-              variant="outline" 
-              onClick={() => window.open(results.result_url, '_blank')}
-              className="gap-1 text-sm"
-            >
-              <FileDown className="h-4 w-4" />
-              <span>Raw CSV</span>
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCsvPreview(true)}
+                className="gap-1 text-sm"
+              >
+                <Eye className="h-4 w-4" />
+                <span>Preview CSV</span>
+              </Button>
+            
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(results.result_url, '_blank')}
+                className="gap-1 text-sm"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>Raw CSV</span>
+              </Button>
+            </>
           )}
           
           <Button 
@@ -162,9 +203,21 @@ export default function ResultsContent({
       
       <SearchInfoCard 
         totalCount={results.total_count || 0} 
-        searchInfo={results.search_info}
+        searchInfo={{
+          keywords: results.search_info?.keywords,
+          location: results.search_info?.location,
+          fields: results.search_info?.fields,
+          rating: results.search_info?.rating
+        }}
         completedAt={results.updated_at}
       />
+      
+      {showCsvPreview && results.result_url && (
+        <CSVPreview 
+          url={results.result_url} 
+          onClose={() => setShowCsvPreview(false)} 
+        />
+      )}
     </div>
   );
 }

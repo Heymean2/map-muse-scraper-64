@@ -9,23 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      pricing_plans: {
+        Row: {
+          billing_period: string
+          created_at: string
+          features: Json
+          id: number
+          is_recommended: boolean
+          name: string
+          price: number
+          row_limit: number
+          updated_at: string
+        }
+        Insert: {
+          billing_period?: string
+          created_at?: string
+          features?: Json
+          id?: number
+          is_recommended?: boolean
+          name: string
+          price: number
+          row_limit: number
+          updated_at?: string
+        }
+        Update: {
+          billing_period?: string
+          created_at?: string
+          features?: Json
+          id?: number
+          is_recommended?: boolean
+          name?: string
+          price?: number
+          row_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           email: string
           id: string
+          is_admin: boolean | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          is_admin?: boolean | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          is_admin?: boolean | null
           updated_at?: string
         }
         Relationships: []

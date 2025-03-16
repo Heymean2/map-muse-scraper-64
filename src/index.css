@@ -37,6 +37,9 @@
 
     --radius: 0.5rem;
 
+    --header-bg: 0 0% 100%;
+    --header-bg-alpha: 255, 255, 255;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -76,6 +79,9 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     
+    --header-bg: 222.2 47.4% 11.2%;
+    --header-bg-alpha: 22, 23, 29;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -99,6 +105,12 @@
 
   .font-inter {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  /* Header with solid background */
+  header.fixed {
+    @apply bg-background/95 backdrop-blur-md border-b !important;
+    transition: all 0.3s ease;
   }
 }
 

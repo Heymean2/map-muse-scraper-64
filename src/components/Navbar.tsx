@@ -68,7 +68,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/80 backdrop-blur-lg shadow-sm py-3"
+          ? "bg-background/95 backdrop-blur-md border-b shadow-sm py-3"
           : "bg-transparent py-5"
       }`}
     >
@@ -144,7 +144,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && isMobile && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-lg shadow-lg animate-slide-down">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg shadow-lg animate-slide-down">
           <Container className="py-4">
             <ul className="flex flex-col space-y-2">
               {navLinks.map((link) => (

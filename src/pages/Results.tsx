@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Container } from "@/components/ui/container";
-import { getScrapingResults, getUserScrapingTasks } from "@/services/scraper";
+import { getScrapingResults, getUserScrapingTasks, checkUserFreeTierLimit } from "@/services/scraper";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +12,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
-import { checkUserFreeTierLimit } from "@/services/scraper";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Results() {
   const [searchParams] = useSearchParams();
@@ -26,7 +26,14 @@ export default function Results() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [freeTierExceeded, setFreeTierExceeded] = useState(false);
-  const [usageData, setUsageData] = useState<{totalRows: number, freeRowsLimit: number} | null>(null);
+  
+  // Use React Query for getting usage data
+  const { data: usageData, refetch: refetchUsageData } = useQuery({
+    queryKey: ['userFreeTierLimit'],
+    queryFn: checkUserFreeTierLimit,
+    enabled: !!user,
+    staleTime: 30000 // 30 seconds
+  });
   
   const fetchResults = async () => {
     if (!user) return;
@@ -35,18 +42,21 @@ export default function Results() {
     setError(null);
     
     try {
-      // Check if user has exceeded free tier
-      const usageLimit = await checkUserFreeTierLimit();
-      setUsageData(usageLimit);
-      setFreeTierExceeded(usageLimit.isExceeded);
+      // First check if user has exceeded free tier (will be cached by React Query)
+      if (!usageData) {
+        await refetchUsageData();
+      }
       
       const data = await getScrapingResults(taskId || undefined);
       setResults(data);
       
-      // If we're showing data, only show first 5 rows when free tier exceeded
-      if (usageLimit.isExceeded && data?.data?.length > 5) {
+      // If we're showing data and free tier is exceeded, show only first 5 rows
+      if (usageData?.isExceeded && data?.data?.length > 5) {
         data.data = data.data.slice(0, 5);
         data.limited = true;
+        setFreeTierExceeded(true);
+      } else {
+        setFreeTierExceeded(usageData?.isExceeded || false);
       }
     } catch (err) {
       setError("Failed to fetch results. Please try again later.");
@@ -80,13 +90,14 @@ export default function Results() {
     fetchResults();
     fetchUserTasks();
     
-    // Auto refresh every 50 seconds
+    // Auto refresh every 30 seconds if processing
     const intervalId = setInterval(() => {
       if (results?.status === "processing") {
         fetchResults();
         fetchUserTasks();
+        refetchUsageData();
       }
-    }, 50000);
+    }, 30000);
     
     return () => clearInterval(intervalId);
   }, [taskId, user]);
@@ -161,7 +172,7 @@ export default function Results() {
               <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-4">
                 Currently showing only 5 rows out of {results.total_count}. Upgrade your plan to access all data.
               </p>
-              <Button>Upgrade Now</Button>
+              <Button onClick={() => window.location.href = '/dashboard/billing'}>Upgrade Now</Button>
             </CardContent>
           </Card>
         )}
