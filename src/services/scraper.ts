@@ -21,6 +21,23 @@ export interface ScraperResponse {
   error?: string;
 }
 
+// Define a type for the scraping_requests table rows that includes result_data
+interface ScrapingRequest {
+  country: string;
+  created_at: string | null;
+  fields: string | null;
+  id: number;
+  keywords: string;
+  rating: string | null;
+  result_url: string | null;
+  states: string;
+  status: string | null;
+  task_id: string;
+  updated_at: string | null;
+  user_id: string;
+  result_data?: any[]; // Adding result_data as an optional array property
+}
+
 /**
  * Start a scraping task
  */
@@ -120,14 +137,17 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
       }
       
       if (existingData) {
+        // Cast to our interface that includes result_data
+        const typedData = existingData as ScrapingRequest;
+        
         // Check if result_data exists and is an array
-        let dataArray = [];
+        let dataArray: any[] = [];
         let totalCount = 0;
         
-        if (existingData.result_data) {
+        if (typedData.result_data) {
           // Ensure result_data is an array
-          dataArray = Array.isArray(existingData.result_data) 
-            ? existingData.result_data 
+          dataArray = Array.isArray(typedData.result_data) 
+            ? typedData.result_data 
             : [];
           
           totalCount = dataArray.length;
@@ -135,11 +155,11 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
         
         return {
           data: dataArray,
-          status: existingData.status,
+          status: typedData.status,
           search_info: {
-            keywords: existingData.keywords,
-            location: `${existingData.country} - ${existingData.states}`,
-            fields: existingData.fields
+            keywords: typedData.keywords,
+            location: `${typedData.country} - ${typedData.states}`,
+            fields: typedData.fields
           },
           total_count: totalCount
         };
@@ -227,8 +247,11 @@ export async function checkUserFreeTierLimit(): Promise<{
     
     if (data && data.length > 0) {
       data.forEach(task => {
-        if (task.result_data && Array.isArray(task.result_data)) {
-          totalRows += task.result_data.length;
+        // Cast to our interface that includes result_data
+        const typedTask = task as ScrapingRequest;
+        
+        if (typedTask.result_data && Array.isArray(typedTask.result_data)) {
+          totalRows += typedTask.result_data.length;
         }
       });
     }

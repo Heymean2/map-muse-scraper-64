@@ -7,12 +7,16 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isLoading: boolean; // Added isLoading as an alias to loading for consistency
+  signOut: () => Promise<void>; // Added signOut function
 };
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
+  isLoading: true, // Also initialize isLoading
+  signOut: async () => {}, // Initialize with empty function
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -52,10 +56,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Implement the signOut function
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   const value = {
     session,
     user,
     loading,
+    isLoading: loading, // Add isLoading as an alias to loading
+    signOut, // Add the signOut function
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
