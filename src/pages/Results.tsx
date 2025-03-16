@@ -1,22 +1,22 @@
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Container } from "@/components/ui/container";
-import { Button } from "@/components/ui/button";
 import { getScrapingResults, getUserScrapingTasks } from "@/services/scraper";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { Download, ArrowLeft, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import TaskList from "@/components/results/TaskList";
 import ResultsContent from "@/components/results/ResultsContent";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
+import { checkUserFreeTierLimit } from "@/services/scraper";
 
 export default function Results() {
   const [searchParams] = useSearchParams();
   const taskId = searchParams.get("task_id");
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -25,19 +25,29 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [freeTierExceeded, setFreeTierExceeded] = useState(false);
+  const [usageData, setUsageData] = useState<{totalRows: number, freeRowsLimit: number} | null>(null);
   
   const fetchResults = async () => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
+    if (!user) return;
     
     setLoading(true);
     setError(null);
     
     try {
+      // Check if user has exceeded free tier
+      const usageLimit = await checkUserFreeTierLimit();
+      setUsageData(usageLimit);
+      setFreeTierExceeded(usageLimit.isExceeded);
+      
       const data = await getScrapingResults(taskId || undefined);
       setResults(data);
+      
+      // If we're showing data, only show first 5 rows when free tier exceeded
+      if (usageLimit.isExceeded && data?.data?.length > 5) {
+        data.data = data.data.slice(0, 5);
+        data.limited = true;
+      }
     } catch (err) {
       setError("Failed to fetch results. Please try again later.");
       toast({
@@ -65,30 +75,39 @@ export default function Results() {
   };
   
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
+    if (!user) return;
     
     fetchResults();
     fetchUserTasks();
     
-    // If task is still processing, poll for results every 10 seconds
+    // Auto refresh every 50 seconds
     const intervalId = setInterval(() => {
       if (results?.status === "processing") {
         fetchResults();
+        fetchUserTasks();
       }
-    }, 10000);
+    }, 50000);
     
     return () => clearInterval(intervalId);
   }, [taskId, user]);
   
   const handleTaskClick = (task: any) => {
-    navigate(`/result?task_id=${task.task_id}`);
+    window.history.pushState({}, '', `/result?task_id=${task.task_id}`);
+    window.dispatchEvent(new Event('popstate'));
+    fetchResults();
   };
   
   const handleExportCSV = () => {
     if (!results?.data) return;
+    
+    if (freeTierExceeded) {
+      toast({
+        title: "Upgrade Required",
+        description: "Please upgrade your plan to export full data",
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Convert results to CSV
     const headers = Object.keys(results.data[0] || {}).join(',');
@@ -113,56 +132,58 @@ export default function Results() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow pt-24 pb-16">
-        <Container>
-          <div className="mb-8">
-            <Button variant="outline" onClick={() => navigate("/dashboard")} className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            
-            <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
-              Scraping Results
-            </h1>
-            
-            <div className="flex items-center justify-between">
-              <p className={`text-lg text-slate-600 dark:text-slate-400 ${withDelay(animationClasses.slideUp, 200)}`}>
-                {taskId && <span className="text-sm">(Task ID: {taskId})</span>}
-              </p>
-              
-              <Button 
-                variant="outline" 
-                onClick={fetchResults}
-                disabled={loading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
-          </div>
+    <DashboardLayout>
+      <Container>
+        <div className="mb-8">
+          <h1 className={`text-3xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
+            Scraping Results
+          </h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <TaskList 
-              userTasks={userTasks}
-              tasksLoading={tasksLoading}
-              currentTaskId={taskId}
-              onTaskClick={handleTaskClick}
-            />
-            
-            <ResultsContent 
-              loading={loading}
-              error={error}
-              taskId={taskId}
-              results={results}
-              exportCSV={handleExportCSV}
-            />
-          </div>
-        </Container>
-      </main>
-      <Footer />
-    </div>
+          {taskId && (
+            <p className={`text-sm text-slate-600 dark:text-slate-400 ${withDelay(animationClasses.slideUp, 200)}`}>
+              Task ID: {taskId}
+            </p>
+          )}
+        </div>
+        
+        {freeTierExceeded && results?.data?.length > 0 && (
+          <Card className="mb-6 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+                <Lock className="h-4 w-4" />
+                Limited Preview
+              </CardTitle>
+              <CardDescription className="text-yellow-600 dark:text-yellow-500">
+                You've exceeded the free tier limit of {usageData?.freeRowsLimit} rows
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-4">
+                Currently showing only 5 rows out of {results.total_count}. Upgrade your plan to access all data.
+              </p>
+              <Button>Upgrade Now</Button>
+            </CardContent>
+          </Card>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <TaskList 
+            userTasks={userTasks}
+            tasksLoading={tasksLoading}
+            currentTaskId={taskId}
+            onTaskClick={handleTaskClick}
+          />
+          
+          <ResultsContent 
+            loading={loading}
+            error={error}
+            taskId={taskId}
+            results={results}
+            exportCSV={handleExportCSV}
+            isLimited={results?.limited || false}
+          />
+        </div>
+      </Container>
+    </DashboardLayout>
   );
 }

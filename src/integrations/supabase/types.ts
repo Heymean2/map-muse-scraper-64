@@ -30,47 +30,47 @@ export type Database = {
         }
         Relationships: []
       }
-      user_csv_files: {
+      scraping_requests: {
         Row: {
-          country: string | null
-          created_at: string
+          country: string
+          created_at: string | null
           fields: string | null
-          filename: string
-          id: string
-          keywords: string | null
+          id: number
+          keywords: string
           rating: string | null
-          result_data: Json | null
-          states: string | null
+          result_url: string | null
+          states: string
           status: string | null
-          task_id: string | null
+          task_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          country?: string | null
-          created_at?: string
+          country: string
+          created_at?: string | null
           fields?: string | null
-          filename: string
-          id?: string
-          keywords?: string | null
+          id?: number
+          keywords: string
           rating?: string | null
-          result_data?: Json | null
-          states?: string | null
+          result_url?: string | null
+          states: string
           status?: string | null
-          task_id?: string | null
+          task_id: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          country?: string | null
-          created_at?: string
+          country?: string
+          created_at?: string | null
           fields?: string | null
-          filename?: string
-          id?: string
-          keywords?: string | null
+          id?: number
+          keywords?: string
           rating?: string | null
-          result_data?: Json | null
-          states?: string | null
+          result_url?: string | null
+          states?: string
           status?: string | null
-          task_id?: string | null
+          task_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
