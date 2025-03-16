@@ -109,18 +109,20 @@ export default function Settings() {
                         <Languages className="h-4 w-4 inline mr-1" />
                         Language
                       </Label>
-                      <Select defaultValue="en" className="col-span-3">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Spanish</SelectItem>
-                          <SelectItem value="fr">French</SelectItem>
-                          <SelectItem value="de">German</SelectItem>
-                          <SelectItem value="zh">Chinese</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="col-span-3">
+                        <Select defaultValue="en">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="es">Spanish</SelectItem>
+                            <SelectItem value="fr">French</SelectItem>
+                            <SelectItem value="de">German</SelectItem>
+                            <SelectItem value="zh">Chinese</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -128,18 +130,20 @@ export default function Settings() {
                         <LucideGlobe className="h-4 w-4 inline mr-1" />
                         Region
                       </Label>
-                      <Select defaultValue="us" className="col-span-3">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select region" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="us">United States</SelectItem>
-                          <SelectItem value="uk">United Kingdom</SelectItem>
-                          <SelectItem value="ca">Canada</SelectItem>
-                          <SelectItem value="au">Australia</SelectItem>
-                          <SelectItem value="eu">Europe</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="col-span-3">
+                        <Select defaultValue="us">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select region" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="us">United States</SelectItem>
+                            <SelectItem value="uk">United Kingdom</SelectItem>
+                            <SelectItem value="ca">Canada</SelectItem>
+                            <SelectItem value="au">Australia</SelectItem>
+                            <SelectItem value="eu">Europe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>
