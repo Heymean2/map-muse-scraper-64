@@ -1,21 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, X, Trophy } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { downloadCsvFromUrl } from '@/services/scraper';
+import { useNavigate } from 'react-router-dom';
 
 interface CSVPreviewProps {
   url: string;
   onClose: () => void;
+  isLimited?: boolean;
+  totalCount?: number;
 }
 
-export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
+export default function CSVPreview({ url, onClose, isLimited = false, totalCount = 0 }: CSVPreviewProps) {
   const [csvData, setCsvData] = useState<string[][]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchCsvData() {
@@ -51,7 +55,13 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
             return values;
           });
           
-        setCsvData(rows);
+        // If limited, only show header + 5 rows
+        let displayRows = rows;
+        if (isLimited && rows.length > 6) { // Header + 5 rows
+          displayRows = [rows[0], ...rows.slice(1, 6)];
+        }
+          
+        setCsvData(displayRows);
       } catch (err) {
         console.error('Error loading CSV:', err);
         setError('Failed to load CSV data');
@@ -61,15 +71,21 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
     }
     
     fetchCsvData();
-  }, [url]);
+  }, [url, isLimited]);
   
   // Calculate pagination values
-  const totalPages = Math.ceil((csvData.length - 1) / rowsPerPage); // -1 for header row
+  const totalRows = isLimited ? 5 : (csvData.length - 1);
+  const totalPages = Math.ceil(totalRows / rowsPerPage); // -1 for header row
   const startIndex = (currentPage - 1) * rowsPerPage + 1; // +1 to skip header
   const endIndex = Math.min(startIndex + rowsPerPage, csvData.length);
   
   const handleDownload = () => {
     window.open(url, '_blank');
+  };
+  
+  const handleUpgrade = () => {
+    navigate("/dashboard/billing");
+    onClose();
   };
   
   if (isLoading) {
@@ -102,10 +118,12 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
           </div>
           <div className="flex justify-between mt-4">
             <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Download Raw CSV
-            </Button>
+            {!isLimited && (
+              <Button onClick={handleDownload}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Raw CSV
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -119,6 +137,21 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
           <h3 className="text-xl font-bold">CSV Preview</h3>
           <Button variant="ghost" size="sm" onClick={onClose}><X /></Button>
         </div>
+        
+        {isLimited && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4 flex items-center justify-between">
+            <div>
+              <p className="font-medium text-yellow-800">Limited Preview</p>
+              <p className="text-sm text-yellow-700">
+                Showing only 5 rows out of {totalCount}. Upgrade your plan to access all data.
+              </p>
+            </div>
+            <Button onClick={handleUpgrade} size="sm">
+              <Trophy className="mr-2 h-4 w-4" />
+              Upgrade Now
+            </Button>
+          </div>
+        )}
         
         <Tabs defaultValue="table" className="w-full">
           <TabsList className="mb-4">
@@ -154,7 +187,7 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
                   </table>
                 </div>
                 
-                {totalPages > 1 && (
+                {totalPages > 1 && !isLimited && (
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm text-gray-500">
                       Showing rows {startIndex} to {endIndex - 1} of {csvData.length - 1}
@@ -182,6 +215,14 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
                     </div>
                   </div>
                 )}
+                
+                {isLimited && (
+                  <div className="flex justify-center mt-4">
+                    <p className="text-sm text-gray-500">
+                      {csvData.length - 1} rows shown (limited preview)
+                    </p>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-8">No data available</div>
@@ -192,15 +233,29 @@ export default function CSVPreview({ url, onClose }: CSVPreviewProps) {
             <div className="bg-slate-100 p-4 rounded-md overflow-x-auto">
               <pre className="text-xs">{csvData.map(row => row.join(',')).join('\n')}</pre>
             </div>
+            
+            {isLimited && (
+              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-2 text-xs text-yellow-700 text-center">
+                Showing limited preview data only.
+              </div>
+            )}
           </TabsContent>
         </Tabs>
         
         <div className="flex justify-between mt-6">
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={handleDownload}>
-            <Download className="mr-2 h-4 w-4" />
-            Download Raw CSV
-          </Button>
+          
+          {!isLimited ? (
+            <Button onClick={handleDownload}>
+              <Download className="mr-2 h-4 w-4" />
+              Download Raw CSV
+            </Button>
+          ) : (
+            <Button onClick={handleUpgrade}>
+              <Trophy className="mr-2 h-4 w-4" />
+              Upgrade Now
+            </Button>
+          )}
         </div>
       </div>
     </div>

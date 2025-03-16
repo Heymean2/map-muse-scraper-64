@@ -5,9 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ResultsTable from "./ResultsTable";
 import SearchInfoCard from "./SearchInfoCard";
 import CSVPreview from "./CSVPreview";
-import { FileDown, Lock, Download, AlertTriangle, Clock, Eye } from "lucide-react";
+import { FileDown, Lock, Download, AlertTriangle, Clock, Eye, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface ResultsContentProps {
   loading: boolean;
@@ -16,6 +17,7 @@ interface ResultsContentProps {
   results: any;
   exportCSV: () => void;
   isLimited?: boolean;
+  planInfo?: any;
 }
 
 export default function ResultsContent({ 
@@ -24,9 +26,11 @@ export default function ResultsContent({
   taskId, 
   results, 
   exportCSV,
-  isLimited = false
+  isLimited = false,
+  planInfo
 }: ResultsContentProps) {
   const [showCsvPreview, setShowCsvPreview] = useState(false);
+  const navigate = useNavigate();
   
   if (loading) {
     return (
@@ -88,7 +92,7 @@ export default function ResultsContent({
           </p>
           
           <div className="flex gap-2 mt-2">
-            {results.result_url && (
+            {results.result_url && !isLimited && (
               <>
                 <Button 
                   className="gap-2" 
@@ -108,6 +112,16 @@ export default function ResultsContent({
                 </Button>
               </>
             )}
+            
+            {isLimited && (
+              <Button 
+                className="gap-2" 
+                onClick={() => navigate("/dashboard/billing")}
+              >
+                <Trophy className="h-4 w-4" />
+                Upgrade Now
+              </Button>
+            )}
           </div>
         </div>
         
@@ -125,7 +139,9 @@ export default function ResultsContent({
         {showCsvPreview && results.result_url && (
           <CSVPreview 
             url={results.result_url} 
-            onClose={() => setShowCsvPreview(false)} 
+            onClose={() => setShowCsvPreview(false)}
+            isLimited={isLimited}
+            totalCount={results.total_count || 0}
           />
         )}
       </div>
@@ -160,10 +176,16 @@ export default function ResultsContent({
               <span>Showing limited preview (5 rows)</span>
             </div>
           )}
+          
+          {planInfo && (
+            <Badge variant="outline" className="ml-2">
+              {planInfo.planName}
+            </Badge>
+          )}
         </div>
         
         <div className="flex gap-2">
-          {results.result_url && (
+          {results.result_url && !isLimited && (
             <>
               <Button 
                 variant="outline" 
@@ -182,16 +204,26 @@ export default function ResultsContent({
                 <FileDown className="h-4 w-4" />
                 <span>Raw CSV</span>
               </Button>
+              
+              <Button 
+                onClick={exportCSV}
+                disabled={!results?.data?.length}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             </>
           )}
           
-          <Button 
-            onClick={exportCSV}
-            disabled={!results?.data?.length}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+          {isLimited && (
+            <Button 
+              onClick={() => navigate("/dashboard/billing")}
+              className="gap-1"
+            >
+              <Trophy className="h-4 w-4" />
+              Upgrade Now
+            </Button>
+          )}
         </div>
       </div>
       
@@ -199,6 +231,7 @@ export default function ResultsContent({
         data={results.data} 
         searchInfo={results.search_info}
         totalCount={results.total_count || 0}
+        isLimited={isLimited}
       />
       
       <SearchInfoCard 
@@ -215,7 +248,9 @@ export default function ResultsContent({
       {showCsvPreview && results.result_url && (
         <CSVPreview 
           url={results.result_url} 
-          onClose={() => setShowCsvPreview(false)} 
+          onClose={() => setShowCsvPreview(false)}
+          isLimited={isLimited}
+          totalCount={results.total_count || 0}
         />
       )}
     </div>

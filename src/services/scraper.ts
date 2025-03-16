@@ -157,6 +157,19 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
           }
         }
         
+        // Get user plan and usage information
+        const userPlanInfo = await getUserPlanInfo();
+        
+        // Check if free tier is exceeded and limit data if necessary
+        let isLimited = false;
+        if (userPlanInfo.isFreePlan && userPlanInfo.totalRows > userPlanInfo.freeRowsLimit) {
+          isLimited = true;
+          // Only return the first 5 rows for preview
+          if (dataArray.length > 5) {
+            dataArray = dataArray.slice(0, 5);
+          }
+        }
+        
         return {
           data: dataArray,
           status: typedData.status,
@@ -168,7 +181,9 @@ export async function getScrapingResults(taskId?: string): Promise<any> {
           },
           total_count: totalCount,
           result_url: typedData.result_url,
-          created_at: typedData.created_at
+          created_at: typedData.created_at,
+          limited: isLimited,
+          current_plan: userPlanInfo.planName
         };
       }
     }
@@ -224,12 +239,14 @@ export async function getUserScrapingTasks(): Promise<any[]> {
 }
 
 /**
- * Check if user has exceeded free tier limit (500 rows)
+ * Get user's plan information and usage data
  */
-export async function checkUserFreeTierLimit(): Promise<{
-  isExceeded: boolean;
+export async function getUserPlanInfo(): Promise<{
+  isFreePlan: boolean;
+  planName: string;
   totalRows: number;
   freeRowsLimit: number;
+  isExceeded: boolean;
 }> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -238,58 +255,80 @@ export async function checkUserFreeTierLimit(): Promise<{
       throw new Error("Authentication required");
     }
     
-    // Get pricing plan row limit
-    const { data: pricingData, error: pricingError } = await supabase
-      .from('pricing_plans')
-      .select('row_limit')
-      .eq('name', 'Free Plan')
+    // Get user profile with plan info
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('plan_id, total_rows')
+      .eq('id', user.id)
       .single();
       
-    if (pricingError) {
-      console.error("Error fetching pricing plan:", pricingError);
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
+      throw profileError;
     }
     
-    const freeRowsLimit = pricingData?.row_limit || 500;
-    
-    // Get all completed tasks for this user
-    const { data, error } = await supabase
-      .from('scraping_requests')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'completed');
+    // Get plan details
+    const { data: planData, error: planError } = await supabase
+      .from('pricing_plans')
+      .select('name, row_limit')
+      .eq('id', profileData?.plan_id || 1)
+      .single();
       
-    if (error) {
-      throw error;
+    if (planError) {
+      console.error("Error fetching pricing plan:", planError);
+      throw planError;
     }
     
-    // Calculate total rows across all tasks, using row_count if available
-    let totalRows = 0;
-    
-    if (data && data.length > 0) {
-      data.forEach(task => {
-        // Cast to our interface that includes row_count
-        const typedTask = task as ScrapingRequest;
-        
-        if (typedTask.row_count) {
-          // Use row_count if available
-          totalRows += Number(typedTask.row_count);
-        } else if (typedTask.result_data && Array.isArray(typedTask.result_data)) {
-          // Fallback to result_data length if row_count not available
-          totalRows += typedTask.result_data.length;
-        }
-      });
-    }
-    
-    const isExceeded = totalRows > freeRowsLimit;
+    // Default to Free Plan if no plan found
+    const planName = planData?.name || 'Free Plan';
+    const freeRowsLimit = planData?.row_limit || 500;
+    const totalRows = profileData?.total_rows || 0;
+    const isFreePlan = planName === 'Free Plan';
+    const isExceeded = isFreePlan && totalRows > freeRowsLimit;
     
     return {
-      isExceeded,
+      isFreePlan,
+      planName,
       totalRows,
-      freeRowsLimit
+      freeRowsLimit,
+      isExceeded
     };
   } catch (error) {
-    console.error("Error checking free tier limit:", error);
-    throw error;
+    console.error("Error checking user plan:", error);
+    // Default to free plan with exceeded limit
+    return {
+      isFreePlan: true,
+      planName: 'Free Plan',
+      totalRows: 0,
+      freeRowsLimit: 500,
+      isExceeded: false
+    };
+  }
+}
+
+/**
+ * Update total rows used by user
+ */
+export async function updateUserRows(rowCount: number): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Authentication required");
+    }
+    
+    // Update user's total_rows
+    const { error } = await supabase
+      .from('profiles')
+      .update({ total_rows: supabase.rpc('increment_rows', { row_increment: rowCount }) })
+      .eq('id', user.id);
+      
+    if (error) {
+      console.error("Error updating user rows:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error updating user row count:", error);
   }
 }
 
@@ -309,4 +348,22 @@ export async function downloadCsvFromUrl(url: string): Promise<string> {
     console.error("Error downloading CSV:", error);
     throw error;
   }
+}
+
+/**
+ * Check if user has exceeded free tier limit (500 rows)
+ * @deprecated Use getUserPlanInfo instead
+ */
+export async function checkUserFreeTierLimit(): Promise<{
+  isExceeded: boolean;
+  totalRows: number;
+  freeRowsLimit: number;
+}> {
+  const planInfo = await getUserPlanInfo();
+  
+  return {
+    isExceeded: planInfo.isExceeded,
+    totalRows: planInfo.totalRows,
+    freeRowsLimit: planInfo.freeRowsLimit
+  };
 }

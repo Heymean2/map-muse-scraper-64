@@ -2,15 +2,21 @@
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { checkUserFreeTierLimit } from "@/services/scraper";
+import { getUserPlanInfo } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
-import { CircleDollarSign, CheckCircle } from "lucide-react";
+import { CircleDollarSign, CheckCircle, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export default function BillingSection() {
-  const { data: usageLimitData, isLoading } = useQuery({
-    queryKey: ['userFreeTierLimit'],
-    queryFn: checkUserFreeTierLimit
+  const { data: planInfo, isLoading } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo
   });
+
+  // Calculate progress percentage
+  const usagePercentage = planInfo ? Math.min(100, (planInfo.totalRows / planInfo.freeRowsLimit) * 100) : 0;
+  const isNearLimit = usagePercentage >= 80 && usagePercentage < 100;
+  const isOverLimit = usagePercentage >= 100;
 
   return (
     <Container>
@@ -27,8 +33,8 @@ export default function BillingSection() {
           </CardHeader>
           <CardContent>
             <div className="mb-4 p-4 bg-primary/10 rounded-lg">
-              <h3 className="font-bold text-lg">Free Plan</h3>
-              <p className="text-sm text-muted-foreground">Limited to 500 rows total</p>
+              <h3 className="font-bold text-lg">{isLoading ? 'Loading...' : planInfo?.planName || 'Free Plan'}</h3>
+              <p className="text-sm text-muted-foreground">{planInfo?.isFreePlan ? 'Limited to 500 rows total' : 'Unlimited rows'}</p>
             </div>
             
             <div className="space-y-2 mb-6">
@@ -38,7 +44,7 @@ export default function BillingSection() {
               </p>
               <p className="flex gap-2 items-center">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Up to 500 rows of data</span>
+                <span>Up to {planInfo?.freeRowsLimit || 500} rows of data</span>
               </p>
               <p className="flex gap-2 items-center">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -46,17 +52,43 @@ export default function BillingSection() {
               </p>
             </div>
             
-            <div className="flex items-center justify-between border-t pt-4">
-              <div>
+            <div className="space-y-2 pt-4 border-t">
+              <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Usage</p>
-                <p className="text-xs text-muted-foreground">
-                  {isLoading ? 'Loading...' : `${usageLimitData?.totalRows || 0} / ${usageLimitData?.freeRowsLimit || 500} rows used`}
+                <p className="text-sm font-medium">
+                  {isLoading ? 'Loading...' : `${planInfo?.totalRows || 0} / ${planInfo?.freeRowsLimit || 500} rows`}
                 </p>
               </div>
-              <Button variant="default">
-                <CircleDollarSign className="mr-2 h-4 w-4" />
-                Upgrade
-              </Button>
+              
+              <Progress 
+                value={usagePercentage} 
+                className={`h-2 ${isOverLimit ? 'bg-red-100' : isNearLimit ? 'bg-yellow-100' : 'bg-slate-100'}`}
+              />
+              
+              {isOverLimit && (
+                <div className="flex items-start gap-2 mt-2 p-2 bg-red-50 rounded border border-red-200 text-sm text-red-700">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    You've exceeded your free tier limit. Upgrade now to access all your data and continue scraping.
+                  </span>
+                </div>
+              )}
+              
+              {isNearLimit && !isOverLimit && (
+                <div className="flex items-start gap-2 mt-2 p-2 bg-yellow-50 rounded border border-yellow-200 text-sm text-yellow-700">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    You're approaching your free tier limit. Consider upgrading soon to avoid interruptions.
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex justify-end mt-4">
+                <Button variant="default">
+                  <CircleDollarSign className="mr-2 h-4 w-4" />
+                  Upgrade
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -89,10 +121,14 @@ export default function BillingSection() {
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span>Advanced export options</span>
               </p>
+              <p className="flex gap-2 items-center">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Priority support</span>
+              </p>
             </div>
             
-            <Button variant="outline" className="w-full">
-              Coming Soon
+            <Button variant="default" className="w-full">
+              Upgrade to Pro
             </Button>
           </CardContent>
         </Card>

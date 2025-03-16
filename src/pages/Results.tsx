@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Container } from "@/components/ui/container";
-import { getScrapingResults, getUserScrapingTasks, checkUserFreeTierLimit } from "@/services/scraper";
+import { getScrapingResults, getUserScrapingTasks, getUserPlanInfo, updateUserRows } from "@/services/scraper";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,9 +28,9 @@ export default function Results() {
   const [freeTierExceeded, setFreeTierExceeded] = useState(false);
   
   // Use React Query for getting usage data
-  const { data: usageData, refetch: refetchUsageData } = useQuery({
-    queryKey: ['userFreeTierLimit'],
-    queryFn: checkUserFreeTierLimit,
+  const { data: userPlanInfo, refetch: refetchPlanInfo } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo,
     enabled: !!user,
     staleTime: 30000 // 30 seconds
   });
@@ -42,22 +42,23 @@ export default function Results() {
     setError(null);
     
     try {
-      // First check if user has exceeded free tier (will be cached by React Query)
-      if (!usageData) {
-        await refetchUsageData();
+      // First check if user has exceeded free tier
+      if (!userPlanInfo) {
+        await refetchPlanInfo();
       }
       
       const data = await getScrapingResults(taskId || undefined);
       setResults(data);
       
-      // If we're showing data and free tier is exceeded, show only first 5 rows
-      if (usageData?.isExceeded && data?.data?.length > 5) {
-        data.data = data.data.slice(0, 5);
-        data.limited = true;
-        setFreeTierExceeded(true);
-      } else {
-        setFreeTierExceeded(usageData?.isExceeded || false);
+      // Check if we need to update the user's total row count
+      if (data?.status === "completed" && data?.total_count && !data?.row_count_updated) {
+        await updateUserRows(data.total_count);
+        data.row_count_updated = true;
       }
+      
+      // Set freeTierExceeded based on the limited flag from backend
+      setFreeTierExceeded(data?.limited || false);
+      
     } catch (err) {
       setError("Failed to fetch results. Please try again later.");
       toast({
@@ -95,7 +96,7 @@ export default function Results() {
       if (results?.status === "processing") {
         fetchResults();
         fetchUserTasks();
-        refetchUsageData();
+        refetchPlanInfo();
       }
     }, 30000);
     
@@ -165,7 +166,7 @@ export default function Results() {
                 Limited Preview
               </CardTitle>
               <CardDescription className="text-yellow-600 dark:text-yellow-500">
-                You've exceeded the free tier limit of {usageData?.freeRowsLimit} rows
+                You've exceeded the free tier limit of {userPlanInfo?.freeRowsLimit || 500} rows
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -191,7 +192,8 @@ export default function Results() {
             taskId={taskId}
             results={results}
             exportCSV={handleExportCSV}
-            isLimited={results?.limited || false}
+            isLimited={freeTierExceeded}
+            planInfo={userPlanInfo}
           />
         </div>
       </Container>

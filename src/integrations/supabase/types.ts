@@ -51,6 +51,8 @@ export type Database = {
           email: string
           id: string
           is_admin: boolean | null
+          plan_id: number | null
+          total_rows: number | null
           updated_at: string
         }
         Insert: {
@@ -58,6 +60,8 @@ export type Database = {
           email: string
           id: string
           is_admin?: boolean | null
+          plan_id?: number | null
+          total_rows?: number | null
           updated_at?: string
         }
         Update: {
@@ -65,9 +69,19 @@ export type Database = {
           email?: string
           id?: string
           is_admin?: boolean | null
+          plan_id?: number | null
+          total_rows?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scraping_requests: {
         Row: {
