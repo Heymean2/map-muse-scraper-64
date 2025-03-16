@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkUserFreeTierLimit } from "@/services/scraper";
 import { CircleDollarSign, CheckCircle, CreditCard, Lock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 export default function Billing() {
   const { data: usageLimitData, isLoading } = useQuery({
