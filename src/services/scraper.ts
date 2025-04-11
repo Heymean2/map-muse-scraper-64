@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 // Base URL for the scraper API
-const BASE_URL = "https://dry-books-find.loca.lt";
+const BASE_URL = "https://localhost:4242";
 
 export interface ScraperParams {
   keywords: string;
