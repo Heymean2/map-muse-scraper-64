@@ -39,15 +39,69 @@ interface ScrapingRequest {
 }
 
 /**
+ * Check if user is eligible to start a new scraping task
+ */
+export async function checkScrapingEligibility(): Promise<{
+  eligible: boolean;
+  message?: string;
+}> {
+  try {
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return {
+        eligible: false,
+        message: "You must be logged in to use this feature"
+      };
+    }
+    
+    // Get user plan information
+    const userPlanInfo = await getUserPlanInfo();
+    
+    // If user is on a paid plan, they are eligible
+    if (!userPlanInfo.isFreePlan) {
+      return { eligible: true };
+    }
+    
+    // Check if user has exceeded the free tier limit
+    if (userPlanInfo.isExceeded) {
+      return {
+        eligible: false,
+        message: `You've reached the free tier limit of ${userPlanInfo.freeRowsLimit} rows. Please upgrade your plan to continue scraping.`
+      };
+    }
+    
+    // User is eligible
+    return { eligible: true };
+  } catch (error) {
+    console.error("Error checking scraping eligibility:", error);
+    return {
+      eligible: false,
+      message: "Error checking eligibility. Please try again later."
+    };
+  }
+}
+
+/**
  * Start a scraping task
  */
 export async function startScraping(params: ScraperParams): Promise<ScraperResponse> {
   try {
+    // First check if user is eligible
+    const eligibility = await checkScrapingEligibility();
+    
+    if (!eligibility.eligible) {
+      return {
+        success: false,
+        error: eligibility.message || "You are not eligible to start a new scraping task"
+      };
+    }
+    
     // Get the current user's ID from Supabase
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      toast.error("You must be logged in to use this feature");
       return {
         success: false,
         error: "Authentication required"
@@ -101,7 +155,6 @@ export async function startScraping(params: ScraperParams): Promise<ScraperRespo
     };
   } catch (error) {
     console.error("Error starting scraping:", error);
-    toast.error("Failed to start scraping. Please try again.");
     
     return {
       success: false,
@@ -257,7 +310,7 @@ export async function getUserPlanInfo(): Promise<{
     // Get user profile with plan info
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id, total_rows')
+      .select('plan_id')
       .eq('id', user.id)
       .single();
       
@@ -278,10 +331,25 @@ export async function getUserPlanInfo(): Promise<{
       throw planError;
     }
     
+    // Calculate total rows from all scraping requests
+    const { data: scrapeData, error: scrapeError } = await supabase
+      .from('scraping_requests')
+      .select('row_count')
+      .eq('user_id', user.id);
+      
+    if (scrapeError) {
+      console.error("Error fetching scraping requests:", scrapeError);
+      throw scrapeError;
+    }
+    
+    // Sum up all row_count values
+    const totalRows = scrapeData.reduce((sum, item) => {
+      return sum + (Number(item.row_count) || 0);
+    }, 0);
+    
     // Default to Free Plan if no plan found
     const planName = planData?.name || 'Free Plan';
     const freeRowsLimit = planData?.row_limit || 500;
-    const totalRows = profileData?.total_rows || 0;
     const isFreePlan = planName === 'Free Plan';
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
     

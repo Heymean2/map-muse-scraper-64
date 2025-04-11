@@ -1,7 +1,6 @@
 
 import { ReactNode } from "react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import DashboardSidebar from "./DashboardSidebar";
 import { 
   SidebarProvider, 
@@ -36,8 +35,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </SidebarProvider>
       </div>
-      
-      <Footer />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { getScrapingResults, getUserScrapingTasks, getUserPlanInfo, updateUserRows } from "@/services/scraper";
@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Results() {
   const [searchParams] = useSearchParams();
@@ -35,6 +36,42 @@ export default function Results() {
     staleTime: 30000 // 30 seconds
   });
   
+  // Function to calculate total rows from all user tasks
+  const calculateTotalUserRows = useCallback(async () => {
+    if (!user) return 0;
+    
+    try {
+      const { data, error } = await supabase
+        .from('scraping_requests')
+        .select('row_count')
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error("Error calculating total rows:", error);
+        return 0;
+      }
+      
+      // Sum up all row_count values
+      const totalRows = data.reduce((sum, item) => {
+        return sum + (item.row_count || 0);
+      }, 0);
+      
+      return totalRows;
+    } catch (err) {
+      console.error("Error in calculateTotalUserRows:", err);
+      return 0;
+    }
+  }, [user]);
+  
+  // Function to check if user has exceeded free tier limit
+  const checkFreeTierLimit = useCallback(async () => {
+    if (!userPlanInfo) return false;
+    
+    const totalRows = await calculateTotalUserRows();
+    
+    return userPlanInfo.isFreePlan && totalRows > userPlanInfo.freeRowsLimit;
+  }, [userPlanInfo, calculateTotalUserRows]);
+  
   const fetchResults = async () => {
     if (!user) return;
     
@@ -56,8 +93,9 @@ export default function Results() {
         data.row_count_updated = true;
       }
       
-      // Set freeTierExceeded based on the limited flag from backend
-      setFreeTierExceeded(data?.limited || false);
+      // Check if user has exceeded free tier limit
+      const isLimitExceeded = await checkFreeTierLimit();
+      setFreeTierExceeded(isLimitExceeded);
       
     } catch (err) {
       setError("Failed to fetch results. Please try again later.");
@@ -91,6 +129,9 @@ export default function Results() {
     fetchResults();
     fetchUserTasks();
     
+    // Check free tier limit on initial load
+    checkFreeTierLimit().then(setFreeTierExceeded);
+    
     // Auto refresh every 30 seconds if processing
     const intervalId = setInterval(() => {
       if (results?.status === "processing") {
@@ -101,7 +142,7 @@ export default function Results() {
     }, 30000);
     
     return () => clearInterval(intervalId);
-  }, [taskId, user]);
+  }, [taskId, user, checkFreeTierLimit]);
   
   const handleTaskClick = (task: any) => {
     window.history.pushState({}, '', `/result?task_id=${task.task_id}`);

@@ -9,6 +9,7 @@ import { FileDown, Lock, Download, AlertTriangle, Clock, Eye, Trophy } from "luc
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ResultsContentProps {
   loading: boolean;
@@ -31,6 +32,28 @@ export default function ResultsContent({
 }: ResultsContentProps) {
   const [showCsvPreview, setShowCsvPreview] = useState(false);
   const navigate = useNavigate();
+  
+  // Limit data to 5 rows if user has exceeded free tier
+  const getLimitedData = () => {
+    if (!results?.data) return [];
+    
+    if (isLimited && Array.isArray(results.data) && results.data.length > 5) {
+      return results.data.slice(0, 5);
+    }
+    
+    return results.data;
+  };
+  
+  const handleUpgradeClick = () => {
+    navigate("/dashboard/billing");
+    toast("Let's upgrade your plan!", {
+      description: "Access all your data and continue scraping with our Pro plan.",
+      action: {
+        label: "Dismiss",
+        onClick: () => {},
+      },
+    });
+  };
   
   if (loading) {
     return (
@@ -116,7 +139,7 @@ export default function ResultsContent({
             {isLimited && (
               <Button 
                 className="gap-2" 
-                onClick={() => navigate("/dashboard/billing")}
+                onClick={handleUpgradeClick}
               >
                 <Trophy className="h-4 w-4" />
                 Upgrade Now
@@ -217,7 +240,7 @@ export default function ResultsContent({
           
           {isLimited && (
             <Button 
-              onClick={() => navigate("/dashboard/billing")}
+              onClick={handleUpgradeClick}
               className="gap-1"
             >
               <Trophy className="h-4 w-4" />
@@ -228,7 +251,7 @@ export default function ResultsContent({
       </div>
       
       <ResultsTable 
-        data={results.data} 
+        data={getLimitedData()} 
         searchInfo={results.search_info}
         totalCount={results.total_count || 0}
         isLimited={isLimited}
@@ -251,6 +274,7 @@ export default function ResultsContent({
           onClose={() => setShowCsvPreview(false)}
           isLimited={isLimited}
           totalCount={results.total_count || 0}
+          maxPreviewRows={isLimited ? 5 : undefined}
         />
       )}
     </div>

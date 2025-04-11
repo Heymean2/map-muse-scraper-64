@@ -9,7 +9,7 @@ import {
   SidebarFooter,
   SidebarGroup
 } from "@/components/ui/sidebar";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -26,10 +26,11 @@ import { Separator } from "@/components/ui/separator";
 
 export default function DashboardSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return location.pathname.startsWith(path);
   };
   
   const menuItems = [
@@ -96,7 +97,10 @@ export default function DashboardSidebar() {
       
       <SidebarFooter className="p-4">
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+          <div 
+            className="flex items-center space-x-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            onClick={() => navigate('/dashboard/profile')}
+          >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
               <User className="w-4 h-4" />
             </div>
