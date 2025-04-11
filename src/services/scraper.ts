@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -390,8 +389,8 @@ export async function updateUserRows(rowCount: number): Promise<void> {
       throw new Error("Authentication required");
     }
     
-    // Call the increment_rows function using rpc with proper typing
-    const { error } = await supabase.rpc<'increment_rows', number>('increment_rows', { 
+    // Call the increment_rows function using rpc
+    const { error } = await supabase.rpc('increment_rows', { 
       row_increment: Number(rowCount) 
     });
       
