@@ -390,10 +390,11 @@ export async function updateUserRows(rowCount: number): Promise<void> {
       throw new Error("Authentication required");
     }
     
-    // Fix the RPC call by explicitly defining the parameter type
-    const { error } = await supabase.rpc('increment_rows', { 
-      row_increment: rowCount 
-    } as { row_increment: number });
+    // Alternative approach: use a simpler direct query rather than RPC
+    const { error } = await supabase
+      .from('profiles')
+      .update({ total_rows: supabase.rpc('increment_rows_calculation', { current_rows: rowCount }) })
+      .eq('id', user.id);
       
     if (error) {
       console.error("Error updating user rows:", error);
