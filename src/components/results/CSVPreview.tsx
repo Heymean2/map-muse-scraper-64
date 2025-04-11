@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, X, Trophy } from 'lucide-react';
@@ -11,9 +10,16 @@ interface CSVPreviewProps {
   onClose: () => void;
   isLimited?: boolean;
   totalCount?: number;
+  maxPreviewRows?: number;
 }
 
-export default function CSVPreview({ url, onClose, isLimited = false, totalCount = 0 }: CSVPreviewProps) {
+export default function CSVPreview({ 
+  url, 
+  onClose, 
+  isLimited = false, 
+  totalCount = 0,
+  maxPreviewRows = 5
+}: CSVPreviewProps) {
   const [csvData, setCsvData] = useState<string[][]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +61,10 @@ export default function CSVPreview({ url, onClose, isLimited = false, totalCount
             return values;
           });
           
-        // If limited, only show header + 5 rows
+        // If limited, only show header + maxPreviewRows rows
         let displayRows = rows;
-        if (isLimited && rows.length > 6) { // Header + 5 rows
-          displayRows = [rows[0], ...rows.slice(1, 6)];
+        if (isLimited && rows.length > maxPreviewRows + 1) { // Header + maxPreviewRows rows
+          displayRows = [rows[0], ...rows.slice(1, maxPreviewRows + 1)];
         }
           
         setCsvData(displayRows);
@@ -71,10 +77,10 @@ export default function CSVPreview({ url, onClose, isLimited = false, totalCount
     }
     
     fetchCsvData();
-  }, [url, isLimited]);
+  }, [url, isLimited, maxPreviewRows]);
   
   // Calculate pagination values
-  const totalRows = isLimited ? 5 : (csvData.length - 1);
+  const totalRows = isLimited ? maxPreviewRows : (csvData.length - 1);
   const totalPages = Math.ceil(totalRows / rowsPerPage); // -1 for header row
   const startIndex = (currentPage - 1) * rowsPerPage + 1; // +1 to skip header
   const endIndex = Math.min(startIndex + rowsPerPage, csvData.length);
@@ -143,7 +149,7 @@ export default function CSVPreview({ url, onClose, isLimited = false, totalCount
             <div>
               <p className="font-medium text-yellow-800">Limited Preview</p>
               <p className="text-sm text-yellow-700">
-                Showing only 5 rows out of {totalCount}. Upgrade your plan to access all data.
+                Showing only {maxPreviewRows} rows out of {totalCount}. Upgrade your plan to access all data.
               </p>
             </div>
             <Button onClick={handleUpgrade} size="sm">
