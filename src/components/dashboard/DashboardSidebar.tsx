@@ -23,11 +23,20 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
+import { getUserPlanInfo } from "@/services/scraper";
 
 export default function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  
+  const { data: planInfo } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo,
+    enabled: !!user,
+    staleTime: 60000 // Cache for 1 minute
+  });
   
   const isActive = (path: string) => {
     return location.pathname.startsWith(path);
@@ -108,7 +117,7 @@ export default function DashboardSidebar() {
               <span className="font-medium text-sm truncate max-w-[140px]">
                 {user?.email}
               </span>
-              <span className="text-xs text-gray-500">Free Plan</span>
+              <span className="text-xs text-gray-500">{planInfo?.planName || "Free Plan"}</span>
             </div>
           </div>
           <Separator />
