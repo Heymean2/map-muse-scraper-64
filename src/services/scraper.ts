@@ -386,7 +386,7 @@ export async function updateUserRows(rowCount: number): Promise<void> {
     
     // Call the increment_rows function using rpc
     const { error } = await supabase.rpc('increment_rows', { 
-      row_increment: rowCount 
+      row_increment: Number(rowCount) 
     });
       
     if (error) {
