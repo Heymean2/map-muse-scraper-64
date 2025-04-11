@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,6 +37,11 @@ interface ScrapingRequest {
   user_id: string;
   row_count: number | null;
   result_data?: any[]; // Adding result_data as an optional array property
+}
+
+// Type declaration for RPC functions
+type RPCFunctions = {
+  increment_rows: (args: { row_increment: number }) => Promise<number>;
 }
 
 /**
@@ -384,8 +390,8 @@ export async function updateUserRows(rowCount: number): Promise<void> {
       throw new Error("Authentication required");
     }
     
-    // Call the increment_rows function using rpc
-    const { error } = await supabase.rpc('increment_rows', { 
+    // Call the increment_rows function using rpc with proper typing
+    const { error } = await supabase.rpc<number>('increment_rows', { 
       row_increment: Number(rowCount) 
     });
       
