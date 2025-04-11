@@ -108,14 +108,10 @@ export async function updateUserRows(rowCount: number): Promise<void> {
     // Fix: Convert current_rows to a number to make TypeScript happy
     const numericRowCount = Number(rowCount);
     
-    // Alternative approach: use a simpler direct query rather than RPC
+    // Fix: Use a direct update instead of RPC
     const { error } = await supabase
       .from('profiles')
-      .update({ 
-        total_rows: supabase.rpc('increment_rows_calculation', { 
-          current_rows: numericRowCount 
-        }) 
-      })
+      .update({ total_rows: numericRowCount })
       .eq('id', user.id);
       
     if (error) {
