@@ -1,25 +1,33 @@
 
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { getScrapingResults, getUserScrapingTasks, getUserPlanInfo, updateUserRows } from "@/services/scraper";
 import { withDelay, animationClasses } from "@/lib/animations";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import TaskList from "@/components/results/TaskList";
 import ResultsContent from "@/components/results/ResultsContent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export default function Results() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const taskId = searchParams.get("task_id");
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [results, setResults] = useState<any>(null);
   const [userTasks, setUserTasks] = useState<any[]>([]);
@@ -29,12 +37,7 @@ export default function Results() {
   const [freeTierExceeded, setFreeTierExceeded] = useState(false);
   
   // Use React Query for getting usage data
-  const { data: userPlanInfo, refetch: refetchPlanInfo } = useQuery({
-    queryKey: ['userPlanInfo'],
-    queryFn: getUserPlanInfo,
-    enabled: !!user,
-    staleTime: 30000 // 30 seconds
-  });
+  const [userPlanInfo, setUserPlanInfo] = useState<any>(null);
   
   // Function to calculate total rows from all user tasks
   const calculateTotalUserRows = useCallback(async () => {
@@ -72,19 +75,24 @@ export default function Results() {
     return userPlanInfo.isFreePlan && totalRows > userPlanInfo.freeRowsLimit;
   }, [userPlanInfo, calculateTotalUserRows]);
   
-  const fetchResults = async () => {
+  const fetchResults = async (id?: string) => {
     if (!user) return;
+    
+    if (!id && !taskId) {
+      setResults(null);
+      return;
+    }
+    
+    const taskToFetch = id || taskId;
     
     setLoading(true);
     setError(null);
     
     try {
-      // First check if user has exceeded free tier
-      if (!userPlanInfo) {
-        await refetchPlanInfo();
-      }
+      const planInfo = await getUserPlanInfo();
+      setUserPlanInfo(planInfo);
       
-      const data = await getScrapingResults(taskId || undefined);
+      const data = await getScrapingResults(taskToFetch || undefined);
       setResults(data);
       
       // Check if we need to update the user's total row count
@@ -126,28 +134,26 @@ export default function Results() {
   useEffect(() => {
     if (!user) return;
     
-    fetchResults();
     fetchUserTasks();
     
-    // Check free tier limit on initial load
-    checkFreeTierLimit().then(setFreeTierExceeded);
+    if (taskId) {
+      fetchResults();
+    }
     
     // Auto refresh every 30 seconds if processing
     const intervalId = setInterval(() => {
       if (results?.status === "processing") {
         fetchResults();
         fetchUserTasks();
-        refetchPlanInfo();
       }
     }, 30000);
     
     return () => clearInterval(intervalId);
-  }, [taskId, user, checkFreeTierLimit]);
+  }, [taskId, user]);
   
-  const handleTaskClick = (task: any) => {
-    window.history.pushState({}, '', `/result?task_id=${task.task_id}`);
-    window.dispatchEvent(new Event('popstate'));
-    fetchResults();
+  const handleTaskClick = (taskId: string) => {
+    setSearchParams({ task_id: taskId });
+    fetchResults(taskId);
   };
   
   const handleExportCSV = () => {
@@ -184,6 +190,20 @@ export default function Results() {
     document.body.removeChild(link);
   };
 
+  // Get task status badge component
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-500 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Completed</Badge>;
+      case 'processing':
+        return <Badge className="bg-blue-500 flex items-center gap-1"><Clock className="h-3 w-3" /> Processing</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-500 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Failed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <DashboardLayout>
       <Container>
@@ -191,52 +211,91 @@ export default function Results() {
           <h1 className={`text-3xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
             Scraping Results
           </h1>
-          
-          {taskId && (
-            <p className={`text-sm text-slate-600 dark:text-slate-400 ${withDelay(animationClasses.slideUp, 200)}`}>
-              Task ID: {taskId}
-            </p>
-          )}
         </div>
         
-        {freeTierExceeded && results?.data?.length > 0 && (
-          <Card className="mb-6 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
-                <Lock className="h-4 w-4" />
-                Limited Preview
-              </CardTitle>
-              <CardDescription className="text-yellow-600 dark:text-yellow-500">
-                You've exceeded the free tier limit of {userPlanInfo?.freeRowsLimit || 500} rows
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-4">
-                Currently showing only 5 rows out of {results.total_count}. Upgrade your plan to access all data.
-              </p>
-              <Button onClick={() => window.location.href = '/dashboard/billing'}>Upgrade Now</Button>
-            </CardContent>
-          </Card>
+        {/* All Tasks Table */}
+        <div className="mb-8">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Your Scraping Tasks</h2>
+              <p className="text-sm text-muted-foreground">Click on a task to view its results</p>
+            </div>
+            
+            {tasksLoading ? (
+              <div className="p-8 text-center">
+                <Clock className="h-8 w-8 text-muted-foreground mx-auto animate-spin mb-2" />
+                <p>Loading your tasks...</p>
+              </div>
+            ) : userTasks.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-slate-500 dark:text-slate-400">
+                  You haven't created any scraping tasks yet.
+                </p>
+                <Button 
+                  className="mt-4"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  Create New Task
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Keywords</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userTasks.map((task) => (
+                      <TableRow 
+                        key={task.id}
+                        className={task.task_id === taskId ? "bg-primary/5" : ""}
+                      >
+                        <TableCell className="font-medium">{task.keywords}</TableCell>
+                        <TableCell>
+                          {formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(task.status)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleTaskClick(task.task_id)}
+                            className="gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Selected Task Results */}
+        {taskId && (
+          <div className="mb-8">
+            <ResultsContent 
+              loading={loading}
+              error={error}
+              taskId={taskId}
+              results={results}
+              exportCSV={handleExportCSV}
+              isLimited={freeTierExceeded}
+              planInfo={userPlanInfo}
+            />
+          </div>
         )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <TaskList 
-            userTasks={userTasks}
-            tasksLoading={tasksLoading}
-            currentTaskId={taskId}
-            onTaskClick={handleTaskClick}
-          />
-          
-          <ResultsContent 
-            loading={loading}
-            error={error}
-            taskId={taskId}
-            results={results}
-            exportCSV={handleExportCSV}
-            isLimited={freeTierExceeded}
-            planInfo={userPlanInfo}
-          />
-        </div>
       </Container>
     </DashboardLayout>
   );

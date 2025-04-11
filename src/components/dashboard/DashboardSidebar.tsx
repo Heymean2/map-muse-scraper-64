@@ -9,7 +9,7 @@ import {
   SidebarFooter,
   SidebarGroup
 } from "@/components/ui/sidebar";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -28,7 +28,6 @@ import { getUserPlanInfo } from "@/services/scraper";
 
 export default function DashboardSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   
   const { data: planInfo } = useQuery({
@@ -108,7 +107,7 @@ export default function DashboardSidebar() {
         <div className="space-y-3">
           <div 
             className="flex items-center space-x-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-            onClick={() => navigate('/dashboard/profile')}
+            onClick={() => {}}
           >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
               <User className="w-4 h-4" />
@@ -127,7 +126,7 @@ export default function DashboardSidebar() {
             className="w-full flex items-center gap-2"
             onClick={() => signOut()}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 w-4" />
             <span>Log Out</span>
           </Button>
         </div>

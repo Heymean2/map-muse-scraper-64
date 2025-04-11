@@ -3,10 +3,10 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { CalendarDays, Mail, User } from "lucide-react";
+import { CalendarDays, Mail } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import ProfileSection from "@/components/dashboard/ProfileSection";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -44,17 +44,7 @@ export default function Profile() {
               <CardDescription>Free Plan User</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full">
-                Update Photo
-              </Button>
               <Separator />
-              <div className="space-y-1">
-                <div className="flex items-center text-sm gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Account ID:</span>
-                </div>
-                <p className="text-sm font-mono truncate">{user?.id}</p>
-              </div>
               <div className="space-y-1">
                 <div className="flex items-center text-sm gap-2">
                   <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -65,47 +55,10 @@ export default function Profile() {
             </CardContent>
           </Card>
           
-          {/* Account Settings */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Update your account information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Email Address</h3>
-                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-slate-500" />
-                    <span>{user?.email}</span>
-                  </div>
-                  <Button variant="outline" size="sm">Change</Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Your email is used for login and notifications
-                </p>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Password</h3>
-                <Button variant="outline" className="w-full sm:w-auto">Change Password</Button>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Account Management</h3>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button variant="destructive">Delete Account</Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Deleting your account is permanent and will remove all your data
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Account Settings - Using the ProfileSection component */}
+          <div className="md:col-span-2">
+            <ProfileSection />
+          </div>
         </div>
       </Container>
     </DashboardLayout>
