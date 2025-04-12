@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -305,6 +304,7 @@ export async function getUserPlanInfo(): Promise<{
   totalRows: number;
   freeRowsLimit: number;
   isExceeded: boolean;
+  credits?: number;
 }> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -316,7 +316,7 @@ export async function getUserPlanInfo(): Promise<{
     // Get user profile with plan info
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id')
+      .select('plan_id, credits')
       .eq('id', user.id)
       .single();
       
@@ -358,13 +358,15 @@ export async function getUserPlanInfo(): Promise<{
     const freeRowsLimit = planData?.row_limit || 500;
     const isFreePlan = planName === 'Free Plan';
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
+    const credits = profileData?.credits || 0;
     
     return {
       isFreePlan,
       planName,
       totalRows,
       freeRowsLimit,
-      isExceeded
+      isExceeded,
+      credits
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
@@ -374,7 +376,8 @@ export async function getUserPlanInfo(): Promise<{
       planName: 'Free Plan',
       totalRows: 0,
       freeRowsLimit: 500,
-      isExceeded: false
+      isExceeded: false,
+      credits: 0
     };
   }
 }

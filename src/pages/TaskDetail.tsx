@@ -77,7 +77,21 @@ export default function TaskDetail() {
         <h1 className="text-2xl font-bold">Task Results</h1>
       </div>
 
-      {data && <ResultsContent resultsData={data} />}
+      {data && (
+        <ResultsContent 
+          loading={false} 
+          error={null} 
+          taskId={taskId || null} 
+          results={data} 
+          exportCSV={() => {
+            if (data?.result_url) {
+              window.open(data.result_url, '_blank');
+            }
+          }}
+          isLimited={data?.limited || false}
+          planInfo={data?.current_plan}
+        />
+      )}
     </Container>
   );
 }
