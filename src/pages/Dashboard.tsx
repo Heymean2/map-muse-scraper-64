@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ScraperForm from "@/components/ScraperForm";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
@@ -134,9 +134,14 @@ function DashboardHome() {
 }
 
 export default function Dashboard() {
-  // Scroll to top when component mounts
+  const location = useLocation();
+  
+  // Scroll to top only on first component mount, not on route changes within Dashboard
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Only scroll to top when first mounting the Dashboard component
+    if (location.pathname === "/dashboard") {
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   return (
@@ -145,7 +150,8 @@ export default function Dashboard() {
         <Route path="/" element={<DashboardHome />} />
         <Route path="/scrape" element={<ScraperForm />} />
         <Route path="/settings" element={<Settings />} />
-        {/* Additional routes for profile, billing (already exist) */}
+        {/* If user navigates to /dashboard directly and not a subpath, show home */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>
   );
