@@ -14,11 +14,19 @@ import ProfileSection from "@/components/dashboard/ProfileSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Define the notification settings type for better type safety
+interface NotificationSettings {
+  email: boolean;
+  desktop: boolean;
+  updates: boolean;
+  results: boolean;
+}
+
 export default function Settings() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<NotificationSettings>({
     email: true,
     desktop: false,
     updates: true,
@@ -68,7 +76,16 @@ export default function Settings() {
       if (error) throw error;
       
       if (data?.notification_settings) {
-        setNotifications(data.notification_settings);
+        // Validate the notification settings object and ensure it has the expected structure
+        const settings = data.notification_settings as any;
+        const validatedSettings: NotificationSettings = {
+          email: typeof settings.email === 'boolean' ? settings.email : true,
+          desktop: typeof settings.desktop === 'boolean' ? settings.desktop : false,
+          updates: typeof settings.updates === 'boolean' ? settings.updates : true,
+          results: typeof settings.results === 'boolean' ? settings.results : true
+        };
+        
+        setNotifications(validatedSettings);
       }
     } catch (err) {
       console.error("Error loading notification settings:", err);
