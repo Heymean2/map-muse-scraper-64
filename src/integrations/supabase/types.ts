@@ -13,33 +13,39 @@ export type Database = {
         Row: {
           billing_period: string
           created_at: string
+          credits: number | null
           features: Json
           id: number
           is_recommended: boolean
           name: string
           price: number
+          price_per_credit: number | null
           row_limit: number
           updated_at: string
         }
         Insert: {
           billing_period?: string
           created_at?: string
+          credits?: number | null
           features?: Json
           id?: number
           is_recommended?: boolean
           name: string
           price: number
+          price_per_credit?: number | null
           row_limit: number
           updated_at?: string
         }
         Update: {
           billing_period?: string
           created_at?: string
+          credits?: number | null
           features?: Json
           id?: number
           is_recommended?: boolean
           name?: string
           price?: number
+          price_per_credit?: number | null
           row_limit?: number
           updated_at?: string
         }
@@ -48,6 +54,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          credits: number | null
           email: string
           id: string
           is_admin: boolean | null
@@ -58,6 +65,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credits?: number | null
           email: string
           id: string
           is_admin?: boolean | null
@@ -68,6 +76,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credits?: number | null
           email?: string
           id?: string
           is_admin?: boolean | null

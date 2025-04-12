@@ -17,7 +17,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     // Get user profile with plan info
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id')
+      .select('plan_id, credits, total_rows')
       .eq('id', user.id)
       .single();
       
@@ -29,7 +29,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     // Get plan details
     const { data: planData, error: planError } = await supabase
       .from('pricing_plans')
-      .select('name, row_limit')
+      .select('name, row_limit, credits, price_per_credit')
       .eq('id', profileData?.plan_id || 1)
       .single();
       
@@ -59,13 +59,17 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     const freeRowsLimit = planData?.row_limit || DEFAULT_FREE_TIER_LIMIT;
     const isFreePlan = planName === 'Free Plan';
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
+    const credits = profileData?.credits || 0;
+    const price_per_credit = planData?.price_per_credit || 0;
     
     return {
       isFreePlan,
       planName,
       totalRows,
       freeRowsLimit,
-      isExceeded
+      isExceeded,
+      credits,
+      price_per_credit
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
@@ -75,7 +79,9 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       planName: 'Free Plan',
       totalRows: 0,
       freeRowsLimit: DEFAULT_FREE_TIER_LIMIT,
-      isExceeded: false
+      isExceeded: false,
+      credits: 0,
+      price_per_credit: 0.00299
     };
   }
 }
@@ -90,7 +96,8 @@ export async function checkUserFreeTierLimit(): Promise<FreeTierLimitInfo> {
   return {
     isExceeded: planInfo.isExceeded,
     totalRows: planInfo.totalRows,
-    freeRowsLimit: planInfo.freeRowsLimit
+    freeRowsLimit: planInfo.freeRowsLimit,
+    credits: planInfo.credits
   };
 }
 
@@ -120,5 +127,83 @@ export async function updateUserRows(rowCount: number): Promise<void> {
     }
   } catch (error) {
     console.error("Error updating user row count:", error);
+  }
+}
+
+/**
+ * Update user's credits
+ */
+export async function updateUserCredits(creditAmount: number): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Authentication required");
+    }
+    
+    // Get current credits
+    const { data: profileData, error: fetchError } = await supabase
+      .from('profiles')
+      .select('credits')
+      .eq('id', user.id)
+      .single();
+      
+    if (fetchError) {
+      console.error("Error fetching user credits:", fetchError);
+      throw fetchError;
+    }
+    
+    const currentCredits = profileData?.credits || 0;
+    const newCredits = currentCredits + creditAmount;
+    
+    // Update credits
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ credits: Math.max(0, newCredits) })
+      .eq('id', user.id);
+      
+    if (updateError) {
+      console.error("Error updating user credits:", updateError);
+      throw updateError;
+    }
+  } catch (error) {
+    console.error("Error updating user credits:", error);
+  }
+}
+
+/**
+ * Purchase credits
+ */
+export async function purchaseCredits(packageCount: number): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Authentication required");
+    }
+    
+    // Get credit package details
+    const { data: packageData, error: packageError } = await supabase
+      .from('pricing_plans')
+      .select('credits')
+      .eq('name', 'Credit Package')
+      .single();
+      
+    if (packageError) {
+      console.error("Error fetching credit package:", packageError);
+      throw packageError;
+    }
+    
+    const creditsPerPackage = packageData?.credits || 1000;
+    const totalCredits = creditsPerPackage * packageCount;
+    
+    // In a real application, here we would process payment
+    // For now, we'll just update the user's credits
+    await updateUserCredits(totalCredits);
+    
+    return true;
+  } catch (error) {
+    console.error("Error purchasing credits:", error);
+    return false;
   }
 }

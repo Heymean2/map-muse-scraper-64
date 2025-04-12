@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ScraperForm from "@/components/ScraperForm";
@@ -11,6 +10,7 @@ import { CircleDollarSign, FilePlus2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Settings from "@/pages/Settings";
+import BillingSection from "@/components/dashboard/BillingSection";
 
 function DashboardHome() {
   const navigate = useNavigate();
@@ -136,9 +136,7 @@ function DashboardHome() {
 export default function Dashboard() {
   const location = useLocation();
   
-  // Scroll to top only on first component mount, not on route changes within Dashboard
   useEffect(() => {
-    // Only scroll to top when first mounting the Dashboard component
     if (location.pathname === "/dashboard") {
       window.scrollTo(0, 0);
     }
@@ -150,7 +148,7 @@ export default function Dashboard() {
         <Route path="/" element={<DashboardHome />} />
         <Route path="/scrape" element={<ScraperForm />} />
         <Route path="/settings" element={<Settings />} />
-        {/* If user navigates to /dashboard directly and not a subpath, show home */}
+        <Route path="/billing" element={<BillingSection />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>

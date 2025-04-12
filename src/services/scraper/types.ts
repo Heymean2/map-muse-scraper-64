@@ -1,5 +1,6 @@
 
-// Types for the scraper service
+// Base URL for the scraper API
+export const BASE_URL = "https://localhost:4242";
 
 export interface ScraperParams {
   keywords: string;
@@ -17,7 +18,6 @@ export interface ScraperResponse {
   error?: string;
 }
 
-// Define a type for the scraping_requests table rows that includes result_data
 export interface ScrapingRequest {
   country: string;
   created_at: string | null;
@@ -41,10 +41,13 @@ export interface UserPlanInfo {
   totalRows: number;
   freeRowsLimit: number;
   isExceeded: boolean;
+  credits?: number;
+  price_per_credit?: number;
 }
 
 export interface FreeTierLimitInfo {
   isExceeded: boolean;
   totalRows: number;
   freeRowsLimit: number;
+  credits?: number;
 }
