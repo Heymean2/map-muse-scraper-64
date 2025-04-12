@@ -13,6 +13,7 @@ import { Bell, Moon, Sun, Languages, LucideGlobe } from "lucide-react";
 import ProfileSection from "@/components/dashboard/ProfileSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Json } from "@/integrations/supabase/types";
 
 // Define the notification settings type for better type safety
 interface NotificationSettings {
@@ -39,10 +40,18 @@ export default function Settings() {
     if (!user) return;
     
     try {
+      // Convert NotificationSettings to a plain object that satisfies the Json type
+      const notificationData = {
+        email: notifications.email,
+        desktop: notifications.desktop,
+        updates: notifications.updates,
+        results: notifications.results
+      } as Json;
+      
       const { error } = await supabase
         .from('profiles')
         .update({
-          notification_settings: notifications
+          notification_settings: notificationData
         })
         .eq('id', user.id);
         
