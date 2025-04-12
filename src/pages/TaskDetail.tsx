@@ -6,7 +6,7 @@ import { getScrapingResults } from "@/services/scraper";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ArrowLeft } from "lucide-react";
-import { ResultsContent } from "@/components/results/ResultsContent";
+import ResultsContent from "@/components/results/ResultsContent";
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
