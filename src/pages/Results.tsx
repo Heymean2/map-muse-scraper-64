@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { Eye, Clock, CheckCircle, AlertTriangle, MapPin, Search, FileText, List } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export default function Results() {
@@ -204,6 +203,16 @@ export default function Results() {
     }
   };
 
+  // Convert fields string to a formatted list for display
+  const formatFields = (fieldsString?: string) => {
+    if (!fieldsString) return 'N/A';
+    
+    const fields = fieldsString.split(',');
+    if (fields.length <= 2) return fieldsString;
+    
+    return `${fields.slice(0, 2).join(', ')} +${fields.length - 2} more`;
+  };
+
   return (
     <DashboardLayout>
       <Container>
@@ -243,7 +252,10 @@ export default function Results() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Keywords</TableHead>
+                      <TableHead><div className="flex items-center gap-1"><Search className="h-4 w-4" /> Keywords</div></TableHead>
+                      <TableHead><div className="flex items-center gap-1"><MapPin className="h-4 w-4" /> Location</div></TableHead>
+                      <TableHead><div className="flex items-center gap-1"><List className="h-4 w-4" /> Data Fields</div></TableHead>
+                      <TableHead><div className="flex items-center gap-1"><FileText className="h-4 w-4" /> Records</div></TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -256,6 +268,14 @@ export default function Results() {
                         className={task.task_id === taskId ? "bg-primary/5" : ""}
                       >
                         <TableCell className="font-medium">{task.keywords}</TableCell>
+                        <TableCell>
+                          <div className="flex items-start gap-1 flex-col">
+                            <span className="font-medium">{task.country}</span>
+                            {task.states && <span className="text-xs text-muted-foreground">{task.states}</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatFields(task.fields)}</TableCell>
+                        <TableCell>{task.row_count || 'Pending'}</TableCell>
                         <TableCell>
                           {formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
                         </TableCell>

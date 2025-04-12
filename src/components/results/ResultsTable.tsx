@@ -8,13 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Lock } from "lucide-react";
+import { Lock, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ResultsTableProps {
   data: any[];
   searchInfo?: {
     keywords?: string;
     location?: string;
+    fields?: string;
+    rating?: string;
     filters?: any;
   };
   totalCount: number;
@@ -25,6 +28,14 @@ export default function ResultsTable({ data, searchInfo, totalCount, isLimited =
   if (!data || data.length === 0) {
     return null;
   }
+
+  // Function to format column headers from snake_case to Title Case
+  const formatColumnHeader = (header: string) => {
+    return header
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
@@ -54,16 +65,17 @@ export default function ResultsTable({ data, searchInfo, totalCount, isLimited =
             <TableRow>
               {Object.keys(data[0] || {}).map((header) => (
                 <TableHead key={header}>
-                  {header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ')}
+                  {formatColumnHeader(header)}
                 </TableHead>
               ))}
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((item: any, index: number) => (
-              <TableRow key={index}>
-                {Object.values(item).map((value: any, valueIndex: number) => (
-                  <TableCell key={valueIndex}>
+              <TableRow key={index} className="group">
+                {Object.entries(item).map(([key, value]: [string, any], valueIndex: number) => (
+                  <TableCell key={valueIndex} className={key === 'name' ? 'font-medium' : ''}>
                     {typeof value === 'string' && value.startsWith('http') ? (
                       <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                         View Image
@@ -73,6 +85,16 @@ export default function ResultsTable({ data, searchInfo, totalCount, isLimited =
                     )}
                   </TableCell>
                 ))}
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(item.name || '')}`, '_blank')}
+                  >
+                    <ExternalLink size={14} />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

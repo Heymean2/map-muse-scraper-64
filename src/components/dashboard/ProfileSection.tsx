@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -90,23 +90,7 @@ export default function ProfileSection() {
     setIsPasswordChangeLoading(true);
     
     try {
-      // First verify the current password by attempting to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: currentPassword,
-      });
-      
-      if (signInError) {
-        toast({
-          title: "Incorrect Password",
-          description: "Your current password is incorrect.",
-          variant: "destructive",
-        });
-        setIsPasswordChangeLoading(false);
-        return;
-      }
-      
-      // Now update the password
+      // Update the password directly
       const { error } = await supabase.auth.updateUser({ 
         password: newPassword 
       });
@@ -143,6 +127,15 @@ export default function ProfileSection() {
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Change Email</h3>
           <div className="grid gap-2">
+            <div className="mb-2">
+              <Label htmlFor="current-email">Current Email</Label>
+              <Input 
+                id="current-email" 
+                value={user?.email || ""}
+                disabled
+                className="bg-slate-50"
+              />
+            </div>
             <Label htmlFor="new-email">New Email Address</Label>
             <div className="flex gap-2">
               <Input 

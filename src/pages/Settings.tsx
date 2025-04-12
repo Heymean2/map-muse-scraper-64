@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
@@ -7,13 +8,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Bell, Moon, Sun, Languages, LucideGlobe, Shield, Download, Trash2 } from "lucide-react";
+import { Bell, Moon, Sun, Languages, LucideGlobe } from "lucide-react";
+import ProfileSection from "@/components/dashboard/ProfileSection";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Settings() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
   const [notifications, setNotifications] = useState({
     email: true,
@@ -23,25 +27,65 @@ export default function Settings() {
   });
   const [exportFormat, setExportFormat] = useState("csv");
   
+  // Save notification preferences to database
+  const saveNotificationSettings = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          notification_settings: notifications
+        })
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Notification settings saved",
+        description: "Your notification preferences have been updated."
+      });
+    } catch (err) {
+      console.error("Error saving notification settings:", err);
+      toast({
+        title: "Error",
+        description: "Failed to save notification settings",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Load notification preferences from database
+  const loadNotificationSettings = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('notification_settings')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) throw error;
+      
+      if (data?.notification_settings) {
+        setNotifications(data.notification_settings);
+      }
+    } catch (err) {
+      console.error("Error loading notification settings:", err);
+    }
+  };
+  
+  // Load notification settings on component mount
+  useState(() => {
+    loadNotificationSettings();
+  });
+  
   const handleSavePreferences = () => {
+    saveNotificationSettings();
     toast({
       title: "Settings saved",
       description: "Your preferences have been updated successfully.",
-    });
-  };
-  
-  const handleExportData = () => {
-    toast({
-      title: "Exporting data",
-      description: "Your data is being exported. This may take a moment.",
-    });
-  };
-  
-  const handleDeleteAccount = () => {
-    toast({
-      title: "Account deletion requested",
-      description: "Please check your email to confirm account deletion.",
-      variant: "destructive"
     });
   };
 
@@ -57,7 +101,6 @@ export default function Settings() {
           <TabsList className="mb-8">
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="api">API Access</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
           
@@ -264,148 +307,13 @@ export default function Settings() {
                   </div>
                 </div>
                 
-                <Button onClick={handleSavePreferences}>Save Notification Settings</Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="api">
-            <Card>
-              <CardHeader>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>
-                  Manage your API keys for automated access
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium">Your API Key</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Use this key to access the API
-                      </p>
-                    </div>
-                    <Shield className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  
-                  <div className="relative">
-                    <Input 
-                      value="••••••••••••••••••••••••••••••" 
-                      readOnly 
-                      className="pr-24"
-                    />
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="absolute right-1 top-1"
-                      onClick={() => {
-                        toast({
-                          title: "API key copied",
-                          description: "The API key has been copied to your clipboard."
-                        });
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <h3 className="font-medium mb-2">API Documentation</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Learn how to use our API to automate your scraping tasks
-                    </p>
-                    <Button variant="outline">View Documentation</Button>
-                  </div>
-                  
-                  <div className="border-t pt-4 mt-4">
-                    <h3 className="font-medium mb-2">Regenerate API Key</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      If your key is compromised, you can generate a new one. This will invalidate your old key.
-                    </p>
-                    <Button variant="destructive">Regenerate Key</Button>
-                  </div>
-                </div>
+                <Button onClick={saveNotificationSettings}>Save Notification Settings</Button>
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="account">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>
-                  Manage your account information and data
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Personal Information</h3>
-                  <div className="grid gap-4 max-w-md">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Name
-                      </Label>
-                      <Input id="name" defaultValue="John Doe" className="col-span-3" />
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="email" className="text-right">
-                        Email
-                      </Label>
-                      <Input id="email" defaultValue="johndoe@example.com" className="col-span-3" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Password</h3>
-                  <div className="grid gap-4 max-w-md">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="current-password" className="text-right">
-                        Current
-                      </Label>
-                      <Input id="current-password" type="password" className="col-span-3" />
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="new-password" className="text-right">
-                        New
-                      </Label>
-                      <Input id="new-password" type="password" className="col-span-3" />
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="confirm-password" className="text-right">
-                        Confirm
-                      </Label>
-                      <Input id="confirm-password" type="password" className="col-span-3" />
-                    </div>
-                  </div>
-                  
-                  <Button>Update Password</Button>
-                </div>
-                
-                <div className="border-t pt-4 space-y-4">
-                  <h3 className="text-lg font-medium text-amber-500">Export & Delete</h3>
-                  
-                  <div className="flex items-start gap-4">
-                    <Button variant="outline" onClick={handleExportData}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Export My Data
-                    </Button>
-                    
-                    <Button variant="destructive" onClick={handleDeleteAccount}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Account
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Deleting your account will remove all of your data and cannot be undone.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfileSection />
           </TabsContent>
         </Tabs>
       </Container>
