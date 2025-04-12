@@ -51,6 +51,7 @@ export type Database = {
           email: string
           id: string
           is_admin: boolean | null
+          notification_settings: Json | null
           plan_id: number | null
           total_rows: number | null
           updated_at: string
@@ -60,6 +61,7 @@ export type Database = {
           email: string
           id: string
           is_admin?: boolean | null
+          notification_settings?: Json | null
           plan_id?: number | null
           total_rows?: number | null
           updated_at?: string
@@ -69,6 +71,7 @@ export type Database = {
           email?: string
           id?: string
           is_admin?: boolean | null
+          notification_settings?: Json | null
           plan_id?: number | null
           total_rows?: number | null
           updated_at?: string

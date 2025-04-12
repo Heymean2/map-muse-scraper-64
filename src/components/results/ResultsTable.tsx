@@ -8,8 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Lock, ExternalLink } from "lucide-react";
+import { Lock, ExternalLink, MapPin, Tag, Star, Calendar, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
 interface ResultsTableProps {
   data: any[];
@@ -22,9 +23,16 @@ interface ResultsTableProps {
   };
   totalCount: number;
   isLimited?: boolean;
+  createdAt?: string;
 }
 
-export default function ResultsTable({ data, searchInfo, totalCount, isLimited = false }: ResultsTableProps) {
+export default function ResultsTable({ 
+  data, 
+  searchInfo, 
+  totalCount, 
+  isLimited = false,
+  createdAt
+}: ResultsTableProps) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -41,10 +49,40 @@ export default function ResultsTable({ data, searchInfo, totalCount, isLimited =
     <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
       <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b flex justify-between items-center">
         <div>
-          <h3 className="font-medium">Results for: {searchInfo?.keywords}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Found {totalCount} records
-          </p>
+          <h3 className="font-medium flex items-center gap-2">
+            <Tag className="h-4 w-4" /> {searchInfo?.keywords}
+          </h3>
+          <div className="flex flex-wrap gap-x-4 mt-2 text-sm text-slate-500 dark:text-slate-400">
+            {searchInfo?.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                <span>{searchInfo.location}</span>
+              </div>
+            )}
+            {searchInfo?.fields && (
+              <div className="flex items-center gap-1">
+                <List className="h-3 w-3" />
+                <span>{searchInfo.fields}</span>
+              </div>
+            )}
+            {searchInfo?.rating && (
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3" />
+                <span>Min Rating: {searchInfo.rating}</span>
+              </div>
+            )}
+            {createdAt && (
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                <span>
+                  {format(new Date(createdAt), 'MMM d, yyyy')}
+                </span>
+              </div>
+            )}
+            <div>
+              <span className="font-medium">{totalCount}</span> results found
+            </div>
+          </div>
         </div>
         
         {isLimited && (

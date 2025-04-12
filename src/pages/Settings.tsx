@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Bell, Moon, Sun, Languages, LucideGlobe } from "lucide-react";
@@ -77,9 +76,9 @@ export default function Settings() {
   };
   
   // Load notification settings on component mount
-  useState(() => {
+  useEffect(() => {
     loadNotificationSettings();
-  });
+  }, [user]);
   
   const handleSavePreferences = () => {
     saveNotificationSettings();
