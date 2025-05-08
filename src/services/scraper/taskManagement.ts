@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
@@ -124,14 +123,17 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         created_at: data.created_at || new Date().toISOString()
       };
       
+      // Add search_info if not present in database
+      const searchInfo = data.search_info || {
+        keywords: data.keywords,
+        location: `${data.country} - ${data.states}`,
+        fields: data.fields
+      };
+      
       // Return with additional fields
       const result: ScrapingResultSingle = {
         ...taskWithDefaults,
-        search_info: data.search_info || {
-          keywords: data.keywords,
-          location: `${data.country} - ${data.states}`,
-          fields: data.fields
-        }
+        search_info: searchInfo
       };
       
       return result;

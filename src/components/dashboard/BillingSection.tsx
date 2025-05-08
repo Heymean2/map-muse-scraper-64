@@ -9,6 +9,13 @@ import { getPlanFeatures } from "./billing/PlanFeatures";
 import { SubscriptionManager } from "./billing/SubscriptionManager";
 import { CurrentPlanInfo } from "./billing/CurrentPlanInfo";
 
+interface PlanData {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+}
+
 export default function BillingSection() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,12 +32,19 @@ export default function BillingSection() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
-        .select('*')
+        .select('id, name, description, price, plan_type')
         .eq('plan_type', 'subscription')
         .order('price', { ascending: true });
         
       if (error) throw error;
-      return data || [];
+      
+      // Convert to simpler format to avoid deep nesting
+      return (data || []).map(plan => ({
+        id: plan.id.toString(),
+        name: plan.name || "",
+        description: plan.description || "",
+        price: plan.price || 0
+      }));
     }
   });
 
@@ -52,15 +66,10 @@ export default function BillingSection() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {subscriptionPlans?.map((plan: any) => (
+            {subscriptionPlans?.map((plan: PlanData) => (
               <PlanCard 
                 key={plan.id}
-                plan={{
-                  id: plan.id,
-                  name: plan.name,
-                  description: plan.description || "",
-                  price: plan.price
-                }}
+                plan={plan}
                 isActive={isPlanActive(plan.id)}
                 onSelect={setSelectedPlanId}
                 features={getPlanFeatures(plan.name)}

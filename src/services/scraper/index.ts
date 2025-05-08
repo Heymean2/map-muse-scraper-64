@@ -23,9 +23,23 @@ export {
 
 // User plan information
 export { 
-  getUserPlanInfo,
+  getUserPlanInfo 
+} from './userPlanService';
+
+export {
   defaultFreePlan
 } from './planInfo';
+
+// User statistics
+export {
+  updateUserRows,
+  updateUserCredits
+} from './userStatsService';
+
+// Credit management
+export {
+  purchaseCredits
+} from './creditService';
 
 // Eligibility and plan related functions
 export {
@@ -41,4 +55,4 @@ export {
 export { subscribeToPlan } from './subscriptionManager';
 
 // Legacy function for compatibility
-export { checkUserFreeTierLimit } from './subscriptionManager';
+export { checkUserFreeTierLimit } from './userPlanService';
