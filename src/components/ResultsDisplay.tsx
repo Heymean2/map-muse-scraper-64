@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
@@ -36,6 +35,8 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getUserPlanInfo } from "@/services/scraper";
+import { useQuery } from "@tanstack/react-query";
 
 // Mock data for display purposes
 const mockResults = [
@@ -43,6 +44,8 @@ const mockResults = [
     id: 1,
     name: "The Coffee House",
     address: "123 Main St, New York, NY",
+    city: "New York",
+    state: "NY",
     rating: 4.7,
     reviews: 324,
     phone: "(212) 555-1234",
@@ -52,6 +55,8 @@ const mockResults = [
     id: 2,
     name: "Downtown Diner",
     address: "456 Broadway, New York, NY",
+    city: "New York",
+    state: "NY",
     rating: 4.2,
     reviews: 188,
     phone: "(212) 555-5678",
@@ -61,6 +66,8 @@ const mockResults = [
     id: 3,
     name: "Central Park Bakery",
     address: "789 5th Ave, New York, NY",
+    city: "New York",
+    state: "NY",
     rating: 4.8,
     reviews: 412,
     phone: "(212) 555-9012",
@@ -70,6 +77,8 @@ const mockResults = [
     id: 4,
     name: "Empire State Burgers",
     address: "101 Park Ave, New York, NY",
+    city: "New York",
+    state: "NY",
     rating: 4.5,
     reviews: 256,
     phone: "(212) 555-3456",
@@ -79,6 +88,8 @@ const mockResults = [
     id: 5,
     name: "Brooklyn Pizza Co.",
     address: "202 Atlantic Ave, Brooklyn, NY",
+    city: "Brooklyn",
+    state: "NY",
     rating: 4.6,
     reviews: 380,
     phone: "(718) 555-7890",
@@ -89,7 +100,6 @@ const mockResults = [
 export default function ResultsDisplay() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("table");
-  const [isPlanLimited, setIsPlanLimited] = useState(true);
   const [sortConfig, setSortConfig] = useState<{
     key: string | null,
     direction: 'ascending' | 'descending'
@@ -97,6 +107,15 @@ export default function ResultsDisplay() {
     key: null,
     direction: 'ascending'
   });
+
+  // Get user's plan to check restrictions
+  const { data: planInfo } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo
+  });
+
+  // Check if reviews are restricted based on plan
+  const areReviewsRestricted = !planInfo?.features?.reviews;
 
   const handleSort = (key: string) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -143,27 +162,14 @@ export default function ResultsDisplay() {
             </TabsList>
             
             <div className="flex gap-2">
-              {!isPlanLimited ? (
-                <>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Filter size={14} />
-                    <span>Filter</span>
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Download size={14} />
-                    <span>Export CSV</span>
-                  </Button>
-                </>
-              ) : (
-                <Button 
-                  size="sm" 
-                  className="gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                  onClick={() => navigate('/dashboard/billing')}
-                >
-                  <Trophy size={14} />
-                  <span>Upgrade Now</span>
-                </Button>
-              )}
+              <Button variant="outline" size="sm" className="gap-1">
+                <Filter size={14} />
+                <span>Filter</span>
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1">
+                <Download size={14} />
+                <span>Export CSV</span>
+              </Button>
             </div>
           </div>
 
@@ -176,10 +182,10 @@ export default function ResultsDisplay() {
                     <CardDescription>Showing 5 of 128 results for "cafes in New York"</CardDescription>
                   </div>
                   
-                  {isPlanLimited && (
+                  {areReviewsRestricted && (
                     <Badge variant="outline" className="gap-1 border-amber-500 text-amber-700 bg-amber-50">
                       <Lock size={12} />
-                      <span>Free Plan (Limited)</span>
+                      <span>Reviews Restricted</span>
                     </Badge>
                   )}
                 </div>
@@ -203,6 +209,8 @@ export default function ResultsDisplay() {
                           </div>
                         </TableHead>
                         <TableHead>Address</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead>State</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-slate-50"
                           onClick={() => handleSort('rating')}
@@ -216,19 +224,21 @@ export default function ResultsDisplay() {
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-slate-50"
-                          onClick={() => handleSort('reviews')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Reviews
-                            {sortConfig.key === 'reviews' && (
-                              sortConfig.direction === 'ascending' ? 
-                                <ChevronUp size={14} /> : 
-                                <ChevronDown size={14} />
-                            )}
-                          </div>
-                        </TableHead>
+                        {!areReviewsRestricted && (
+                          <TableHead 
+                            className="cursor-pointer hover:bg-slate-50"
+                            onClick={() => handleSort('reviews')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Reviews
+                              {sortConfig.key === 'reviews' && (
+                                sortConfig.direction === 'ascending' ? 
+                                  <ChevronUp size={14} /> : 
+                                  <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
+                        )}
                         <TableHead>Phone</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-slate-50"
@@ -254,17 +264,25 @@ export default function ResultsDisplay() {
                             <MapPin size={14} className="text-slate-400 flex-shrink-0" />
                             <span className="truncate max-w-[200px]">{result.address}</span>
                           </TableCell>
+                          <TableCell>{result.city}</TableCell>
+                          <TableCell>{result.state}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Star size={14} className="text-yellow-400" />
                               <span>{result.rating}</span>
                             </div>
                           </TableCell>
-                          <TableCell>{result.reviews}</TableCell>
+                          {!areReviewsRestricted && (
+                            <TableCell>{result.reviews}</TableCell>
+                          )}
                           <TableCell>{result.phone}</TableCell>
                           <TableCell>{result.category}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
                               <ExternalLink size={14} />
                             </Button>
                           </TableCell>
@@ -275,10 +293,12 @@ export default function ResultsDisplay() {
                 </div>
               </CardContent>
               
-              {isPlanLimited && (
+              {areReviewsRestricted && (
                 <CardFooter className="bg-amber-50 border-t border-amber-200 p-4">
                   <div className="w-full text-center">
-                    <p className="text-amber-700 text-sm mb-2">You're viewing limited results. Upgrade to see all 128 results.</p>
+                    <p className="text-amber-700 text-sm mb-2">
+                      Reviews data is restricted. Upgrade to the Pro plan to access review data.
+                    </p>
                     <Button 
                       variant="default" 
                       size="sm"
@@ -292,11 +312,9 @@ export default function ResultsDisplay() {
                 </CardFooter>
               )}
               
-              {!isPlanLimited && (
-                <CardFooter className="border-t border-slate-100 flex justify-center p-4">
-                  <Button variant="outline">Load More Results</Button>
-                </CardFooter>
-              )}
+              <CardFooter className="border-t border-slate-100 flex justify-center p-4">
+                <Button variant="outline">Load More Results</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
           
@@ -320,10 +338,13 @@ export default function ResultsDisplay() {
                         <Star size={14} className="text-yellow-400 mr-1" />
                         <span className="font-semibold">{result.rating}</span>
                       </div>
-                      <div className="text-sm text-slate-500">
-                        ({result.reviews} reviews)
-                      </div>
+                      {!areReviewsRestricted && (
+                        <div className="text-sm text-slate-500">
+                          ({result.reviews} reviews)
+                        </div>
+                      )}
                     </div>
+                    <div className="text-sm">{result.city}, {result.state}</div>
                     <div className="text-sm">{result.phone}</div>
                   </CardContent>
                   <div className="p-4 pt-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -336,9 +357,9 @@ export default function ResultsDisplay() {
               ))}
             </div>
             
-            {isPlanLimited && (
+            {areReviewsRestricted && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4 text-center">
-                <p className="text-amber-700 mb-2">You're viewing limited results. Upgrade to see all results.</p>
+                <p className="text-amber-700 mb-2">Reviews data is restricted. Upgrade to the Pro plan for full access.</p>
                 <Button 
                   variant="default" 
                   size="sm"
@@ -388,7 +409,7 @@ export default function ResultsDisplay() {
               </Card>
             </div>
             
-            {isPlanLimited && (
+            {areReviewsRestricted && (
               <Card className="border-amber-200 bg-amber-50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-amber-700">
@@ -398,7 +419,7 @@ export default function ResultsDisplay() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-amber-700 mb-4">
-                    Upgrade to Pro to access advanced analytics including geographical distribution, 
+                    Upgrade to Pro to access advanced analytics including review analysis, 
                     popularity trends, and business performance insights.
                   </p>
                   <Button 
@@ -442,12 +463,12 @@ export default function ResultsDisplay() {
             </div>
           </div>
           
-          {isPlanLimited && (
+          {areReviewsRestricted && (
             <div className="mt-6 pt-4 border-t border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold">Ready to unlock all features?</h4>
-                  <p className="text-sm text-slate-600">Upgrade to Pro for just $19.99/month</p>
+                  <p className="text-sm text-slate-600">Upgrade to Pro for just $49.99/month</p>
                 </div>
                 <Button 
                   className="gap-1"

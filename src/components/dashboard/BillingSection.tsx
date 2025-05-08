@@ -1,196 +1,201 @@
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getUserPlanInfo } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
-import { CircleDollarSign, CheckCircle, AlertCircle, Plus, Minus, ShoppingCart } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { CircleDollarSign, CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { getUserPlanInfo, subscribeToPlan } from "@/services/scraper";
 
 export default function BillingSection() {
-  const [creditPackages, setCreditPackages] = useState(1);
+  const navigate = useNavigate();
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  // Get user plan info
-  const { data: planInfo, isLoading } = useQuery({
+  // Get user's current plan info
+  const { data: userPlan, isLoading: userPlanLoading } = useQuery({
     queryKey: ['userPlanInfo'],
     queryFn: getUserPlanInfo
   });
   
-  // Get available credit packages
-  const { data: creditPackageData } = useQuery({
-    queryKey: ['creditPackages'],
+  // Get available subscription plans from Supabase
+  const { data: subscriptionPlans, isLoading: plansLoading } = useQuery({
+    queryKey: ['subscriptionPlans'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
         .select('*')
-        .eq('name', 'Credit Package')
-        .single();
+        .eq('plan_type', 'subscription')
+        .order('price', { ascending: true });
         
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
-  // Calculate progress percentage
-  const usagePercentage = planInfo ? Math.min(100, (planInfo.totalRows / planInfo.freeRowsLimit) * 100) : 0;
-  const isNearLimit = usagePercentage >= 80 && usagePercentage < 100;
-  const isOverLimit = usagePercentage >= 100;
-  
-  const handleIncrementPackages = () => {
-    setCreditPackages(prev => prev + 1);
+  const handleSubscribe = async () => {
+    if (!selectedPlanId) {
+      toast.error("Please select a plan");
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // In a real implementation, this would connect to Stripe
+      // and handle the subscription process
+      const result = await subscribeToPlan(selectedPlanId);
+      
+      if (result.success) {
+        toast.success("Subscription updated successfully!");
+      } else {
+        toast.error(result.error || "Failed to update subscription");
+      }
+    } catch (error: any) {
+      console.error("Subscription error:", error);
+      toast.error("Failed to process your subscription");
+    } finally {
+      setIsProcessing(false);
+    }
   };
-  
-  const handleDecrementPackages = () => {
-    setCreditPackages(prev => Math.max(1, prev - 1));
+
+  // Get features for each plan
+  const getFeatures = (planName: string) => {
+    const features = {
+      basic: [
+        { name: "Unlimited scraping", included: true },
+        { name: "Name and address data", included: true },
+        { name: "Phone number and website data", included: true },
+        { name: "City and state data", included: true },
+        { name: "Review data", included: false },
+        { name: "Priority support", included: false },
+      ],
+      pro: [
+        { name: "Unlimited scraping", included: true },
+        { name: "All business data fields", included: true },
+        { name: "Review data access", included: true },
+        { name: "Advanced analytics", included: true },
+        { name: "Priority support", included: true },
+        { name: "Data API access", included: true },
+      ]
+    };
+    
+    return planName.toLowerCase().includes("pro") ? features.pro : features.basic;
   };
-  
-  const handlePurchaseCredits = () => {
-    // This would connect to a payment processor in a real app
-    toast.success(`Purchase of ${creditPackages * 1000} credits initiated`, {
-      description: "This would connect to a payment processor in a real application."
-    });
+
+  const isPlanActive = (planId: string) => {
+    return userPlan?.planId === planId;
   };
 
   return (
     <Container>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Billing & Subscription</h1>
-        <p className="text-muted-foreground">Manage your plan and payment details</p>
+        <h1 className="text-3xl font-bold">Subscription Plans</h1>
+        <p className="text-muted-foreground">Choose the right plan for your data extraction needs</p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Current Credits</CardTitle>
-            <CardDescription>Your available usage credits</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="mb-4 p-4 bg-primary/10 rounded-lg">
-              <h3 className="font-bold text-lg">{isLoading ? 'Loading...' : planInfo?.planName || 'Free Plan'}</h3>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl font-bold">{planInfo?.credits || 0}</span>
-                <span className="text-muted-foreground">credits available</span>
-              </div>
+      {plansLoading || userPlanLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <p>Loading plans...</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {subscriptionPlans?.map((plan) => (
+              <Card 
+                key={plan.id} 
+                className={`${selectedPlanId === plan.id ? 'ring-2 ring-primary' : ''} ${isPlanActive(plan.id) ? 'bg-primary/5' : ''}`}
+              >
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    <span>{plan.name}</span>
+                    {isPlanActive(plan.id) && (
+                      <Badge className="ml-2">Current Plan</Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                  <div className="mt-4">
+                    <span className="text-3xl font-bold">${plan.price}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <h4 className="font-medium mb-2">Features:</h4>
+                  <ul className="space-y-2">
+                    {getFeatures(plan.name).map((feature, idx) => (
+                      <li key={idx} className="flex items-start">
+                        {feature.included ? (
+                          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-slate-300 mr-2 flex-shrink-0" />
+                        )}
+                        <span className={!feature.included ? "text-slate-500" : ""}>
+                          {feature.name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full" 
+                    variant={isPlanActive(plan.id) ? "outline" : "default"}
+                    disabled={isPlanActive(plan.id)}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                  >
+                    {isPlanActive(plan.id) ? "Current Plan" : "Select Plan"}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+          
+          {selectedPlanId && !isPlanActive(selectedPlanId) && (
+            <div className="mt-8 flex justify-center">
+              <Button 
+                size="lg" 
+                onClick={handleSubscribe}
+                disabled={isProcessing}
+                className="gap-2"
+              >
+                <CircleDollarSign className="h-4 w-4" />
+                {isProcessing ? "Processing..." : "Subscribe Now"}
+              </Button>
+            </div>
+          )}
+          
+          <div className="mt-12 bg-slate-50 p-6 rounded-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-lg font-medium">Current Plan</h3>
+              {userPlan?.planName && <Badge>{userPlan.planName}</Badge>}
             </div>
             
-            <div className="space-y-2 mb-6">
-              <p className="flex gap-2 items-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>1 credit = 1 row of scraped data</span>
-              </p>
-              <p className="flex gap-2 items-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Purchase credits at any time</span>
-              </p>
-              <p className="flex gap-2 items-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Credits never expire</span>
-              </p>
-            </div>
-            
-            <div className="space-y-2 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Usage</p>
-                <p className="text-sm font-medium">
-                  {isLoading ? 'Loading...' : `${planInfo?.totalRows || 0} rows used`}
-                </p>
-              </div>
-              
-              <Progress 
-                value={usagePercentage} 
-                className={`h-2 ${isOverLimit ? 'bg-red-100' : isNearLimit ? 'bg-yellow-100' : 'bg-slate-100'}`}
-              />
-              
-              {isOverLimit && (
-                <div className="flex items-start gap-2 mt-2 p-2 bg-red-50 rounded border border-red-200 text-sm text-red-700">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>
-                    You've used all your free credits. Purchase more credits to continue scraping.
-                  </span>
-                </div>
+            <p className="text-slate-600 mb-6">
+              {userPlan?.planName ? (
+                `You are currently on the ${userPlan.planName} plan with unlimited access to data extraction.`
+              ) : (
+                "You are currently on the Free plan with limited access to our features."
               )}
-              
-              {isNearLimit && !isOverLimit && (
-                <div className="flex items-start gap-2 mt-2 p-2 bg-yellow-50 rounded border border-yellow-200 text-sm text-yellow-700">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>
-                    You're running low on credits. Consider purchasing more soon.
-                  </span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Purchase Credits</CardTitle>
-            <CardDescription>Buy more credits to continue scraping</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6 p-4 bg-primary/5 rounded-lg border-2 border-dashed border-primary/20">
-              <h3 className="font-bold text-lg">Credit Package</h3>
-              <p className="text-2xl font-bold mt-1">
-                ${creditPackageData?.price || 2.99}
-                <span className="text-sm font-normal text-muted-foreground"> per 1,000 credits</span>
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                (${((creditPackageData?.price_per_credit || 0.00299) * 100).toFixed(2)}¢ per credit)
-              </p>
-            </div>
+            </p>
             
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Number of packages:</label>
-              <div className="flex items-center">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={handleDecrementPackages}
-                  disabled={creditPackages <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="flex-1 text-center">
-                  <span className="text-xl font-bold">{creditPackages}</span>
-                  <span className="text-sm text-muted-foreground"> × 1,000 credits</span>
-                </div>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={handleIncrementPackages}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+            <div className="flex items-center">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1"
+                onClick={() => navigate('/dashboard/scrape')}
+              >
+                <span>Start Scraping</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
-            
-            <div className="flex flex-col gap-4 pb-4 pt-2 border-t">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total Credits:</span>
-                <span className="font-bold">{creditPackages * 1000} credits</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total Price:</span>
-                <span className="font-bold">${(creditPackages * (creditPackageData?.price || 2.99)).toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <Button 
-              variant="default" 
-              className="w-full"
-              onClick={handlePurchaseCredits}
-            >
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Purchase Credits
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </>
+      )}
     </Container>
   );
 }
