@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ScrapingRequest, UserPlanInfo } from "./services/scraper/types";
 import { getUserPlanInfo } from "./scraper/planInfo";
 
 // Export getUserPlanInfo from tasks.ts
@@ -66,10 +67,10 @@ export async function subscribeToPlan(planId: string) {
     // 2. Store the subscription details in the database
     
     // For now, we'll just simulate updating the user's plan
-    const { error } = await supabase.rpc('update_user_plan', { 
-      p_user_id: user.id,
-      p_plan_id: planId
-    });
+    const { error } = await supabase
+      .from('profiles')
+      .update({ plan_id: parseInt(planId) })
+      .eq('id', user.id);
         
     if (error) {
       console.error("Error updating subscription:", error);

@@ -15,7 +15,7 @@ export interface ScraperResponse {
 }
 
 export interface ScrapingRequest {
-  id?: number;
+  id?: number | string;
   task_id: string;
   user_id: string;
   keywords: string;
@@ -29,6 +29,7 @@ export interface ScrapingRequest {
   created_at?: string;
   updated_at?: string;
   total_results?: number;
+  search_info?: any;
 }
 
 export interface UserPlanInfo {
@@ -40,6 +41,12 @@ export interface UserPlanInfo {
     analytics: boolean;
     apiAccess: boolean;
   };
+  isFreePlan?: boolean;
+  totalRows?: number;
+  freeRowsLimit?: number;
+  isExceeded?: boolean;
+  credits?: number;
+  price_per_credit?: number;
 }
 
 export interface FreeTierLimitInfo {

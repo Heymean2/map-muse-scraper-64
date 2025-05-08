@@ -22,7 +22,10 @@ export {
 } from './taskManagement';
 
 // User plan information
-export { getUserPlanInfo } from './planInfo';
+export { 
+  getUserPlanInfo,
+  defaultFreePlan
+} from './planInfo';
 
 // Eligibility and plan related functions
 export {

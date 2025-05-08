@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
@@ -114,14 +115,16 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
       }
       
       // Return with additional fields that may be added by the API
-      return {
+      const result: ScrapingResultSingle = {
         ...data,
         search_info: data.search_info || {
           keywords: data.keywords,
           location: `${data.country} - ${data.states}`,
           fields: data.fields
         }
-      } as ScrapingResultSingle;
+      };
+      
+      return result;
     } else {
       // Get all tasks
       const { data, error } = await supabase

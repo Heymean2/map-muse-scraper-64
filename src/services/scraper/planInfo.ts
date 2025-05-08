@@ -11,32 +11,49 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       return defaultFreePlan();
     }
     
-    // For this implementation, we will use the pricing_plans table directly
-    const { data, error } = await supabase.rpc('get_user_plan', { user_id: user.id });
+    // For this implementation, we will query the profiles and pricing_plans tables
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('plan_id')
+      .eq('id', user.id)
+      .single();
     
-    if (error) {
-      console.error("Error fetching user plan:", error);
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
       return defaultFreePlan();
     }
     
-    if (!data || data.length === 0) {
-      // User doesn't have an active subscription
+    const planId = profileData?.plan_id || 1;
+    
+    const { data: planData, error: planError } = await supabase
+      .from('pricing_plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+    
+    if (planError || !planData) {
+      console.error("Error fetching pricing plan:", planError);
       return defaultFreePlan();
     }
     
-    const plan = data[0];
-    const planName = plan.plan_name || "Free";
+    const planName = planData.name || "Free";
     const isPro = planName.toLowerCase().includes("pro") || planName.toLowerCase().includes("enterprise");
     
     return {
-      planId: plan.plan_id,
+      planId: planData.id.toString(),
       planName: planName,
       hasAccess: true,
       features: {
         reviews: isPro,
         analytics: isPro,
         apiAccess: isPro
-      }
+      },
+      isFreePlan: planName.toLowerCase().includes("free"),
+      totalRows: profileData?.total_rows || 0,
+      freeRowsLimit: planData.row_limit || 0,
+      isExceeded: false,
+      credits: profileData?.credits || 0,
+      price_per_credit: planData.price_per_credit || 0
     };
   } catch (error) {
     console.error("Error getting user plan:", error);
@@ -54,6 +71,12 @@ export function defaultFreePlan(): UserPlanInfo {
       reviews: false,
       analytics: false,
       apiAccess: false
-    }
+    },
+    isFreePlan: true,
+    totalRows: 0,
+    freeRowsLimit: 100,
+    isExceeded: false,
+    credits: 0,
+    price_per_credit: 0.00299
   };
 }

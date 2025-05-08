@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskItem from './TaskItem';
 import EmptyTasksList from './EmptyTasksList';
-import { ScrapingRequest } from "@/services/scraper";
+import { ScrapingRequest } from "@/services/scraper/types";
 
 interface TasksListProps {
   isLoading: boolean;

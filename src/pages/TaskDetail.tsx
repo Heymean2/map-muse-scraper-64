@@ -19,10 +19,20 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ScrapingRequest } from "@/services/scraper/types";
 
+interface Task {
+  id: string;
+  task_id: string;
+  keywords: string;
+  created_at: string;
+  status: "processing" | "completed" | "failed";
+  country?: string;
+  states?: string;
+}
+
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const [otherTasks, setOtherTasks] = useState<ScrapingRequest[]>([]);
+  const [otherTasks, setOtherTasks] = useState<Task[]>([]);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -50,14 +60,19 @@ export default function TaskDetail() {
   useEffect(() => {
     if (allTasksData && 'tasks' in allTasksData && Array.isArray(allTasksData.tasks)) {
       const formattedTasks = allTasksData.tasks.map((task: ScrapingRequest) => ({
-        ...task,
-        id: task.id || task.task_id,
+        id: task.task_id,
+        task_id: task.task_id,
+        keywords: task.keywords,
+        created_at: task.created_at || new Date().toISOString(),
+        status: (task.status as "processing" | "completed" | "failed") || "processing",
+        country: task.country,
+        states: task.states
       }));
       setOtherTasks(formattedTasks);
     }
   }, [allTasksData]);
 
-  const handleTaskClick = (task: any) => {
+  const handleTaskClick = (task: Task) => {
     navigate(`/result/scrape/${task.task_id}`);
   };
 

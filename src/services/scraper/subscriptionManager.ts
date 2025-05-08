@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { FreeTierLimitInfo } from "./types";
-import { getUserPlanInfo } from "./planInfo";
+import { toast } from "sonner";
+import { checkUserFreeTierLimit } from "./plans";
 
 // Subscribe to a plan
 export async function subscribeToPlan(planId: string) {
@@ -12,37 +12,32 @@ export async function subscribeToPlan(planId: string) {
       return { success: false, error: "Authentication required" };
     }
     
-    // In a real implementation with proper database structure, this would:
-    // 1. Call Stripe to create a subscription
-    // 2. Store the subscription details in the database
+    // Convert string planId to number if needed
+    const numericPlanId = parseInt(planId);
     
-    // For now, we'll just simulate updating the user's plan
-    // via a Supabase RPC function that would handle the database operations
-    const { error } = await supabase.rpc('update_user_plan', { 
-      p_user_id: user.id,
-      p_plan_id: planId
-    });
+    if (isNaN(numericPlanId)) {
+      return { success: false, error: "Invalid plan ID" };
+    }
+    
+    // Update the user's plan in the database
+    const { error } = await supabase
+      .from('profiles')
+      .update({ plan_id: numericPlanId })
+      .eq('id', user.id);
         
     if (error) {
       console.error("Error updating subscription:", error);
       throw error;
     }
     
+    toast.success("Plan updated successfully");
     return { success: true };
   } catch (error: any) {
     console.error("Error subscribing to plan:", error);
+    toast.error(error.message || "Failed to subscribe to plan");
     return { success: false, error: error.message || "Failed to subscribe to plan" };
   }
 }
 
-// Legacy function for compatibility with existing code
-export async function checkUserFreeTierLimit(): Promise<FreeTierLimitInfo> {
-  const planInfo = await getUserPlanInfo();
-  
-  return {
-    isExceeded: false, // We're using subscription model now
-    totalRows: 0,
-    freeRowsLimit: Infinity, // Unlimited rows
-    credits: 0
-  };
-}
+// Export checkUserFreeTierLimit for backward compatibility
+export { checkUserFreeTierLimit };

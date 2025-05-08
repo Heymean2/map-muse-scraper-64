@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import TasksFilter from './TasksFilter';
 import TasksList from './TasksList';
-import { ScrapingRequest } from '@/services/scraper';
+import { ScrapingRequest } from '@/services/scraper/types';
 
 interface TasksContainerProps {
   isLoading: boolean;
