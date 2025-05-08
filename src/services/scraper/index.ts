@@ -32,8 +32,8 @@ export {
   downloadCsvFromUrl
 } from './files';
 
-// Re-export from main scraper.ts for compatibility
-export { 
-  subscribeToPlan, 
-  checkUserFreeTierLimit 
-} from '../scraper';
+// Subscription management
+export { subscribeToPlan } from './subscriptionManager';
+
+// Legacy function for compatibility
+export { checkUserFreeTierLimit } from './subscriptionManager';
