@@ -12,7 +12,6 @@ import { CurrentPlanInfo } from "./billing/CurrentPlanInfo";
 interface PlanData {
   id: string;
   name: string;
-  description?: string;
   price: number;
 }
 
@@ -32,7 +31,7 @@ export default function BillingSection() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
-        .select('id, name, description, price, plan_type')
+        .select('id, name, price, plan_type')
         .eq('plan_type', 'subscription')
         .order('price', { ascending: true });
         
@@ -42,7 +41,6 @@ export default function BillingSection() {
       return (data || []).map(plan => ({
         id: plan.id.toString(),
         name: plan.name || "",
-        description: plan.description || "",
         price: plan.price || 0
       }));
     }

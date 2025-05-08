@@ -124,7 +124,7 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
       };
       
       // Add search_info if not present in database
-      const searchInfo = data.search_info || {
+      const searchInfo = {
         keywords: data.keywords,
         location: `${data.country} - ${data.states}`,
         fields: data.fields
