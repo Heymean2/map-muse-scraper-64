@@ -1,10 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
-import { getUserPlanInfo } from "./scraper/planInfo";
-
-// Export getUserPlanInfo from tasks.ts
-export { getUserPlanInfo } from "./scraper/planInfo";
+import { getUserPlanInfo } from "./planInfo";
 
 // Start a new scraping task
 export async function startScraping(scrapingConfig: {
@@ -52,65 +50,75 @@ export async function startScraping(scrapingConfig: {
   }
 }
 
-// Subscribe to a plan
-export async function subscribeToPlan(planId: string) {
+// Get user's scraping tasks
+export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      return { success: false, error: "Authentication required" };
+      return [];
     }
     
-    // In a real implementation with proper database structure, this would:
-    // 1. Call Stripe to create a subscription
-    // 2. Store the subscription details in the database
-    
-    // For now, we'll just simulate updating the user's plan
-    const { error } = await supabase.rpc('update_user_plan', { 
-      p_user_id: user.id,
-      p_plan_id: planId
-    });
-        
+    const { data, error } = await supabase
+      .from('scraping_requests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+      
     if (error) {
-      console.error("Error updating subscription:", error);
+      console.error("Error fetching scraping tasks:", error);
       throw error;
     }
     
-    return { success: true };
+    return data || [];
   } catch (error: any) {
-    console.error("Error subscribing to plan:", error);
-    return { success: false, error: error.message || "Failed to subscribe to plan" };
+    console.error("Error getting user scraping tasks:", error);
+    toast.error("Failed to load your scraping tasks");
+    return [];
   }
 }
 
-// Download CSV from URL
-export async function downloadCsvFromUrl(url: string) {
+// Get scraping results for a specific task or all tasks
+export async function getScrapingResults(taskId?: string | null): Promise<ScrapingRequest | { tasks: ScrapingRequest[] } | null> {
   try {
-    const response = await fetch(url);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!response.ok) {
-      throw new Error(`Failed to download CSV: ${response.status} ${response.statusText}`);
+    if (!user) {
+      throw new Error("Authentication required");
     }
     
-    return await response.text();
+    if (taskId) {
+      // Get single task details
+      const { data, error } = await supabase
+        .from('scraping_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('task_id', taskId)
+        .single();
+        
+      if (error) {
+        console.error("Error fetching scraping result:", error);
+        throw error;
+      }
+      
+      return data;
+    } else {
+      // Get all tasks
+      const { data, error } = await supabase
+        .from('scraping_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Error fetching scraping results:", error);
+        throw error;
+      }
+      
+      return { tasks: data || [] };
+    }
   } catch (error: any) {
-    console.error("Error downloading CSV:", error);
-    toast.error("Failed to download CSV data");
-    throw error;
+    console.error("Error getting scraping results:", error);
+    return null;
   }
-}
-
-// Re-export from taskManagement
-export { getScrapingResults, getUserScrapingTasks } from "./scraper/taskManagement";
-
-// For compatibility with existing code
-export function checkUserFreeTierLimit() {
-  return getUserPlanInfo().then(planInfo => {
-    return {
-      isExceeded: false, // We're using subscription model now
-      totalRows: 0,
-      freeRowsLimit: Infinity, // Unlimited rows
-      credits: 0
-    };
-  });
 }

@@ -18,9 +18,11 @@ export { BASE_URL } from './config';
 export { 
   startScraping,
   getScrapingResults,
-  getUserScrapingTasks,
-  getUserPlanInfo
-} from './tasks';
+  getUserScrapingTasks
+} from './taskManagement';
+
+// User plan information
+export { getUserPlanInfo } from './planInfo';
 
 // Eligibility and plan related functions
 export {

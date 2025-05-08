@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { FreeTierLimitInfo } from "./types";
-import { getUserPlanInfo } from "./tasks";
+import { getUserPlanInfo } from "./planInfo";
 
 // Subscribe to a plan
 export async function subscribeToPlan(planId: string) {
@@ -12,53 +12,20 @@ export async function subscribeToPlan(planId: string) {
       return { success: false, error: "Authentication required" };
     }
     
-    // In a real implementation, this would:
+    // In a real implementation with proper database structure, this would:
     // 1. Call Stripe to create a subscription
     // 2. Store the subscription details in the database
     
-    // Check if the pricing_plan exists
-    const { data: plan, error: planError } = await supabase
-      .from('pricing_plans')
-      .select('id')
-      .eq('id', planId)
-      .single();
-      
-    if (planError || !plan) {
-      console.error("Error finding plan:", planError);
-      return { success: false, error: "Invalid plan selected" };
-    }
-    
-    // Check if a user subscription entry exists
-    const { data: existingSubscription, error: subError } = await supabase
-      .from('user_subscriptions')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    
-    if (subError) {
-      console.error("Error checking subscription:", subError);
-      return { success: false, error: "Failed to check subscription status" };
-    }
-    
-    if (existingSubscription) {
-      // Update existing subscription
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .update({ plan_id: planId })
-        .eq('id', existingSubscription.id);
+    // For now, we'll just simulate updating the user's plan
+    // via a Supabase RPC function that would handle the database operations
+    const { error } = await supabase.rpc('update_user_plan', { 
+      p_user_id: user.id,
+      p_plan_id: planId
+    });
         
-      if (error) throw error;
-    } else {
-      // Create new subscription
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .insert({
-          user_id: user.id,
-          plan_id: planId,
-          status: 'active'
-        });
-        
-      if (error) throw error;
+    if (error) {
+      console.error("Error updating subscription:", error);
+      throw error;
     }
     
     return { success: true };
@@ -68,13 +35,14 @@ export async function subscribeToPlan(planId: string) {
   }
 }
 
-// For compatibility with existing code
+// Legacy function for compatibility with existing code
 export async function checkUserFreeTierLimit(): Promise<FreeTierLimitInfo> {
-  // With subscription model, we don't need to check free tier limits
+  const planInfo = await getUserPlanInfo();
+  
   return {
-    isExceeded: false,
+    isExceeded: false, // We're using subscription model now
     totalRows: 0,
-    freeRowsLimit: Infinity,
+    freeRowsLimit: Infinity, // Unlimited rows
     credits: 0
   };
 }

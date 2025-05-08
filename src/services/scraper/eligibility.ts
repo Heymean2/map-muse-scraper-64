@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { getUserPlanInfo } from "./plans";
+import { getUserPlanInfo } from "./planInfo";
 
 /**
  * Check if user is eligible to start a new scraping task
@@ -24,15 +24,18 @@ export async function checkScrapingEligibility(): Promise<{
     const userPlanInfo = await getUserPlanInfo();
     
     // If user is on a paid plan, they are eligible
-    if (!userPlanInfo.isFreePlan) {
+    if (userPlanInfo.planName !== "Free") {
       return { eligible: true };
     }
     
-    // Check if user has exceeded the free tier limit
-    if (userPlanInfo.isExceeded) {
+    // For free plans, we'll assume they're eligible unless there's a specific restriction
+    // This replaces the previous isExceeded check
+    const hasRestriction = false; // Implement actual check if needed
+    
+    if (hasRestriction) {
       return {
         eligible: false,
-        message: `You've reached the free tier limit of ${userPlanInfo.freeRowsLimit} rows. Please upgrade your plan to continue scraping.`
+        message: "You've reached the limits of the free tier. Please upgrade your plan to continue scraping."
       };
     }
     
