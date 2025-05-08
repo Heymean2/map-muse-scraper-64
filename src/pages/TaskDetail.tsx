@@ -44,19 +44,21 @@ export default function TaskDetail() {
   const { data: allTasksData } = useQuery({
     queryKey: ['allScrapingTasks'],
     queryFn: () => getScrapingResults(),
-    onSettled: (data) => {
-      if (data?.tasks) {
-        const formattedTasks = data.tasks.map((task: any) => ({
-          id: task.id || task.task_id,
-          task_id: task.task_id,
-          keywords: task.keywords || 'Untitled Task',
-          created_at: task.created_at,
-          status: task.status,
-        }));
-        setOtherTasks(formattedTasks);
-      }
-    }
   });
+
+  // Update otherTasks when allTasksData changes
+  useEffect(() => {
+    if (allTasksData?.tasks) {
+      const formattedTasks = allTasksData.tasks.map((task: any) => ({
+        id: task.id || task.task_id,
+        task_id: task.task_id,
+        keywords: task.keywords || 'Untitled Task',
+        created_at: task.created_at,
+        status: task.status,
+      }));
+      setOtherTasks(formattedTasks);
+    }
+  }, [allTasksData]);
 
   const handleTaskClick = (task: any) => {
     navigate(`/result/scrape/${task.task_id}`);
