@@ -2,14 +2,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getScrapingResults } from "@/services/scraper";
+import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/ui/container";
 import { ArrowLeft, Clock } from "lucide-react";
 import ResultsContent from "@/components/results/ResultsContent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TaskList from "@/components/results/TaskList";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -18,11 +17,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
+import { ScrapingRequest } from "@/services/scraper/types";
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const [otherTasks, setOtherTasks] = useState([]);
+  const [otherTasks, setOtherTasks] = useState<ScrapingRequest[]>([]);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -48,13 +48,10 @@ export default function TaskDetail() {
 
   // Update otherTasks when allTasksData changes
   useEffect(() => {
-    if (allTasksData?.tasks) {
-      const formattedTasks = allTasksData.tasks.map((task: any) => ({
+    if (allTasksData && 'tasks' in allTasksData && Array.isArray(allTasksData.tasks)) {
+      const formattedTasks = allTasksData.tasks.map((task: ScrapingRequest) => ({
+        ...task,
         id: task.id || task.task_id,
-        task_id: task.task_id,
-        keywords: task.keywords || 'Untitled Task',
-        created_at: task.created_at,
-        status: task.status,
       }));
       setOtherTasks(formattedTasks);
     }
@@ -63,6 +60,14 @@ export default function TaskDetail() {
   const handleTaskClick = (task: any) => {
     navigate(`/result/scrape/${task.task_id}`);
   };
+
+  // Extract task-specific properties safely
+  const taskKeywords = taskResults && 'keywords' in taskResults ? taskResults.keywords : 'Task Details';
+  const taskCreatedAt = taskResults && 'created_at' in taskResults ? taskResults.created_at : null;
+  const searchInfo = taskResults && 'search_info' in taskResults ? taskResults.search_info : null;
+  const resultUrl = taskResults && 'result_url' in taskResults ? taskResults.result_url : null;
+  const isLimited = taskResults && 'limited' in taskResults ? taskResults.limited : false;
+  const currentPlan = taskResults && 'current_plan' in taskResults ? taskResults.current_plan : null;
 
   return (
     <DashboardLayout>
@@ -90,7 +95,7 @@ export default function TaskDetail() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{taskResults?.search_info?.keywords || "Task Details"}</BreadcrumbPage>
+                <BreadcrumbPage>{searchInfo?.keywords || taskKeywords || "Task Details"}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -105,10 +110,10 @@ export default function TaskDetail() {
               Back to Results
             </Button>
             
-            {taskResults?.created_at && (
+            {taskCreatedAt && (
               <div className="flex items-center text-sm text-slate-500">
                 <Clock className="mr-1 h-4 w-4" />
-                <span>Created {formatDistanceToNow(new Date(taskResults.created_at), { addSuffix: true })}</span>
+                <span>Created {formatDistanceToNow(new Date(taskCreatedAt), { addSuffix: true })}</span>
               </div>
             )}
           </div>
@@ -128,12 +133,12 @@ export default function TaskDetail() {
               taskId={taskId || null} 
               results={taskResults} 
               exportCSV={() => {
-                if (taskResults?.result_url) {
-                  window.open(taskResults.result_url, '_blank');
+                if (resultUrl) {
+                  window.open(resultUrl, '_blank');
                 }
               }}
-              isLimited={taskResults?.limited || false}
-              planInfo={taskResults?.current_plan}
+              isLimited={isLimited}
+              planInfo={currentPlan}
             />
           )}
         </div>

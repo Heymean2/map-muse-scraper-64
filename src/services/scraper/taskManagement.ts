@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
@@ -78,8 +77,21 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
   }
 }
 
+// Define return types more explicitly
+type ScrapingResultSingle = ScrapingRequest & {
+  search_info?: any;
+  data?: any[];
+  total_count?: number;
+  limited?: boolean;
+  current_plan?: any;
+};
+
+type ScrapingResultMultiple = {
+  tasks: ScrapingRequest[];
+};
+
 // Get scraping results for a specific task or all tasks
-export async function getScrapingResults(taskId?: string | null): Promise<ScrapingRequest | { tasks: ScrapingRequest[] } | null> {
+export async function getScrapingResults(taskId?: string | null): Promise<ScrapingResultSingle | ScrapingResultMultiple | null> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -101,7 +113,15 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         throw error;
       }
       
-      return data;
+      // Return with additional fields that may be added by the API
+      return {
+        ...data,
+        search_info: data.search_info || {
+          keywords: data.keywords,
+          location: `${data.country} - ${data.states}`,
+          fields: data.fields
+        }
+      } as ScrapingResultSingle;
     } else {
       // Get all tasks
       const { data, error } = await supabase
@@ -115,7 +135,7 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         throw error;
       }
       
-      return { tasks: data || [] };
+      return { tasks: data || [] } as ScrapingResultMultiple;
     }
   } catch (error: any) {
     console.error("Error getting scraping results:", error);
