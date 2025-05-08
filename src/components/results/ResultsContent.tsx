@@ -5,12 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ResultsTable from "./ResultsTable";
 import SearchInfoCard from "./SearchInfoCard";
 import CSVPreview from "./CSVPreview";
-import { FileDown, Lock, Download, AlertTriangle, Clock, Eye, Trophy } from "lucide-react";
+import { FileDown, Lock, Download, AlertTriangle, Clock, Eye, Trophy, BarChart, MapPin, Table } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ResultsContentProps {
   loading: boolean;
@@ -32,6 +33,7 @@ export default function ResultsContent({
   planInfo
 }: ResultsContentProps) {
   const [showCsvPreview, setShowCsvPreview] = useState(false);
+  const [activeView, setActiveView] = useState("table");
   const navigate = useNavigate();
   
   // Limit data to 5 rows if user has exceeded free tier
@@ -203,33 +205,24 @@ export default function ResultsContent({
           
           <div className="flex gap-2">
             {results.result_url && !isLimited && (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowCsvPreview(true)}
-                  className="gap-1 text-sm"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>Preview CSV</span>
-                </Button>
-              
-                <Button 
-                  variant="outline" 
-                  onClick={() => window.open(results.result_url, '_blank')}
-                  className="gap-1 text-sm"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>Raw CSV</span>
-                </Button>
-                
-                <Button 
-                  onClick={exportCSV}
-                  disabled={!results?.data?.length}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              </>
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(results.result_url, '_blank')}
+                className="gap-1 text-sm"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>Raw CSV</span>
+              </Button>
+            )}
+            
+            {results.result_url && !isLimited && (
+              <Button 
+                onClick={exportCSV}
+                disabled={!results?.data?.length}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             )}
             
             {isLimited && (
@@ -253,12 +246,67 @@ export default function ResultsContent({
       </CardHeader>
       
       <CardContent>
-        <ResultsTable 
-          data={getLimitedData()} 
-          searchInfo={results.search_info}
-          totalCount={results.total_count || 0}
-          isLimited={isLimited}
-        />
+        <Tabs value={activeView} onValueChange={setActiveView} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="table" className="flex items-center gap-1">
+              <Table className="h-4 w-4" />
+              <span>Table View</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-1">
+              <BarChart className="h-4 w-4" />
+              <span>Analytics</span>
+            </TabsTrigger>
+            {results.search_info?.location && (
+              <TabsTrigger value="map" className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span>Map View</span>
+              </TabsTrigger>
+            )}
+          </TabsList>
+          
+          <TabsContent value="table" className="mt-4">
+            <ResultsTable 
+              data={getLimitedData()} 
+              searchInfo={results.search_info}
+              totalCount={results.total_count || 0}
+              isLimited={isLimited}
+            />
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="mt-4">
+            <div className="bg-slate-50 p-8 border rounded-lg text-center">
+              <BarChart className="h-16 w-16 mx-auto mb-4 text-slate-400" />
+              <h3 className="text-lg font-medium mb-2">Analytics View</h3>
+              <p className="text-slate-500 mb-4">
+                Visualize your data with charts and insights.
+              </p>
+              {isLimited ? (
+                <Button onClick={handleUpgradeClick}>Upgrade to Access Analytics</Button>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  This feature is coming soon!
+                </p>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="map" className="mt-4">
+            <div className="bg-slate-50 p-8 border rounded-lg text-center">
+              <MapPin className="h-16 w-16 mx-auto mb-4 text-slate-400" />
+              <h3 className="text-lg font-medium mb-2">Map View</h3>
+              <p className="text-slate-500 mb-4">
+                See your data plotted on an interactive map.
+              </p>
+              {isLimited ? (
+                <Button onClick={handleUpgradeClick}>Upgrade to Access Map View</Button>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  This feature is coming soon!
+                </p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
         
         <div className="mt-6">
           <SearchInfoCard 
