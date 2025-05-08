@@ -44,7 +44,7 @@ export default function TaskDetail() {
   const { data: allTasksData } = useQuery({
     queryKey: ['allScrapingTasks'],
     queryFn: () => getScrapingResults(),
-    onSuccess: (data) => {
+    onSettled: (data) => {
       if (data?.tasks) {
         const formattedTasks = data.tasks.map((task: any) => ({
           id: task.id || task.task_id,
