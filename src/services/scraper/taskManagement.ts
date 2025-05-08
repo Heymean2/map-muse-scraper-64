@@ -70,7 +70,11 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
       throw error;
     }
     
-    return data || [];
+    // Ensure created_at is present for all records
+    return (data || []).map(item => ({
+      ...item,
+      created_at: item.created_at || new Date().toISOString()
+    }));
   } catch (error: any) {
     console.error("Error getting user scraping tasks:", error);
     toast.error("Failed to load your scraping tasks");
@@ -114,9 +118,15 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         throw error;
       }
       
-      // Return with additional fields that may be added by the API
-      const result: ScrapingResultSingle = {
+      // Ensure created_at exists
+      const taskWithDefaults = {
         ...data,
+        created_at: data.created_at || new Date().toISOString()
+      };
+      
+      // Return with additional fields
+      const result: ScrapingResultSingle = {
+        ...taskWithDefaults,
         search_info: data.search_info || {
           keywords: data.keywords,
           location: `${data.country} - ${data.states}`,
@@ -138,7 +148,13 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         throw error;
       }
       
-      return { tasks: data || [] } as ScrapingResultMultiple;
+      // Ensure created_at exists for all records
+      const tasksWithDefaults = (data || []).map(item => ({
+        ...item,
+        created_at: item.created_at || new Date().toISOString()
+      }));
+      
+      return { tasks: tasksWithDefaults } as ScrapingResultMultiple;
     }
   } catch (error: any) {
     console.error("Error getting scraping results:", error);

@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ScrapingRequest, UserPlanInfo } from "./services/scraper/types";
+import { ScrapingRequest, UserPlanInfo } from "@/services/scraper/types";
 import { getUserPlanInfo } from "./scraper/planInfo";
 
 // Export getUserPlanInfo from tasks.ts
@@ -108,10 +108,10 @@ export { getScrapingResults, getUserScrapingTasks } from "./scraper/taskManageme
 export function checkUserFreeTierLimit() {
   return getUserPlanInfo().then(planInfo => {
     return {
-      isExceeded: false, // We're using subscription model now
-      totalRows: 0,
-      freeRowsLimit: Infinity, // Unlimited rows
-      credits: 0
+      isExceeded: planInfo.isExceeded || false,
+      totalRows: planInfo.totalRows || 0,
+      freeRowsLimit: planInfo.freeRowsLimit || Infinity,
+      credits: planInfo.credits || 0
     };
   });
 }

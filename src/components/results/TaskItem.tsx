@@ -1,17 +1,10 @@
 
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { ScrapingRequest } from '@/services/scraper/types';
 
 interface TaskItemProps {
-  task: {
-    task_id: string;
-    keywords: string;
-    country?: string;
-    states?: string;
-    status?: string;
-    created_at: string;
-    total_results?: number;
-  };
+  task: ScrapingRequest;
   onSelect: (taskId: string) => void;
 }
 

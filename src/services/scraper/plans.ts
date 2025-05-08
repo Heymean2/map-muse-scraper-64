@@ -63,8 +63,15 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     const price_per_credit = planData?.price_per_credit || 0;
     
     return {
-      isFreePlan,
+      planId: profileData?.plan_id?.toString() || null,
       planName,
+      hasAccess: true,
+      features: {
+        reviews: !isFreePlan,
+        analytics: !isFreePlan,
+        apiAccess: !isFreePlan
+      },
+      isFreePlan,
       totalRows,
       freeRowsLimit,
       isExceeded,
@@ -75,8 +82,15 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     console.error("Error checking user plan:", error);
     // Default to free plan with exceeded limit
     return {
-      isFreePlan: true,
+      planId: null,
       planName: 'Free Plan',
+      hasAccess: true,
+      features: {
+        reviews: false,
+        analytics: false,
+        apiAccess: false
+      },
+      isFreePlan: true,
       totalRows: 0,
       freeRowsLimit: DEFAULT_FREE_TIER_LIMIT,
       isExceeded: false,

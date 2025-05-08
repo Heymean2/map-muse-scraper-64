@@ -26,10 +26,10 @@ export interface ScrapingRequest {
   status?: string;
   result_url?: string;
   row_count?: number;
-  created_at?: string;
+  created_at: string; // Make this required to match TaskItem expectations
   updated_at?: string;
   total_results?: number;
-  search_info?: any;
+  search_info?: any; // Add this to handle search_info in taskManagement.ts
 }
 
 export interface UserPlanInfo {

@@ -59,11 +59,11 @@ export default function TaskDetail() {
   // Update otherTasks when allTasksData changes
   useEffect(() => {
     if (allTasksData && 'tasks' in allTasksData && Array.isArray(allTasksData.tasks)) {
-      const formattedTasks = allTasksData.tasks.map((task: ScrapingRequest) => ({
-        id: task.task_id,
+      const formattedTasks: Task[] = allTasksData.tasks.map((task: ScrapingRequest) => ({
+        id: String(task.task_id), // Ensure ID is string
         task_id: task.task_id,
         keywords: task.keywords,
-        created_at: task.created_at || new Date().toISOString(),
+        created_at: task.created_at,
         status: (task.status as "processing" | "completed" | "failed") || "processing",
         country: task.country,
         states: task.states

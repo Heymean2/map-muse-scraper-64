@@ -14,7 +14,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     // For this implementation, we will query the profiles and pricing_plans tables
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id')
+      .select('plan_id, total_rows, credits')
       .eq('id', user.id)
       .single();
     
