@@ -105,7 +105,7 @@ export default function BillingSection() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {subscriptionPlans?.map((plan) => (
+            {subscriptionPlans?.map((plan: any) => (
               <Card 
                 key={plan.id} 
                 className={`${selectedPlanId === plan.id ? 'ring-2 ring-primary' : ''} ${isPlanActive(plan.id) ? 'bg-primary/5' : ''}`}
@@ -117,9 +117,9 @@ export default function BillingSection() {
                       <Badge className="ml-2">Current Plan</Badge>
                     )}
                   </CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
+                  <CardDescription>{plan.description || ""}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-3xl font-bold">${plan.price}</span>
+                    <span className="text-3xl font-bold">${parseFloat(plan.price).toFixed(2)}</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                 </CardHeader>

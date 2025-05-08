@@ -1,10 +1,11 @@
+
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ScraperForm from "@/components/ScraperForm";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { checkUserFreeTierLimit, getUserScrapingTasks } from "@/services/scraper";
+import { getUserPlanInfo, getUserScrapingTasks } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
 import { CircleDollarSign, FilePlus2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,9 @@ import BillingSection from "@/components/dashboard/BillingSection";
 function DashboardHome() {
   const navigate = useNavigate();
   
-  const { data: usageLimitData, isLoading: usageLoading } = useQuery({
-    queryKey: ['userFreeTierLimit'],
-    queryFn: checkUserFreeTierLimit
+  const { data: planInfo, isLoading: planLoading } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo
   });
   
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
@@ -25,8 +26,11 @@ function DashboardHome() {
     queryFn: getUserScrapingTasks
   });
   
-  const completedTasks = tasksData?.filter(task => task.status === 'completed')?.length || 0;
-  const processingTasks = tasksData?.filter(task => task.status === 'processing')?.length || 0;
+  const completedTasks = tasksData && Array.isArray(tasksData) ? 
+    tasksData.filter(task => task.status === 'completed').length : 0;
+    
+  const processingTasks = tasksData && Array.isArray(tasksData) ? 
+    tasksData.filter(task => task.status === 'processing').length : 0;
   
   return (
     <Container>
@@ -38,16 +42,15 @@ function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Rows</CardTitle>
-            <CardDescription>Usage count</CardDescription>
+            <CardTitle className="text-sm font-medium">Usage</CardTitle>
+            <CardDescription>Subscription status</CardDescription>
           </CardHeader>
           <CardContent>
-            {usageLoading ? (
+            {planLoading ? (
               <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
             ) : (
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">{usageLimitData?.totalRows || 0}</span>
-                <span className="text-muted-foreground">/ {usageLimitData?.freeRowsLimit || 500}</span>
+              <div className="text-lg font-medium">
+                {planInfo?.planName || "Free Plan"}
               </div>
             )}
           </CardContent>
@@ -115,8 +118,12 @@ function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <h3 className="font-semibold">Free Plan</h3>
-              <p className="text-sm text-muted-foreground">Limited to 500 rows total</p>
+              <h3 className="font-semibold">{planInfo?.planName || "Free Plan"}</h3>
+              <p className="text-sm text-muted-foreground">
+                {planInfo?.features?.reviews 
+                  ? "Access to all data types including reviews" 
+                  : "Basic data access (no reviews)"}
+              </p>
             </div>
             <Button 
               variant="default" 
@@ -124,7 +131,7 @@ function DashboardHome() {
               onClick={() => navigate('/dashboard/billing')}
             >
               <CircleDollarSign className="mr-2 h-4 w-4" />
-              Upgrade Plan
+              Manage Subscription
             </Button>
           </CardContent>
         </Card>
@@ -140,7 +147,7 @@ export default function Dashboard() {
     if (location.pathname === "/dashboard") {
       window.scrollTo(0, 0);
     }
-  }, []);
+  }, [location.pathname]);
 
   return (
     <DashboardLayout>

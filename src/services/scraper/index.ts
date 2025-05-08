@@ -18,7 +18,8 @@ export { BASE_URL } from './config';
 export { 
   startScraping,
   getScrapingResults,
-  getUserScrapingTasks
+  getUserScrapingTasks,
+  getUserPlanInfo
 } from './tasks';
 
 // Eligibility and plan related functions
@@ -26,13 +27,13 @@ export {
   checkScrapingEligibility
 } from './eligibility';
 
-export {
-  getUserPlanInfo,
-  checkUserFreeTierLimit,
-  updateUserRows
-} from './plans';
-
 // File handling functions
 export {
   downloadCsvFromUrl
 } from './files';
+
+// Re-export from main scraper.ts for compatibility
+export { 
+  subscribeToPlan, 
+  checkUserFreeTierLimit 
+} from '../scraper';

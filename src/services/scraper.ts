@@ -1,6 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getUserPlanInfo } from "./scraper/tasks";
+
+// Export getUserPlanInfo from tasks.ts
+export { getUserPlanInfo } from "./scraper/tasks";
 
 // Start a new scraping task
 export async function startScraping(scrapingConfig: {
@@ -48,80 +52,6 @@ export async function startScraping(scrapingConfig: {
   }
 }
 
-// Get user's current plan information
-export async function getUserPlanInfo() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return null;
-    }
-    
-    // In a real implementation, this would fetch the user's plan information
-    // from the database or an API
-    const { data, error } = await supabase
-      .from('user_subscriptions')
-      .select(`
-        id,
-        plan_id,
-        pricing_plans (
-          id,
-          name,
-          price
-        )
-      `)
-      .eq('user_id', user.id)
-      .maybeSingle();
-      
-    if (error) throw error;
-    
-    if (!data) {
-      // User doesn't have an active subscription
-      return {
-        planId: null,
-        planName: "Free",
-        subscriptionId: null,
-        hasAccess: true,
-        features: {
-          reviews: false,
-          analytics: false,
-          apiAccess: false
-        }
-      };
-    }
-    
-    const planName = data.pricing_plans?.name || "Free";
-    const isPro = planName.toLowerCase().includes("pro") || planName.toLowerCase().includes("enterprise");
-    
-    return {
-      planId: data.plan_id,
-      planName: planName,
-      subscriptionId: data.id,
-      hasAccess: true,
-      features: {
-        reviews: isPro,
-        analytics: isPro,
-        apiAccess: isPro
-      }
-    };
-  } catch (error: any) {
-    console.error("Error getting user plan info:", error);
-    
-    // Return a default free plan if there's an error
-    return {
-      planId: null,
-      planName: "Free",
-      subscriptionId: null,
-      hasAccess: true,
-      features: {
-        reviews: false,
-        analytics: false,
-        apiAccess: false
-      }
-    };
-  }
-}
-
 // Subscribe to a plan
 export async function subscribeToPlan(planId: string) {
   try {
@@ -135,13 +65,13 @@ export async function subscribeToPlan(planId: string) {
     // 1. Call Stripe to create a subscription
     // 2. Store the subscription details in the database
     
-    // For now, we'll simulate it by directly updating the user_subscriptions table
+    // Check if a user subscription entry exists
     const { data: existingSubscription } = await supabase
       .from('user_subscriptions')
       .select('id')
       .eq('user_id', user.id)
       .maybeSingle();
-      
+    
     if (existingSubscription) {
       // Update existing subscription
       const { error } = await supabase
@@ -185,4 +115,19 @@ export async function downloadCsvFromUrl(url: string) {
     toast.error("Failed to download CSV data");
     throw error;
   }
+}
+
+// Re-export from tasks
+export { getScrapingResults, getUserScrapingTasks } from "./scraper/tasks";
+
+// For compatibility with existing code
+export function checkUserFreeTierLimit() {
+  return getUserPlanInfo().then(planInfo => {
+    return {
+      isExceeded: false, // We're using subscription model now
+      totalRows: 0,
+      freeRowsLimit: Infinity, // Unlimited rows
+      credits: 0
+    };
+  });
 }

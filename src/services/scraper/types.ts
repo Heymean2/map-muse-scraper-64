@@ -1,53 +1,50 @@
 
-// Base URL for the scraper API
-export const BASE_URL = "https://localhost:4242";
-
 export interface ScraperParams {
   keywords: string;
-  country: string;
-  states: string[];
-  fields: string[];
+  location?: string;
+  country?: string;
+  states?: string[];
+  fields?: string[];
   rating?: string;
 }
 
 export interface ScraperResponse {
   success: boolean;
-  user_id?: string;
-  task_id?: string;
-  message?: string;
   error?: string;
+  task_id?: string;
 }
 
 export interface ScrapingRequest {
-  country: string;
-  created_at: string | null;
-  fields: string | null;
-  id: number;
-  keywords: string;
-  rating: string | null;
-  result_url: string | null;
-  states: string;
-  status: string | null;
+  id?: number;
   task_id: string;
-  updated_at: string | null;
   user_id: string;
-  row_count: number | null;
-  result_data?: any[]; // Adding result_data as an optional array property
+  keywords: string;
+  country: string;
+  states: string;
+  fields?: string;
+  rating?: string;
+  status?: string;
+  result_url?: string;
+  row_count?: number;
+  created_at?: string;
+  updated_at?: string;
+  total_results?: number;
 }
 
 export interface UserPlanInfo {
-  isFreePlan: boolean;
+  planId: string | null;
   planName: string;
-  totalRows: number;
-  freeRowsLimit: number;
-  isExceeded: boolean;
-  credits?: number;
-  price_per_credit?: number;
+  hasAccess: boolean;
+  features: {
+    reviews: boolean;
+    analytics: boolean;
+    apiAccess: boolean;
+  };
 }
 
 export interface FreeTierLimitInfo {
   isExceeded: boolean;
   totalRows: number;
   freeRowsLimit: number;
-  credits?: number;
+  credits: number;
 }
