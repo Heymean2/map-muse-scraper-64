@@ -15,18 +15,9 @@ serve(async (req) => {
   try {
     console.log("Edge function start-scraping received request");
     
-    // Log all headers for debugging (redacting sensitive info)
-    console.log("--- REQUEST HEADERS ---");
-    for (const [key, value] of req.headers.entries()) {
-      if (key.toLowerCase() === 'authorization') {
-        console.log(`${key}: ${value.substring(0, 15)}...`);
-      } else if (key.toLowerCase() === 'apikey') {
-        console.log(`${key}: [REDACTED]`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
-    console.log("---------------------");
+    // Log key request information for debugging
+    console.log(`Request method: ${req.method}`);
+    console.log(`Authorization header present: ${!!req.headers.get('Authorization')}`);
     
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
@@ -39,7 +30,7 @@ serve(async (req) => {
       let requestData;
       try {
         requestData = await req.json();
-        console.log("Request body received");
+        console.log("Received request data:", JSON.stringify(requestData));
       } catch (e) {
         console.error("Failed to parse request body:", e);
         return new Response(
@@ -93,11 +84,13 @@ serve(async (req) => {
 
     } catch (authError) {
       // Handle authentication and authorization errors
+      console.error("Authentication error:", authError);
+      
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: authError.message, 
-          debug: authError.debug || { has_auth_header: !!req.headers.get('Authorization') }
+          error: authError.message || "Authentication failed", 
+          debug: authError.debug || { auth_header_present: !!req.headers.get('Authorization') }
         }),
         { 
           status: authError.status || 401, 

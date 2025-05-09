@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
-import { getUserPlanInfo } from "./planInfo";
 
 // Start a new scraping task
 export async function startScraping(scrapingConfig: {
@@ -13,6 +12,8 @@ export async function startScraping(scrapingConfig: {
   rating?: string;
 }) {
   try {
+    console.log("Starting scraping with config:", scrapingConfig);
+    
     // Check for user authentication
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -21,7 +22,7 @@ export async function startScraping(scrapingConfig: {
       return { success: false, error: "Authentication required" };
     }
     
-    // Get current session to ensure we have a valid token
+    // Get fresh session token to ensure auth is valid
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
@@ -31,53 +32,54 @@ export async function startScraping(scrapingConfig: {
     }
     
     if (!sessionData.session) {
+      console.error("No session found");
       toast.error("No active session found. Please sign in again.");
       return { success: false, error: "No active session" };
     }
     
-    // Always refresh token before making the request
+    // Ensure token is fresh before making the request
     try {
-      console.log("Token refresh started - ensuring fresh credentials");
-      const refreshResult = await supabase.auth.refreshSession();
+      console.log("Refreshing token before making edge function call");
+      const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
       
-      if (refreshResult.error) {
-        console.error("Failed to refresh token:", refreshResult.error);
-        toast.error("Session refresh failed. Please sign in again.");
-        return { success: false, error: "Session refresh failed" };
+      if (refreshError) {
+        console.error("Failed to refresh token:", refreshError);
+        // Continue with current token as a fallback
+      } else if (refreshResult && refreshResult.session) {
+        console.log("Token refreshed successfully");
       }
-      
-      console.log("Token refreshed successfully");
     } catch (refreshError) {
       console.error("Exception during token refresh:", refreshError);
-      // Continue with current token, the function will handle if it's invalid
+      // Continue with current token as a fallback
     }
-
-    console.log("Calling edge function with user ID:", user.id);
     
-    // IMPORTANT: Get a fresh session after potential refresh
-    const { data: freshSession } = await supabase.auth.getSession();
-    console.log("Session available:", !!freshSession.session);
+    // Get the latest session after potential refresh
+    const { data: freshSessionData } = await supabase.auth.getSession();
+    const freshAccessToken = freshSessionData.session?.access_token;
     
-    if (!freshSession.session || !freshSession.session.access_token) {
-      console.error("No access token available after refresh");
+    if (!freshAccessToken) {
+      console.error("No access token available");
       toast.error("Authentication error. Please sign in again.");
       return { success: false, error: "No access token available" };
     }
     
-    // Make the edge function call with explicit authorization
+    console.log("Calling edge function with fresh access token");
+    
+    // Make the edge function call with explicit headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: scrapingConfig,
       headers: {
-        Authorization: `Bearer ${freshSession.session.access_token}`
+        Authorization: `Bearer ${freshAccessToken}`
       }
     });
-
+    
     if (error) {
       console.error("Error from edge function:", error);
       toast.error(error.message || "Failed to start scraping");
       throw error;
     }
     
+    console.log("Edge function call successful:", data);
     return { success: true, task_id: data?.taskId };
   } catch (error: any) {
     console.error("Error starting scraping:", error);

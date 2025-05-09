@@ -7,30 +7,22 @@ export function getSupabaseClient(req: Request): SupabaseClient {
   // Get Auth token from request
   const authorization = req.headers.get('Authorization') || '';
   const apikey = req.headers.get('apikey') || '';
-
-  console.log("Authorization header present:", !!authorization);
-  if (authorization) {
-    console.log("Auth header starts with:", authorization.substring(0, 15) + "...");
-  } else {
-    console.log("WARNING: No authorization header found!");
+  
+  // Debug auth header and apikey presence
+  console.log("Authorization header length:", authorization ? authorization.length : 0);
+  console.log("API key present:", !!apikey);
+  
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Missing Supabase URL or anon key in env variables");
   }
   
-  // Debug all headers for troubleshooting
-  console.log("--- REQUEST HEADERS DETAILED DEBUG ---");
-  for (const [key, value] of req.headers.entries()) {
-    if (key.toLowerCase() === 'authorization') {
-      console.log(`${key} header exists with length: ${value.length}`);
-    } else if (key.toLowerCase() === 'apikey') {
-      console.log(`${key} header exists: true`);
-    } else {
-      console.log(`${key}: ${value}`);
-    }
-  }
-  console.log("--------------------------------------");
-  
+  // Create Supabase client with auth headers
   return createClient(
-    Deno.env.get('SUPABASE_URL') || '',
-    Deno.env.get('SUPABASE_ANON_KEY') || '',
+    supabaseUrl,
+    supabaseAnonKey,
     {
       global: {
         headers: {
@@ -49,26 +41,35 @@ export function getSupabaseClient(req: Request): SupabaseClient {
 
 // Authenticate user and return user data or throw error
 export async function authenticateUser(supabase: SupabaseClient) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  if (userError) {
-    console.error("Auth error:", userError.message);
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error("Auth error:", userError.message);
+      throw {
+        status: 401,
+        message: "Authentication failed: " + userError.message,
+        debug: { error_details: userError }
+      };
+    }
+    
+    if (!user) {
+      console.error("No user found in JWT");
+      throw {
+        status: 401,
+        message: "Authentication required. Please sign in to use this feature.",
+        debug: { auth_header_present: true }
+      };
+    }
+    
+    console.log("User authenticated successfully:", user.id);
+    return user;
+  } catch (error) {
+    console.error("Error in authenticateUser:", error);
     throw {
       status: 401,
-      message: "Authentication error: " + userError.message,
-      debug: { has_auth_header: true }
+      message: "Authentication failed. Please sign in again.",
+      debug: { error_details: String(error) }
     };
   }
-  
-  if (!user) {
-    console.error("No user found in JWT");
-    throw {
-      status: 401,
-      message: "Unauthorized. Please sign in to use this feature.",
-      debug: { has_auth_header: true }
-    };
-  }
-  
-  console.log("User authenticated:", user.id);
-  return user;
 }

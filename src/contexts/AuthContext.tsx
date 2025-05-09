@@ -39,23 +39,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (mounted) {
           console.log(`Auth state changed: ${event}`);
           
-          // Only update on actual auth state changes, not on tab focus
-          if (
-            event === "SIGNED_IN" || 
-            event === "SIGNED_OUT" || 
-            event === "USER_UPDATED" ||
-            event === "TOKEN_REFRESHED"
-          ) {
-            setSession(newSession);
-            setUser(newSession?.user || null);
-            setLoading(false);
-            
-            // Provide feedback to user
-            if (event === "SIGNED_IN") {
-              toast.success("Signed in successfully");
-            } else if (event === "SIGNED_OUT") {
-              toast.info("Signed out successfully");
-            }
+          // Update on all auth state changes for better reliability
+          setSession(newSession);
+          setUser(newSession?.user || null);
+          setLoading(false);
+          
+          // Provide feedback to user for major auth events
+          if (event === "SIGNED_IN") {
+            toast.success("Signed in successfully");
+          } else if (event === "SIGNED_OUT") {
+            toast.info("Signed out successfully");
+          } else if (event === "TOKEN_REFRESHED") {
+            console.log("Auth token refreshed");
           }
         }
       }
@@ -64,7 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // THEN check for existing session
     const getInitialSession = async () => {
       try {
+        console.log("Getting initial session...");
         const { data, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error("Error getting initial session:", error);
           throw error;
@@ -72,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Only update state if component is still mounted
         if (mounted) {
+          console.log("Initial session retrieved:", !!data.session);
           setSession(data.session);
           setUser(data.session?.user || null);
           setLoading(false);
@@ -97,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Manually refreshing session...");
       const { data, error } = await supabase.auth.refreshSession();
+      
       if (error) {
         console.error("Error refreshing session:", error);
         throw error;
