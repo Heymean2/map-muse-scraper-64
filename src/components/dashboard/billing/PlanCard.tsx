@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +15,7 @@ interface PlanCardProps {
     name: string;
     description?: string;
     price: number;
+    is_recommended?: boolean;
   };
   isActive: boolean;
   onSelect: (planId: string) => void;
@@ -25,15 +25,17 @@ interface PlanCardProps {
 export function PlanCard({ plan, isActive, onSelect, features }: PlanCardProps) {
   return (
     <Card 
-      className={`${isActive ? 'bg-primary/5' : ''}`}
+      className={`${isActive ? 'border-primary bg-primary/5' : ''} ${plan.is_recommended ? 'border-accent' : ''} transition-all duration-200`}
     >
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>{plan.name}</span>
-          {isActive && (
-            <Badge className="ml-2">Current Plan</Badge>
+        <div className="flex items-center justify-between">
+          <CardTitle>{plan.name}</CardTitle>
+          {plan.is_recommended && (
+            <Badge variant="outline" className="bg-accent text-accent-foreground">
+              Recommended
+            </Badge>
           )}
-        </CardTitle>
+        </div>
         <CardDescription>{plan.description || ""}</CardDescription>
         <div className="mt-4">
           <span className="text-3xl font-bold">${parseFloat(plan.price.toString()).toFixed(2)}</span>

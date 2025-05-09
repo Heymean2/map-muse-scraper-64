@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Settings from "@/pages/Settings";
 import BillingSection from "@/components/dashboard/BillingSection";
+import Billing from "@/pages/Billing";
 
 function DashboardHome() {
   const navigate = useNavigate();
@@ -154,8 +155,8 @@ export default function Dashboard() {
       <Routes>
         <Route path="/" element={<DashboardHome />} />
         <Route path="/scrape" element={<ScraperForm />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/billing" element={<BillingSection />} />
+        <Route path="/settings/*" element={<Settings />} />
+        <Route path="/billing" element={<Billing />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>

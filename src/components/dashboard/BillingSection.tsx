@@ -8,11 +8,13 @@ import { PlanCard } from "./billing/PlanCard";
 import { getPlanFeatures } from "./billing/PlanFeatures";
 import { SubscriptionManager } from "./billing/SubscriptionManager";
 import { CurrentPlanInfo } from "./billing/CurrentPlanInfo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PlanData {
   id: string;
   name: string;
   price: number;
+  is_recommended?: boolean;
 }
 
 export default function BillingSection() {
@@ -26,23 +28,23 @@ export default function BillingSection() {
   });
   
   // Get available subscription plans from Supabase
-  // Using the actual columns available in the pricing_plans table
   const { data: subscriptionPlans, isLoading: plansLoading } = useQuery({
     queryKey: ['subscriptionPlans'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
-        .select('id, name, price')
-        .eq('billing_period', 'monthly') // Filter by billing_period instead of plan_type
+        .select('id, name, price, is_recommended')
+        .eq('billing_period', 'monthly')
         .order('price', { ascending: true });
         
       if (error) throw error;
       
-      // Convert to simpler format to avoid deep nesting
+      // Convert to simpler format
       return (data || []).map(plan => ({
         id: plan.id.toString(),
         name: plan.name || "",
-        price: plan.price || 0
+        price: plan.price || 0,
+        is_recommended: plan.is_recommended || false
       }));
     }
   });
@@ -59,8 +61,21 @@ export default function BillingSection() {
       </div>
       
       {plansLoading || userPlanLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p>Loading plans...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map(i => (
+            <div key={i} className="border rounded-xl p-6 space-y-4">
+              <Skeleton className="h-8 w-1/3" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-10 w-1/4" />
+              <div className="space-y-2 pt-4">
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-2/3" />
+              </div>
+              <Skeleton className="h-10 w-full mt-4" />
+            </div>
+          ))}
         </div>
       ) : (
         <>
