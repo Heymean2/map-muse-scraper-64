@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Container } from "@/components/ui/container";
@@ -21,16 +21,16 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if user is already logged in
-  const checkUser = async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      navigate("/dashboard");
-    }
-  };
-
   // Check auth status on page load
-  useState(() => {
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate("/dashboard");
+      }
+    };
+    
     checkUser();
     
     // Set up auth state listener
@@ -46,7 +46,7 @@ export default function Auth() {
     return () => {
       subscription.unsubscribe();
     };
-  });
+  }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

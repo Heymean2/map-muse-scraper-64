@@ -27,16 +27,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        setSession(data.session);
-        setUser(data.session?.user || null);
+        // Only update state if component is still mounted
+        if (mounted) {
+          setSession(data.session);
+          setUser(data.session?.user || null);
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error getting initial session:", error);
-      } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -44,14 +51,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-        setLoading(false);
+      (event, newSession) => {
+        if (mounted) {
+          // Only update on actual auth state changes, not on tab focus
+          if (
+            event === "SIGNED_IN" || 
+            event === "SIGNED_OUT" || 
+            event === "USER_UPDATED" ||
+            event === "TOKEN_REFRESHED"
+          ) {
+            console.log(`Auth state changed: ${event}`, newSession?.user?.email);
+            setSession(newSession);
+            setUser(newSession?.user || null);
+            setLoading(false);
+          }
+        }
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
