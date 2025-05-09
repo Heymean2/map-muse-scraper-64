@@ -104,6 +104,20 @@ export default function TaskDetail() {
   const currentPlan = taskResults && 'current_plan' in taskResults ? taskResults.current_plan : null;
   const taskStatus = taskResults && 'status' in taskResults ? taskResults.status : 'processing';
 
+  // Helper function to ensure fields is an array before using join
+  const ensureArray = (value: any) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      // Handle comma-separated string
+      return value.split(',').map(item => item.trim());
+    }
+    if (value === null || value === undefined) return [];
+    return [String(value)]; // Convert single value to array
+  };
+
+  // Safely access the fields
+  const fieldsArray = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -188,10 +202,10 @@ export default function TaskDetail() {
                   </div>
                 )}
                 
-                {searchInfo?.fields && (
+                {fieldsArray.length > 0 && (
                   <div className="flex items-center gap-1.5">
                     <Tag className="h-4 w-4 text-gray-500" />
-                    <span>{searchInfo.fields.join(", ")}</span>
+                    <span>{fieldsArray.join(", ")}</span>
                   </div>
                 )}
               </div>
