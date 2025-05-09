@@ -47,24 +47,21 @@ export async function startScraping({
     
     // Ensure token is fresh before making the request
     let accessToken = sessionData.session.access_token;
+    
+    console.log("Refreshing token before making edge function call");
     try {
-      console.log("Refreshing token before making edge function call");
+      // Force token refresh to ensure we have the freshest possible token
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
       
       if (refreshError) {
         console.error("Failed to refresh token:", refreshError);
-        // If refresh fails, try to get a session again as fallback
-        const { data: retrySession } = await supabase.auth.getSession();
-        if (retrySession?.session) {
-          accessToken = retrySession.session.access_token;
-          console.log("Retrieved token via fallback method");
-        } else {
-          // Continue with current token as a last resort
-          console.log("Using existing token as fallback");
-        }
+        // Continue with current token if refresh fails
       } else if (refreshResult && refreshResult.session) {
         console.log("Token refreshed successfully");
         accessToken = refreshResult.session.access_token;
+        
+        // Wait a moment for token to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
     } catch (refreshError) {
       console.error("Exception during token refresh:", refreshError);
@@ -87,13 +84,19 @@ export async function startScraping({
       body: { keywords, country, states, fields, rating },
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        // Also add apikey explicitly to ensure it's present
         apikey: apiKey
       }
     });
     
     if (error) {
       console.error("Error from edge function:", error);
+      
+      // Check if it's an auth error and try to handle accordingly
+      if (error.message?.includes('401') || error.message?.includes('auth')) {
+        toast.error("Authentication error. Please sign in again and retry.");
+        return { success: false, error: "Authentication error. Please sign in again." };
+      }
+      
       toast.error(error.message || "Failed to start scraping");
       return { success: false, error: error.message || "Failed to start scraping" };
     }

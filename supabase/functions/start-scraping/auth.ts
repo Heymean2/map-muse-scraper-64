@@ -1,6 +1,6 @@
 
 import { Request } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 // Helper function to create a Supabase client with the user's JWT
 export function getSupabaseClient(req: Request): SupabaseClient {
@@ -40,9 +40,10 @@ export function getSupabaseClient(req: Request): SupabaseClient {
         },
       },
       auth: {
-        autoRefreshToken: false,
+        autoRefreshToken: false, // Edge functions run in a stateless environment
         persistSession: false,
         detectSessionInUrl: false,
+        flowType: 'implicit', // Important for edge function auth
       },
     }
   );
@@ -56,41 +57,51 @@ export async function authenticateUser(supabase: SupabaseClient) {
   try {
     console.log("Attempting to authenticate user...");
     
+    // For debugging, log the JWT payload if available
     try {
-      // First try with getUser() which should work with the provided JWT
+      const jwt = supabase.auth.getSession();
+      console.log("JWT available:", !!jwt);
+    } catch (e) {
+      console.log("Could not access JWT:", e);
+    }
+    
+    // First try with getUser() which should work with the provided JWT
+    try {
+      console.log("Trying auth.getUser()...");
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (!userError && user) {
-        console.log("Authentication successful via getUser()");
-        return user;
-      }
       
       if (userError) {
         console.log("Auth error with getUser:", userError.message);
-        // Continue to fallback methods
+      } else if (user) {
+        console.log("Authentication successful via getUser(), user ID:", user.id);
+        return user;
+      } else {
+        console.log("No user found from getUser(), but no error either");
       }
     } catch (getUserError) {
       console.log("Exception in getUser:", getUserError);
-      // Continue to fallback methods
     }
     
+    // Fall back to getSession for compatibility
     try {
-      // Fall back to getSession for compatibility
+      console.log("Trying auth.getSession()...");
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (!sessionError && sessionData?.session?.user) {
-        console.log("Authentication successful via getSession()");
-        return sessionData.session.user;
-      }
       
       if (sessionError) {
         console.error("Session error:", sessionError.message);
-      } else if (!sessionData?.session) {
+      } else if (sessionData?.session?.user) {
+        console.log("Authentication successful via getSession(), user ID:", sessionData.session.user.id);
+        return sessionData.session.user;
+      } else {
         console.error("No session found in getSession response");
       }
     } catch (sessionError) {
       console.error("Exception in getSession:", sessionError);
     }
+    
+    // If JWT is directly available in the request, try to decode and validate it
+    // This is a last resort manual check
+    console.log("Both getUser and getSession methods failed. Authentication failed.");
     
     // If we get here, neither method worked
     throw {

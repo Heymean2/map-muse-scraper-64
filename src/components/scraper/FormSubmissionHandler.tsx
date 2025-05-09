@@ -29,9 +29,19 @@ export default function FormSubmissionHandler({
   children
 }: FormSubmissionHandlerProps) {
   const navigate = useNavigate();
-  const { refreshSession } = useAuth();
+  const { refreshSession, session } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Function to ensure user is authenticated
+  const ensureAuthenticated = async () => {
+    if (!session) {
+      toast.error("You must be logged in to use this feature");
+      navigate("/auth", { state: { returnTo: "/dashboard/scrape" } });
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +51,12 @@ export default function FormSubmissionHandler({
     setIsLoading(true);
     
     try {
+      // Check authentication first
+      if (!await ensureAuthenticated()) {
+        setIsLoading(false);
+        return;
+      }
+      
       // Form validation
       if (!useKeyword && !selectedCategory) {
         setFormError("Please select a category or use a keyword");
@@ -77,12 +93,14 @@ export default function FormSubmissionHandler({
         console.log("Session refreshed successfully", !!freshSession);
         
         // Wait a bit for token to be properly saved/propagated
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800));
       } catch (refreshError) {
         console.error("Failed to refresh session:", refreshError);
+        
         // Try to sign in again if refresh fails
         toast.error("Session refresh failed. Please try signing in again.");
         setFormError("Session refresh failed. Please try signing in again.");
+        navigate('/auth', { state: { returnTo: '/dashboard/scrape' } });
         setIsLoading(false);
         return;
       }
