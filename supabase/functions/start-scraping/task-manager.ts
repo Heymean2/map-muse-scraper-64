@@ -1,5 +1,5 @@
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 // Generate a unique task ID
 export function generateTaskId(): string {
@@ -20,6 +20,8 @@ export async function createScrapingRequest(
   }
 ) {
   try {
+    console.log(`Creating scraping request for user ${userId} with task ID ${taskId}`);
+    
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
@@ -51,11 +53,12 @@ export async function createScrapingRequest(
       };
     }
 
-    console.log(`Scraping task ${taskId} created for user ${userId}`);
+    console.log(`Scraping task ${taskId} created successfully for user ${userId}`);
     return { success: true };
   } catch (error) {
+    console.error('Database error:', error);
     if (error.status) throw error; // Re-throw our custom errors
-    console.error('Database error:', error.message);
+    
     throw {
       status: 500,
       message: error.message || "Database error"

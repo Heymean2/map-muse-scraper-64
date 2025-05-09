@@ -15,38 +15,25 @@ serve(async (req) => {
   try {
     console.log("Edge function start-scraping received request");
     
-    // Log key request information for debugging
+    // Log request method and headers for debugging
     console.log(`Request method: ${req.method}`);
-    console.log(`Auth header present: ${!!req.headers.get('Authorization')}`);
+    console.log(`Authorization header present: ${!!req.headers.get('Authorization')}`);
     console.log(`API key header present: ${!!req.headers.get('apikey')}`);
     
-    // Log the first few characters of auth headers for debugging (don't log full tokens)
-    const authHeader = req.headers.get('Authorization') || '';
-    const apiKey = req.headers.get('apikey') || '';
-    console.log(`Auth header preview: ${authHeader.substring(0, 15)}...`);
-    console.log(`API key preview: ${apiKey.substring(0, 10)}...`);
-    
-    // Initialize Supabase client with user's JWT
+    // Initialize Supabase client
     const supabase = getSupabaseClient(req);
+    
+    // Authenticate user - this now gets a user directly from the token
     let user;
-
     try {
-      // Authenticate user
-      user = await authenticateUser(supabase);
-      console.log("Authentication successful for user:", user.id);
+      user = await authenticateUser(req);
+      console.log("User authenticated successfully:", user.id);
     } catch (authError) {
-      // Enhanced error logging for authentication failures
-      console.error("Authentication error details:", JSON.stringify(authError, null, 2));
-      
+      console.error("Authentication error:", authError);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: authError.message || "Authentication failed", 
-          debug: authError.debug || { 
-            auth_header_present: !!req.headers.get('Authorization'),
-            auth_header_format: req.headers.get('Authorization')?.substring(0, 10) + '...',
-            apikey_present: !!req.headers.get('apikey')
-          }
+          error: authError.message || "Authentication failed"
         }),
         { 
           status: authError.status || 401, 
@@ -55,11 +42,11 @@ serve(async (req) => {
       );
     }
       
-    // Get request body
+    // Parse request body
     let requestData;
     try {
       requestData = await req.json();
-      console.log("Received request data:", JSON.stringify(requestData, null, 2));
+      console.log("Request data received:", JSON.stringify(requestData));
     } catch (e) {
       console.error("Failed to parse request body:", e);
       return new Response(
@@ -72,8 +59,7 @@ serve(async (req) => {
     }
     
     const { keywords, country, states, fields, rating } = requestData;
-    console.log("Processing request for keywords:", keywords);
-
+    
     // Validate parameters
     const validation = validateScrapingParams({ keywords, country, states, fields });
     if (!validation.isValid) {
@@ -88,18 +74,49 @@ serve(async (req) => {
     }
 
     // Check user's plan access
-    await checkPlanAccess(supabase, user.id, fields);
+    try {
+      await checkPlanAccess(supabase, user.id, fields);
+      console.log("Plan access check passed");
+    } catch (accessError) {
+      console.error("Plan access error:", accessError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: accessError.message || "Plan access error" 
+        }),
+        { 
+          status: accessError.status || 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Generate a unique task ID
     const taskId = generateTaskId();
     console.log("Generated task ID:", taskId);
 
     // Create scraping request record
-    await createScrapingRequest(supabase, user.id, taskId, { 
-      keywords, country, states, fields, rating 
-    });
+    try {
+      await createScrapingRequest(supabase, user.id, taskId, { 
+        keywords, country, states, fields, rating 
+      });
+      console.log("Scraping request created successfully");
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: dbError.message || "Database error" 
+        }),
+        { 
+          status: dbError.status || 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Return successful response with task ID
+    console.log("Returning successful response");
     return new Response(
       JSON.stringify({
         success: true,
@@ -111,8 +128,8 @@ serve(async (req) => {
       }
     );
 
-  } catch (error: any) {
-    console.error('Error in start-scraping function:', error.message || error);
+  } catch (error) {
+    console.error('Unexpected error in start-scraping function:', error);
     
     return new Response(
       JSON.stringify({ 

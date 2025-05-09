@@ -1,9 +1,14 @@
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 // Check if user has access to requested features based on their plan
-export async function checkPlanAccess(supabase: SupabaseClient, userId: string, fields: string[]) {
+export async function checkPlanAccess(
+  supabase: SupabaseClient, 
+  userId: string, 
+  fields: string[]
+) {
   try {
+    console.log(`Checking plan access for user ${userId}`);
     // Check user's plan for access to advanced features
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
@@ -40,10 +45,12 @@ export async function checkPlanAccess(supabase: SupabaseClient, userId: string, 
       };
     }
 
+    console.log(`User ${userId} has access to the requested features`);
     return { hasAccess: true };
   } catch (error) {
-    if (error.status) throw error; // Re-throw our custom errors
     console.error("Error checking plan access:", error);
+    if (error.status) throw error; // Re-throw our custom errors
+    
     throw {
       status: 500,
       message: "Failed to check plan access"

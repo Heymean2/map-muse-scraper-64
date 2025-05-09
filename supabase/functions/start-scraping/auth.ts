@@ -9,7 +9,7 @@ export function getSupabaseClient(req: Request): SupabaseClient {
   const apikey = req.headers.get('apikey') || '';
   
   // Debug auth header and apikey presence
-  console.log("Authorization header length:", authorization ? authorization.length : 0);
+  console.log("Authorization header present:", !!authorization);
   console.log("API key present:", !!apikey);
   
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -17,15 +17,6 @@ export function getSupabaseClient(req: Request): SupabaseClient {
   
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error("Missing Supabase URL or anon key in env variables");
-  }
-  
-  // Extract JWT token from Authorization header
-  let jwtToken = '';
-  if (authorization && authorization.startsWith('Bearer ')) {
-    jwtToken = authorization.substring('Bearer '.length);
-    console.log("JWT token extracted successfully, length:", jwtToken.length);
-  } else {
-    console.warn("Authorization header not in expected 'Bearer <token>' format:", authorization.substring(0, 20) + "...");
   }
   
   // Create Supabase client with auth headers
@@ -51,78 +42,61 @@ export function getSupabaseClient(req: Request): SupabaseClient {
   return client;
 }
 
-// Authenticate user and return user data or throw error
-export async function authenticateUser(supabase: SupabaseClient) {
-  try {
-    console.log("Attempting to authenticate user...");
-    
-    // For debugging, log the JWT payload if available
-    try {
-      const jwt = supabase.auth.getSession();
-      console.log("JWT available:", !!jwt);
-    } catch (e) {
-      console.log("Could not access JWT:", e);
-    }
-    
-    // First try with getUser() which should work with the provided JWT
-    try {
-      console.log("Trying auth.getUser()...");
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        console.log("Auth error with getUser:", userError.message);
-      } else if (user) {
-        console.log("Authentication successful via getUser(), user ID:", user.id);
-        return user;
-      } else {
-        console.log("No user found from getUser(), but no error either");
-      }
-    } catch (getUserError) {
-      console.log("Exception in getUser:", getUserError);
-    }
-    
-    // Fall back to getSession for compatibility
-    try {
-      console.log("Trying auth.getSession()...");
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Session error:", sessionError.message);
-      } else if (sessionData?.session?.user) {
-        console.log("Authentication successful via getSession(), user ID:", sessionData.session.user.id);
-        return sessionData.session.user;
-      } else {
-        console.error("No session found in getSession response");
-      }
-    } catch (sessionError) {
-      console.error("Exception in getSession:", sessionError);
-    }
-
-    // As a last resort, try to manually extract user ID from JWT token
-    try {
-      console.log("Attempting manual JWT validation as last resort");
-      
-      // If JWT is directly available as a header, validate it directly
-      const token = supabase.auth.getSession();
-      if (token) {
-        console.log("Manual JWT validation: Found token");
-      }
-    } catch (e) {
-      console.log("Manual JWT validation failed:", e);
-    }
-    
-    // If we get here, neither method worked
+// Authenticate user with JWT
+export async function authenticateUser(req: Request): Promise<{ id: string, email?: string }> {
+  // Get Auth token from request
+  const authorization = req.headers.get('Authorization') || '';
+  
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    console.error("Missing or invalid Authorization header");
     throw {
       status: 401,
-      message: "Authentication failed: No valid session found",
-      details: "Both getUser and getSession methods failed"
+      message: "Missing or invalid Authorization header"
     };
+  }
+  
+  const token = authorization.substring('Bearer '.length);
+  if (!token) {
+    console.error("Empty token provided");
+    throw {
+      status: 401,
+      message: "Empty token provided"
+    };
+  }
+  
+  try {
+    // Verify JWT token directly
+    // This simplifies the approach by focusing on basic JWT validation
+    const supabase = getSupabaseClient(req);
+    
+    // Get user from JWT
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error("Error verifying JWT:", userError);
+      throw {
+        status: 401,
+        message: "Invalid JWT token",
+        details: userError.message
+      };
+    }
+    
+    if (!user) {
+      console.error("No user found in token");
+      throw {
+        status: 401,
+        message: "No user found in token"
+      };
+    }
+    
+    console.log("Authentication successful for user:", user.id);
+    return { id: user.id, email: user.email };
   } catch (error) {
-    console.error("Error in authenticateUser:", error);
+    console.error("Authentication error:", error);
     throw {
       status: 401,
       message: "Authentication failed. Please sign in again.",
-      debug: { error_details: String(error) }
+      debug: error.toString()
     };
   }
 }

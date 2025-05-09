@@ -16,20 +16,6 @@ export async function startScraping({
   try {
     console.log("Starting scraping with config:", { keywords, country, states, fields, rating });
     
-    // Check for user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError) {
-      console.error("Auth error:", authError);
-      toast.error("Authentication error: " + authError.message);
-      return { success: false, error: "Authentication error: " + authError.message };
-    }
-    
-    if (!user) {
-      toast.error("Authentication required. Please sign in to use this feature.");
-      return { success: false, error: "Authentication required" };
-    }
-    
     // Get fresh session token to ensure auth is valid
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
@@ -40,7 +26,7 @@ export async function startScraping({
     }
     
     if (!sessionData.session) {
-      console.error("No session found");
+      console.error("No active session found");
       toast.error("No active session found. Please sign in again.");
       return { success: false, error: "No active session" };
     }
@@ -61,7 +47,7 @@ export async function startScraping({
         accessToken = refreshResult.session.access_token;
         
         // Wait a moment for token to propagate
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (refreshError) {
       console.error("Exception during token refresh:", refreshError);
@@ -74,9 +60,8 @@ export async function startScraping({
       return { success: false, error: "No access token available" };
     }
     
-    console.log("Calling edge function with access token length:", accessToken.length);
+    console.log("Calling edge function with access token");
     
-    // Use the API key constant directly to avoid accessing protected property
     const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bHduaXpmZ2dwbGN0ZHR1anN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwMzUwMjYsImV4cCI6MjA1NzYxMTAyNn0.-ajeJzWjufIy4RUkotdMgYWprFuQOJzA7a_aIYuCPA4";
     
     // Make the edge function call with explicit headers
@@ -90,13 +75,6 @@ export async function startScraping({
     
     if (error) {
       console.error("Error from edge function:", error);
-      
-      // Check if it's an auth error and try to handle accordingly
-      if (error.message?.includes('401') || error.message?.includes('auth')) {
-        toast.error("Authentication error. Please sign in again and retry.");
-        return { success: false, error: "Authentication error. Please sign in again." };
-      }
-      
       toast.error(error.message || "Failed to start scraping");
       return { success: false, error: error.message || "Failed to start scraping" };
     }
