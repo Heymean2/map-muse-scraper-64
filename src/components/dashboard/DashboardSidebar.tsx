@@ -20,24 +20,24 @@ import {
   LogOut,
   User
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
 
-// Preload billing components
+// Preload billing components with a more robust approach
 const preloadBillingComponents = () => {
-  // Dynamic import for the BillingSection component to preload it
-  import("@/components/dashboard/BillingSection").catch(err => 
-    console.error("Error preloading billing components:", err)
-  );
+  return import("@/components/dashboard/BillingSection")
+    .then(() => console.log("Billing components preloaded successfully"))
+    .catch(err => console.error("Error preloading billing components:", err));
 };
 
 export default function DashboardSidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [billingPreloaded, setBillingPreloaded] = useState(false);
   
   const { data: planInfo } = useQuery({
     queryKey: ['userPlanInfo', user?.id],
@@ -48,11 +48,29 @@ export default function DashboardSidebar() {
   
   // Preload billing components when dashboard loads
   useEffect(() => {
-    preloadBillingComponents();
-  }, []);
+    if (!billingPreloaded) {
+      // Use requestIdleCallback for better performance if available
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(() => {
+          preloadBillingComponents().then(() => setBillingPreloaded(true));
+        });
+      } else {
+        // Fallback to setTimeout
+        setTimeout(() => {
+          preloadBillingComponents().then(() => setBillingPreloaded(true));
+        }, 1000);
+      }
+    }
+  }, [billingPreloaded]);
   
   const isActive = (path: string) => {
     return location.pathname.startsWith(path);
+  };
+  
+  const handleBillingHover = () => {
+    if (!billingPreloaded) {
+      preloadBillingComponents().then(() => setBillingPreloaded(true));
+    }
   };
   
   const menuItems = [
@@ -80,7 +98,7 @@ export default function DashboardSidebar() {
       title: "Billing",
       icon: CreditCard,
       path: "/dashboard/billing",
-      onMouseEnter: preloadBillingComponents, // Also preload on hover
+      onMouseEnter: handleBillingHover,
     },
     {
       title: "Settings",
@@ -108,7 +126,7 @@ export default function DashboardSidebar() {
                   tooltip={item.title}
                   onMouseEnter={item.onMouseEnter}
                 >
-                  <Link to={item.path}>
+                  <Link to={item.path} className="transition-colors">
                     <item.icon className="w-5 h-5" />
                     <span>{item.title}</span>
                   </Link>
