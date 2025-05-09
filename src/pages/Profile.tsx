@@ -1,60 +1,47 @@
 
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { CreditCard, UserCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Container } from "@/components/ui/container";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { CalendarDays, Mail, User, CreditCard, Settings, MapPin, Building, UserCircle } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import ProfileSection from "@/components/dashboard/ProfileSection";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
+
+import ProfileSection from "@/components/dashboard/ProfileSection";
+import ProfileEditForm from "@/components/profile/ProfileEditForm";
+import ProfileOverview from "@/components/profile/ProfileOverview";
+import ProfileDetails from "@/components/profile/ProfileDetails";
 
 export default function Profile() {
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
   
-  // Calculate signup date based on user metadata
-  const signupDate = user?.created_at 
-    ? new Date(user.created_at).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric'
-      }) 
-    : 'Unknown';
-
   // Fetch user profile data from profiles table
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user?.id) return;
+  const { data: userProfile, isLoading, error, refetch } = useQuery({
+    queryKey: ['userProfile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
       
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-          
-        if (data && !error) {
-          setUserProfile(data);
-        } else {
-          console.error("Error fetching profile:", error);
-        }
-      } catch (error) {
-        console.error("Exception fetching profile:", error);
-      }
-    };
-    
-    fetchUserProfile();
-  }, [user?.id]);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
   // Get user's plan info
   const { data: planInfo } = useQuery({
-    queryKey: ['userPlanInfo', user?.id],
+    queryKey: ['userPlanInfo', userProfile?.plan_id],
     queryFn: async () => {
       if (!userProfile?.plan_id) return { planName: 'Free Plan' };
       
@@ -74,6 +61,15 @@ export default function Profile() {
     },
     enabled: !!userProfile?.plan_id
   });
+
+  const handleProfileEditSuccess = () => {
+    setIsEditing(false);
+    refetch();
+  };
+
+  if (error) {
+    console.error("Error fetching profile:", error);
+  }
 
   return (
     <DashboardLayout>
@@ -98,106 +94,49 @@ export default function Profile() {
           </TabsList>
           
           <TabsContent value="profile">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Profile Overview Card */}
-              <Card className="md:col-span-1 border border-border shadow-sm">
-                <CardHeader className="text-center pb-2">
-                  <div className="flex justify-center mb-4">
-                    <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-                      <AvatarImage src={userProfile?.avatar_url || ""} alt={user?.email || "User"} />
-                      <AvatarFallback className="text-3xl bg-primary/10 text-primary">
-                        {user?.email?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <CardTitle className="text-xl">
-                    {userProfile?.full_name || user?.email?.split('@')[0] || "User"}
-                  </CardTitle>
-                  <CardDescription className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs inline-block mt-1">
-                    {planInfo?.planName || "Free Plan"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-4">
-                  <Separator />
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="font-medium">{user?.email || "Not provided"}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Member since:</span>
-                      <span className="font-medium">{signupDate}</span>
-                    </div>
-                    {userProfile?.company && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Company:</span>
-                        <span className="font-medium">{userProfile.company}</span>
-                      </div>
-                    )}
-                    {userProfile?.location && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Location:</span>
-                        <span className="font-medium">{userProfile.location}</span>
-                      </div>
-                    )}
-                    <div className="pt-2">
-                      <Link to="/dashboard/settings">
-                        <Button variant="outline" size="sm" className="w-full flex items-center gap-2">
-                          <Settings className="h-4 w-4" />
-                          App Settings
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Profile Details */}
-              <Card className="md:col-span-2">
+            {isEditing ? (
+              <Card>
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
                     <UserCircle className="h-5 w-5 text-primary" />
-                    Profile Information
+                    Edit Profile
                   </CardTitle>
                   <CardDescription>
-                    Your personal and professional information
+                    Update your personal and professional information
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Full Name</h3>
-                      <p className="font-medium">{userProfile?.full_name || user?.email?.split('@')[0] || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Job Title</h3>
-                      <p className="font-medium">{userProfile?.job_title || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Company</h3>
-                      <p className="font-medium">{userProfile?.company || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Location</h3>
-                      <p className="font-medium">{userProfile?.location || "Not provided"}</p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Bio</h3>
-                      <p className="font-medium">{userProfile?.bio || "No bio provided"}</p>
-                    </div>
-                  </div>
+                <CardContent>
+                  <ProfileEditForm 
+                    initialData={userProfile || undefined} 
+                    onSuccess={handleProfileEditSuccess}
+                  />
                   
-                  <Button variant="outline" className="mt-4">
-                    <User className="mr-2 h-4 w-4" />
-                    Edit Profile Information
-                  </Button>
+                  <div className="mt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsEditing(false)}
+                      className="mr-2"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <ProfileOverview
+                  user={user}
+                  userProfile={userProfile}
+                  isLoading={isLoading}
+                  planName={planInfo?.planName || "Free Plan"}
+                />
+                <ProfileDetails
+                  userProfile={userProfile}
+                  isLoading={isLoading}
+                  onEdit={() => setIsEditing(true)}
+                />
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="account">
