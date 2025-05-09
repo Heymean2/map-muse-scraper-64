@@ -11,6 +11,7 @@ import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
+import Settings from "@/pages/Settings";
 import Results from "@/pages/Results";
 import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
@@ -26,6 +27,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/result/*" element={<Results />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="*" element={<NotFound />} />
