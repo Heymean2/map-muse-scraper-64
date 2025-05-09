@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
+import { saveRoute, getLastRoute, isAuthRoute } from "@/services/routeMemory";
 
 interface BaseLayoutProps {
   children: ReactNode;
@@ -17,6 +18,13 @@ interface BaseLayoutProps {
 export default function BaseLayout({ children }: BaseLayoutProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
+
+  // Save current route path when it changes
+  useEffect(() => {
+    if (!isAuthRoute(location.pathname)) {
+      saveRoute(location.pathname);
+    }
+  }, [location.pathname]);
 
   // Only redirect if not loading and user is not authenticated
   if (!isLoading && !user) {

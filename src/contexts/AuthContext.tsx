@@ -2,21 +2,22 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
+import { getLastRoute } from "@/services/routeMemory";
 
 type AuthContextType = {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  isLoading: boolean; // Added isLoading as an alias to loading for consistency
-  signOut: () => Promise<void>; // Added signOut function
+  isLoading: boolean;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
-  isLoading: true, // Also initialize isLoading
-  signOut: async () => {}, // Initialize with empty function
+  isLoading: true,
+  signOut: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -88,8 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     session,
     user,
     loading,
-    isLoading: loading, // Add isLoading as an alias to loading
-    signOut, // Add the signOut function
+    isLoading: loading,
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

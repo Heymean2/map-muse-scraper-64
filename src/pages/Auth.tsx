@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,11 @@ import { toast } from "sonner";
 import { withDelay, animationClasses } from "@/lib/animations";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { getLastRoute } from "@/services/routeMemory";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,9 @@ export default function Auth() {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate("/dashboard");
+        // Use stored location or from state, or fall back to last saved route
+        const from = location.state?.from || getLastRoute();
+        navigate(from);
       }
     };
     
@@ -37,7 +40,9 @@ export default function Auth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_IN" && session) {
-          navigate("/dashboard");
+          // Use stored location or fall back to last saved route
+          const from = location.state?.from || getLastRoute();
+          navigate(from);
         }
       }
     );
@@ -46,7 +51,7 @@ export default function Auth() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +92,9 @@ export default function Auth() {
 
       if (data?.user) {
         toast.success("Successfully signed in!");
-        navigate("/dashboard");
+        // Navigate to the stored route or dashboard
+        const from = location.state?.from || getLastRoute();
+        navigate(from);
       }
     } catch (error: any) {
       setError(error.message || "An error occurred during sign in");
