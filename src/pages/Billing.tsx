@@ -33,8 +33,7 @@ export default function Billing() {
   
   const handleUpgrade = (planId: number, planName: string) => {
     // For demo purposes - this would connect to a payment processor in a real app
-    toast({
-      title: "Upgrade initiated",
+    toast("Upgrade initiated", {
       description: `You selected the ${planName} plan. This would connect to a payment processor in a real application.`,
     });
   };
