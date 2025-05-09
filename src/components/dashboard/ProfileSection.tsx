@@ -10,16 +10,20 @@ export default function ProfileSection() {
       <CardHeader className="bg-muted/50">
         <CardTitle className="text-xl flex items-center gap-2">
           <Lock className="h-5 w-5 text-primary" />
-          Account Management
+          Security Settings
         </CardTitle>
         <CardDescription>Update your email and password</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-8 pt-6">
         {/* Email Change Section */}
-        <EmailChangeForm />
+        <div className="bg-muted/20 p-5 rounded-lg">
+          <EmailChangeForm />
+        </div>
         
         {/* Password Change Section */}
-        <PasswordChangeForm />
+        <div className="bg-muted/20 p-5 rounded-lg">
+          <PasswordChangeForm />
+        </div>
       </CardContent>
     </Card>
   );
