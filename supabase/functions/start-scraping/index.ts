@@ -1,76 +1,10 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Helper function to create a Supabase client with the user's JWT
-function getSupabaseClient(req: Request): SupabaseClient {
-  // Get Auth token from request
-  const authorization = req.headers.get('Authorization') || '';
-  const apikey = req.headers.get('apikey') || '';
-
-  console.log("Authorization header present:", !!authorization);
-  if (authorization) {
-    console.log("Auth header starts with:", authorization.substring(0, 15) + "...");
-  } else {
-    console.log("WARNING: No authorization header found!");
-  }
-  
-  // Debug all headers for troubleshooting
-  console.log("--- REQUEST HEADERS DETAILED DEBUG ---");
-  for (const [key, value] of req.headers.entries()) {
-    if (key.toLowerCase() === 'authorization') {
-      console.log(`${key} header exists with length: ${value.length}`);
-    } else if (key.toLowerCase() === 'apikey') {
-      console.log(`${key} header exists: true`);
-    } else {
-      console.log(`${key}: ${value}`);
-    }
-  }
-  console.log("--------------------------------------");
-  
-  return createClient(
-    Deno.env.get('SUPABASE_URL') || '',
-    Deno.env.get('SUPABASE_ANON_KEY') || '',
-    {
-      global: {
-        headers: {
-          Authorization: authorization,
-          apikey,
-        },
-      },
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-    }
-  );
-}
-
-// Function to validate scraping request parameters
-function validateScrapingParams(params: any): { isValid: boolean; error?: string } {
-  if (!params.keywords) {
-    return { isValid: false, error: "Keywords are required" };
-  }
-
-  if (!params.country) {
-    return { isValid: false, error: "Country is required" };
-  }
-
-  if (!params.states || !Array.isArray(params.states) || params.states.length === 0) {
-    return { isValid: false, error: "At least one state is required" };
-  }
-
-  if (!params.fields || !Array.isArray(params.fields) || params.fields.length === 0) {
-    return { isValid: false, error: "At least one field is required" };
-  }
-
-  return { isValid: true };
-}
+import { corsHeaders } from "./cors.ts";
+import { getSupabaseClient, authenticateUser } from "./auth.ts";
+import { validateScrapingParams } from "./validation.ts";
+import { checkPlanAccess } from "./plan-checker.ts";
+import { generateTaskId, createScrapingRequest } from "./task-manager.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -97,184 +31,80 @@ serve(async (req) => {
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
 
-    // Manually verify user authentication - This is critical since we're using JWT verification
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error("Auth error:", userError.message);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Authentication error: " + userError.message,
-          debug: { has_auth_header: !!req.headers.get('Authorization') }
-        }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-    
-    if (!user) {
-      console.error("No user found in JWT");
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Unauthorized. Please sign in to use this feature.",
-          debug: { has_auth_header: !!req.headers.get('Authorization') }
-        }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-    
-    console.log("User authenticated:", user.id);
-
-    // Get request body
-    let requestData;
     try {
-      requestData = await req.json();
-      console.log("Request body received");
-    } catch (e) {
-      console.error("Failed to parse request body:", e);
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid request body" }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-    
-    const { keywords, country, states, fields, rating } = requestData;
-    console.log("Processing request for keywords:", keywords);
-
-    // Validate parameters
-    const validation = validateScrapingParams({ keywords, country, states, fields });
-    if (!validation.isValid) {
-      console.error("Validation failed:", validation.error);
-      return new Response(
-        JSON.stringify({ success: false, error: validation.error }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Check user's plan for access to advanced features
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('plan_id')
-      .eq('id', user.id)
-      .single();
+      // Authenticate user
+      const user = await authenticateUser(supabase);
       
-    if (profileError) {
-      console.error("Error fetching profile:", profileError.message);
-      // Continue with default plan if profile fetch fails
-    }
-
-    let planFeatures = { reviews: false };
-    if (profileData?.plan_id) {
-      const { data: planData, error: planError } = await supabase
-        .from('pricing_plans')
-        .select('features')
-        .eq('id', profileData.plan_id)
-        .single();
-      
-      if (planError) {
-        console.error("Error fetching plan:", planError.message);
-      } else {
-        planFeatures = planData?.features || { reviews: false };
-      }
-    }
-
-    // Check if user has access to review data
-    if (fields.includes('reviews') && !planFeatures.reviews) {
-      return new Response(
-        JSON.stringify({
-          success: false, 
-          error: "Your current plan does not allow access to review data. Please upgrade to Pro."
-        }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Generate a unique task ID
-    const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    console.log("Generated task ID:", taskId);
-
-    // Create scraping request record
-    try {
-      const { error: insertError } = await supabase
-        .from('scraping_requests')
-        .insert({
-          task_id: taskId,
-          user_id: user.id,
-          keywords,
-          country,
-          states: Array.isArray(states) ? states.join(',') : states,
-          fields: Array.isArray(fields) ? fields.join(',') : fields,
-          rating,
-          status: 'processing',
-          created_at: new Date().toISOString()
-        });
-
-      if (insertError) {
-        console.error('Error inserting scraping request:', insertError.message);
-        
-        // Handle plan limit exceeded error specifically
-        if (insertError.message && insertError.message.includes('plan limit')) {
-          return new Response(
-            JSON.stringify({ 
-              success: false, 
-              error: "You have reached your plan's limit for scraping tasks. Please upgrade your plan." 
-            }),
-            { 
-              status: 403, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        }
-
+      // Get request body
+      let requestData;
+      try {
+        requestData = await req.json();
+        console.log("Request body received");
+      } catch (e) {
+        console.error("Failed to parse request body:", e);
         return new Response(
-          JSON.stringify({ success: false, error: insertError.message }),
+          JSON.stringify({ success: false, error: "Invalid request body" }),
           { 
-            status: 500, 
+            status: 400, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
       }
-    } catch (dbError: any) {
-      console.error('Database error:', dbError.message);
+      
+      const { keywords, country, states, fields, rating } = requestData;
+      console.log("Processing request for keywords:", keywords);
+
+      // Validate parameters
+      const validation = validateScrapingParams({ keywords, country, states, fields });
+      if (!validation.isValid) {
+        console.error("Validation failed:", validation.error);
+        return new Response(
+          JSON.stringify({ success: false, error: validation.error }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      // Check user's plan access
+      await checkPlanAccess(supabase, user.id, fields);
+
+      // Generate a unique task ID
+      const taskId = generateTaskId();
+      console.log("Generated task ID:", taskId);
+
+      // Create scraping request record
+      await createScrapingRequest(supabase, user.id, taskId, { 
+        keywords, country, states, fields, rating 
+      });
+
+      // Return successful response with task ID
       return new Response(
-        JSON.stringify({ success: false, error: dbError.message || "Database error" }),
+        JSON.stringify({
+          success: true,
+          taskId,
+          message: "Scraping task started successfully"
+        }),
         { 
-          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+
+    } catch (authError) {
+      // Handle authentication and authorization errors
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: authError.message, 
+          debug: authError.debug || { has_auth_header: !!req.headers.get('Authorization') }
+        }),
+        { 
+          status: authError.status || 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
-
-    // In a real implementation, this would trigger the actual scraping process
-    console.log(`Scraping task ${taskId} created for user ${user.id}`);
-
-    // Return successful response with task ID
-    return new Response(
-      JSON.stringify({
-        success: true,
-        taskId,
-        message: "Scraping task started successfully"
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
 
   } catch (error: any) {
     console.error('Error in start-scraping function:', error.message || error);
