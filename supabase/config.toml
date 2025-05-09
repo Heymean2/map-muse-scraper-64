@@ -1,1 +1,5 @@
+
 project_id = "culwnizfggplctdtujsz"
+
+[functions.start-scraping]
+verify_jwt = false

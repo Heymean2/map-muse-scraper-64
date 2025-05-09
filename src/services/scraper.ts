@@ -38,16 +38,21 @@ export async function startScraping(scrapingConfig: {
       return { success: false, error: "No active session" };
     }
     
-    // Access token may be expired - try refreshing it
-    if (isTokenExpiring(sessionData.session)) {
-      try {
-        console.log("Token may be expiring soon, attempting to refresh...");
-        const refreshResult = await supabase.auth.refreshSession();
-        console.log("Token refresh result:", refreshResult.error ? "Error" : "Success");
-      } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        // Continue with current token, the function will handle if it's invalid
+    // Always refresh token before making the request
+    try {
+      console.log("Token refresh started - ensuring fresh credentials");
+      const refreshResult = await supabase.auth.refreshSession();
+      
+      if (refreshResult.error) {
+        console.error("Failed to refresh token:", refreshResult.error);
+        toast.error("Session refresh failed. Please sign in again.");
+        return { success: false, error: "Session refresh failed" };
       }
+      
+      console.log("Token refreshed successfully");
+    } catch (refreshError) {
+      console.error("Exception during token refresh:", refreshError);
+      // Continue with current token, the function will handle if it's invalid
     }
 
     console.log("Calling edge function with user ID:", user.id);
@@ -56,9 +61,18 @@ export async function startScraping(scrapingConfig: {
     const { data: freshSession } = await supabase.auth.getSession();
     console.log("Session available:", !!freshSession.session);
     
-    // Make the edge function call
+    if (!freshSession.session || !freshSession.session.access_token) {
+      console.error("No access token available after refresh");
+      toast.error("Authentication error. Please sign in again.");
+      return { success: false, error: "No access token available" };
+    }
+    
+    // Make the edge function call with explicit authorization
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: scrapingConfig,
+      headers: {
+        Authorization: `Bearer ${freshSession.session.access_token}`
+      }
     });
 
     if (error) {

@@ -20,6 +20,19 @@ function getSupabaseClient(req: Request): SupabaseClient {
     console.log("WARNING: No authorization header found!");
   }
   
+  // Debug all headers for troubleshooting
+  console.log("--- REQUEST HEADERS DETAILED DEBUG ---");
+  for (const [key, value] of req.headers.entries()) {
+    if (key.toLowerCase() === 'authorization') {
+      console.log(`${key} header exists with length: ${value.length}`);
+    } else if (key.toLowerCase() === 'apikey') {
+      console.log(`${key} header exists: true`);
+    } else {
+      console.log(`${key}: ${value}`);
+    }
+  }
+  console.log("--------------------------------------");
+  
   return createClient(
     Deno.env.get('SUPABASE_URL') || '',
     Deno.env.get('SUPABASE_ANON_KEY') || '',
@@ -85,7 +98,7 @@ serve(async (req) => {
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
 
-    // Manually verify user authentication - This is critical since we're not using automatic JWT verification
+    // Manually verify user authentication - This is critical since we're using JWT verification
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError) {
