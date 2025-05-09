@@ -42,7 +42,8 @@ export async function startScraping(scrapingConfig: {
     if (isTokenExpiring(sessionData.session)) {
       try {
         console.log("Token may be expiring soon, attempting to refresh...");
-        await supabase.auth.refreshSession();
+        const refreshResult = await supabase.auth.refreshSession();
+        console.log("Token refresh result:", refreshResult.error ? "Error" : "Success");
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         // Continue with current token, the function will handle if it's invalid
@@ -51,9 +52,13 @@ export async function startScraping(scrapingConfig: {
 
     console.log("Calling edge function with user ID:", user.id);
     
-    // No need to manually pass authorization - the supabase client will handle this
+    // The supabase client will automatically include the Authorization header
     const { data, error } = await supabase.functions.invoke('start-scraping', {
-      body: scrapingConfig
+      body: scrapingConfig,
+      // Explicitly set to include credentials and authorization
+      headers: {
+        "Content-Type": "application/json",
+      }
     });
 
     if (error) {
