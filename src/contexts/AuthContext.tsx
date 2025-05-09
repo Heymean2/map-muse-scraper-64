@@ -95,16 +95,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Function to manually refresh the session when needed
   const refreshSession = async () => {
     try {
+      console.log("Manually refreshing session...");
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
         console.error("Error refreshing session:", error);
         throw error;
       }
       
+      console.log("Session refreshed successfully");
       setSession(data.session);
       setUser(data.session?.user || null);
-      
-      // Changed to return void instead of the session
     } catch (error) {
       console.error("Failed to refresh session:", error);
       throw error;

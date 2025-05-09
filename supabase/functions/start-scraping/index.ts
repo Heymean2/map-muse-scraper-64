@@ -13,6 +13,8 @@ function getSupabaseClient(req: Request): SupabaseClient {
   const authorization = req.headers.get('Authorization') || '';
   const apikey = req.headers.get('apikey') || '';
 
+  console.log("Authorization header present:", !!authorization);
+  
   return createClient(
     Deno.env.get('SUPABASE_URL') || '',
     Deno.env.get('SUPABASE_ANON_KEY') || '',
@@ -67,6 +69,14 @@ serve(async (req) => {
       .filter(([key]) => !key.toLowerCase().includes('authorization') && !key.toLowerCase().includes('apikey'))
       .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
     console.log("Request headers:", JSON.stringify(headers));
+    
+    // NEW: Explicitly log if Authorization header is present
+    const hasAuth = req.headers.has('Authorization');
+    console.log("Authorization header exists:", hasAuth);
+    if (hasAuth) {
+      const authHeader = req.headers.get('Authorization') || '';
+      console.log("Auth header starts with:", authHeader.substring(0, 15) + "...");
+    }
     
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);

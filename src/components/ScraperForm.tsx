@@ -97,10 +97,12 @@ export default function ScraperForm() {
       
       // Ensure session is fresh
       try {
+        console.log("Attempting to refresh session before scraping...");
         await refreshSession();
+        console.log("Session refreshed successfully");
       } catch (refreshError) {
         console.error("Failed to refresh session:", refreshError);
-        // Continue anyway, the scraper service will handle this
+        // We'll try to continue anyway
       }
       
       // Prepare keywords
