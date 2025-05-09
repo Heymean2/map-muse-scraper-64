@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 
 export default function NotificationsTab() {
@@ -39,7 +39,7 @@ export default function NotificationsTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="email-results" className="font-medium">
                 Scraping Results
               </Label>
@@ -47,15 +47,20 @@ export default function NotificationsTab() {
                 Get notified when your scraping tasks are complete
               </p>
             </div>
-            <Switch 
-              id="email-results" 
-              checked={emailNotifications.results} 
-              onCheckedChange={() => handleEmailToggle('results')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="email-results" 
+                checked={emailNotifications.results} 
+                onCheckedChange={() => handleEmailToggle('results')} 
+              />
+              <Label htmlFor="email-results" className="cursor-pointer">
+                {emailNotifications.results ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="email-updates" className="font-medium">
                 Product Updates
               </Label>
@@ -63,15 +68,20 @@ export default function NotificationsTab() {
                 Get notified about new features and improvements
               </p>
             </div>
-            <Switch 
-              id="email-updates" 
-              checked={emailNotifications.updates} 
-              onCheckedChange={() => handleEmailToggle('updates')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="email-updates" 
+                checked={emailNotifications.updates} 
+                onCheckedChange={() => handleEmailToggle('updates')} 
+              />
+              <Label htmlFor="email-updates" className="cursor-pointer">
+                {emailNotifications.updates ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="email-marketing" className="font-medium">
                 Marketing
               </Label>
@@ -79,11 +89,16 @@ export default function NotificationsTab() {
                 Receive marketing communications and special offers
               </p>
             </div>
-            <Switch 
-              id="email-marketing" 
-              checked={emailNotifications.marketing} 
-              onCheckedChange={() => handleEmailToggle('marketing')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="email-marketing" 
+                checked={emailNotifications.marketing} 
+                onCheckedChange={() => handleEmailToggle('marketing')} 
+              />
+              <Label htmlFor="email-marketing" className="cursor-pointer">
+                {emailNotifications.marketing ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -94,7 +109,7 @@ export default function NotificationsTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="push-results" className="font-medium">
                 Scraping Results
               </Label>
@@ -102,15 +117,20 @@ export default function NotificationsTab() {
                 Get notified when your scraping tasks are complete
               </p>
             </div>
-            <Switch 
-              id="push-results" 
-              checked={pushNotifications.results} 
-              onCheckedChange={() => handlePushToggle('results')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="push-results" 
+                checked={pushNotifications.results} 
+                onCheckedChange={() => handlePushToggle('results')} 
+              />
+              <Label htmlFor="push-results" className="cursor-pointer">
+                {pushNotifications.results ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="push-updates" className="font-medium">
                 Product Updates
               </Label>
@@ -118,15 +138,20 @@ export default function NotificationsTab() {
                 Get notified about new features and improvements
               </p>
             </div>
-            <Switch 
-              id="push-updates" 
-              checked={pushNotifications.updates} 
-              onCheckedChange={() => handlePushToggle('updates')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="push-updates" 
+                checked={pushNotifications.updates} 
+                onCheckedChange={() => handlePushToggle('updates')} 
+              />
+              <Label htmlFor="push-updates" className="cursor-pointer">
+                {pushNotifications.updates ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <Label htmlFor="push-failed" className="font-medium">
                 Failed Tasks
               </Label>
@@ -134,11 +159,16 @@ export default function NotificationsTab() {
                 Get notified when a task fails or encounters an error
               </p>
             </div>
-            <Switch 
-              id="push-failed" 
-              checked={pushNotifications.failedTasks} 
-              onCheckedChange={() => handlePushToggle('failedTasks')} 
-            />
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="push-failed" 
+                checked={pushNotifications.failedTasks} 
+                onCheckedChange={() => handlePushToggle('failedTasks')} 
+              />
+              <Label htmlFor="push-failed" className="cursor-pointer">
+                {pushNotifications.failedTasks ? 'Enabled' : 'Disabled'}
+              </Label>
+            </div>
           </div>
         </CardContent>
       </Card>
