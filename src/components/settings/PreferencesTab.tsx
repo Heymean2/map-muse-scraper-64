@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Sun, Moon, Computer, Languages, LucideGlobe } from "lucide-react";
+import { Sun, Moon, Computer, Languages, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function PreferencesTab() {
@@ -24,51 +24,75 @@ export default function PreferencesTab() {
     <div className="space-y-8 animate-fade-in">
       <div className="space-y-5">
         <div>
-          <h3 className="text-lg font-medium mb-3">Theme</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <h3 className="text-lg font-medium mb-5">Theme</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div 
-              className={`flex flex-col items-center p-6 rounded-lg border-2 transition-all cursor-pointer hover:bg-muted ${theme === 'light' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
+              className={`relative flex flex-col items-center p-6 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${theme === 'light' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
               onClick={() => setTheme('light')}
             >
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-                <Sun className="h-7 w-7 text-amber-500" />
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <Sun className="h-8 w-8 text-amber-500" />
               </div>
               <span className="font-medium text-lg">Light</span>
-              <span className="text-sm text-muted-foreground mt-1">For bright environments</span>
+              <span className="text-sm text-muted-foreground mt-2 text-center">For bright environments</span>
+              
+              {theme === 'light' && (
+                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              )}
             </div>
             
             <div 
-              className={`flex flex-col items-center p-6 rounded-lg border-2 transition-all cursor-pointer hover:bg-muted ${theme === 'dark' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
+              className={`relative flex flex-col items-center p-6 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${theme === 'dark' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
               onClick={() => setTheme('dark')}
             >
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-3">
-                <Moon className="h-7 w-7 text-indigo-500" />
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+                <Moon className="h-8 w-8 text-indigo-500" />
               </div>
               <span className="font-medium text-lg">Dark</span>
-              <span className="text-sm text-muted-foreground mt-1">Easier on the eyes</span>
+              <span className="text-sm text-muted-foreground mt-2 text-center">Easier on the eyes</span>
+              
+              {theme === 'dark' && (
+                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              )}
             </div>
             
             <div 
-              className={`flex flex-col items-center p-6 rounded-lg border-2 transition-all cursor-pointer hover:bg-muted ${theme === 'system' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
+              className={`relative flex flex-col items-center p-6 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${theme === 'system' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border'}`}
               onClick={() => setTheme('system')}
             >
-              <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center mb-3">
-                <Computer className="h-7 w-7 text-sky-500" />
+              <div className="w-14 h-14 rounded-full bg-sky-100 flex items-center justify-center mb-4">
+                <Computer className="h-8 w-8 text-sky-500" />
               </div>
               <span className="font-medium text-lg">System</span>
-              <span className="text-sm text-muted-foreground mt-1">Follows your device</span>
+              <span className="text-sm text-muted-foreground mt-2 text-center">Follows your device</span>
+              
+              {theme === 'system' && (
+                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
         </div>
         
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm mt-8">
           <CardContent className="pt-6">
             <div>
-              <h3 className="text-lg font-medium mb-3">Language & Region</h3>
+              <h3 className="text-lg font-medium mb-4">Language & Region</h3>
               <div className="grid gap-6 max-w-md">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right col-span-1">
-                    <Languages className="h-4 w-4 inline mr-1" />
+                    <Globe className="h-4 w-4 inline mr-1" />
                     Language
                   </Label>
                   <div className="col-span-3">
@@ -89,7 +113,7 @@ export default function PreferencesTab() {
                 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right col-span-1">
-                    <LucideGlobe className="h-4 w-4 inline mr-1" />
+                    <Globe className="h-4 w-4 inline mr-1" />
                     Region
                   </Label>
                   <div className="col-span-3">
@@ -115,9 +139,12 @@ export default function PreferencesTab() {
         <Card className="border shadow-sm">
           <CardContent className="pt-6">
             <div>
-              <h3 className="text-lg font-medium mb-3">Export Format</h3>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center space-x-2">
+              <h3 className="text-lg font-medium mb-4">Export Format</h3>
+              <div className="flex flex-wrap gap-5">
+                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
+                  className={exportFormat === "csv" ? "border-primary bg-primary/5" : "border-border"}
+                  onClick={() => setExportFormat("csv")}
+                >
                   <input 
                     type="radio" 
                     id="csv" 
@@ -126,11 +153,17 @@ export default function PreferencesTab() {
                     onChange={() => setExportFormat("csv")}
                     className="h-4 w-4 text-primary cursor-pointer"
                   />
-                  <Label htmlFor="csv" className="cursor-pointer font-medium">CSV</Label>
-                  <Badge variant="outline" className="ml-1">Default</Badge>
+                  <div>
+                    <Label htmlFor="csv" className="cursor-pointer font-medium">CSV</Label>
+                    <p className="text-xs text-muted-foreground mt-1">Standard spreadsheet format</p>
+                  </div>
+                  {exportFormat === "csv" && <Badge variant="secondary" className="ml-2">Default</Badge>}
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
+                  className={exportFormat === "json" ? "border-primary bg-primary/5" : "border-border"}
+                  onClick={() => setExportFormat("json")}
+                >
                   <input 
                     type="radio" 
                     id="json" 
@@ -139,10 +172,16 @@ export default function PreferencesTab() {
                     onChange={() => setExportFormat("json")}
                     className="h-4 w-4 text-primary cursor-pointer"
                   />
-                  <Label htmlFor="json" className="cursor-pointer">JSON</Label>
+                  <div>
+                    <Label htmlFor="json" className="cursor-pointer font-medium">JSON</Label>
+                    <p className="text-xs text-muted-foreground mt-1">Developer-friendly format</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
+                  className={exportFormat === "excel" ? "border-primary bg-primary/5" : "border-border"}
+                  onClick={() => setExportFormat("excel")}
+                >
                   <input 
                     type="radio" 
                     id="excel" 
@@ -151,7 +190,10 @@ export default function PreferencesTab() {
                     onChange={() => setExportFormat("excel")}
                     className="h-4 w-4 text-primary cursor-pointer"
                   />
-                  <Label htmlFor="excel" className="cursor-pointer">Excel</Label>
+                  <div>
+                    <Label htmlFor="excel" className="cursor-pointer font-medium">Excel</Label>
+                    <p className="text-xs text-muted-foreground mt-1">Microsoft Excel format</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,7 +201,7 @@ export default function PreferencesTab() {
         </Card>
       </div>
       
-      <Button onClick={handleSavePreferences} className="flex items-center gap-2">
+      <Button onClick={handleSavePreferences} className="flex items-center gap-2 mt-8">
         Save Preferences
       </Button>
     </div>

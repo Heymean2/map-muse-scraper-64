@@ -27,7 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
 
-// Preload billing components with a more robust approach
+// Preload billing components with a robust approach
 const preloadBillingComponents = () => {
   return import("@/components/dashboard/BillingSection")
     .then(() => console.log("Billing components preloaded successfully"))
@@ -50,7 +50,7 @@ export default function DashboardSidebar() {
   useEffect(() => {
     if (!billingPreloaded) {
       // Use requestIdleCallback for better performance if available
-      if (window.requestIdleCallback) {
+      if ('requestIdleCallback' in window) {
         window.requestIdleCallback(() => {
           preloadBillingComponents().then(() => setBillingPreloaded(true));
         });
@@ -64,7 +64,7 @@ export default function DashboardSidebar() {
   }, [billingPreloaded]);
   
   const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
+    return location.pathname === path || location.pathname.startsWith(path);
   };
   
   const handleBillingHover = () => {
@@ -109,7 +109,7 @@ export default function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 mt-16">
+      <SidebarHeader className="p-4">
         <div className="flex items-center">
           {/* Empty header as requested */}
         </div>
@@ -140,17 +140,16 @@ export default function DashboardSidebar() {
       <SidebarFooter className="p-4">
         <div className="space-y-3">
           <div 
-            className="flex items-center space-x-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-            onClick={() => {}}
+            className="flex items-center space-x-2 p-3 bg-muted/80 rounded-lg cursor-pointer hover:bg-muted transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-              <User className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+              <User className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
               <span className="font-medium text-sm truncate max-w-[140px]">
                 {user?.email || "User"}
               </span>
-              <span className="text-xs text-gray-500">{planInfo?.planName || "Free Plan"}</span>
+              <span className="text-xs text-muted-foreground">{planInfo?.planName || "Free Plan"}</span>
             </div>
           </div>
           <Separator />
@@ -160,7 +159,7 @@ export default function DashboardSidebar() {
             className="w-full flex items-center gap-2"
             onClick={() => signOut()}
           >
-            <LogOut className="w-4 w-4" />
+            <LogOut className="w-4 h-4" />
             <span>Log Out</span>
           </Button>
         </div>
