@@ -19,6 +19,15 @@ export function getSupabaseClient(req: Request): SupabaseClient {
     console.error("Missing Supabase URL or anon key in env variables");
   }
   
+  // Extract JWT token from Authorization header
+  let jwtToken = '';
+  if (authorization && authorization.startsWith('Bearer ')) {
+    jwtToken = authorization.substring('Bearer '.length);
+    console.log("JWT token extracted successfully, length:", jwtToken.length);
+  } else {
+    console.warn("Authorization header not in expected 'Bearer <token>' format");
+  }
+  
   // Create Supabase client with auth headers
   return createClient(
     supabaseUrl,
@@ -58,7 +67,7 @@ export async function authenticateUser(supabase: SupabaseClient) {
       throw {
         status: 401,
         message: "Authentication required. Please sign in to use this feature.",
-        debug: { auth_header_present: true }
+        debug: { auth_header_present: !!supabase.auth }
       };
     }
     

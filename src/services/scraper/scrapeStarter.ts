@@ -17,7 +17,13 @@ export async function startScraping({
     console.log("Starting scraping with config:", { keywords, country, states, fields, rating });
     
     // Check for user authentication
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error("Auth error:", authError);
+      toast.error("Authentication error: " + authError.message);
+      return { success: false, error: "Authentication error: " + authError.message };
+    }
     
     if (!user) {
       toast.error("Authentication required. Please sign in to use this feature.");
@@ -30,7 +36,7 @@ export async function startScraping({
     if (sessionError) {
       console.error("Error getting session:", sessionError);
       toast.error("Authentication error. Please sign in again.");
-      return { success: false, error: "Authentication error" };
+      return { success: false, error: "Authentication error: " + sessionError.message };
     }
     
     if (!sessionData.session) {
@@ -40,6 +46,7 @@ export async function startScraping({
     }
     
     // Ensure token is fresh before making the request
+    let accessToken = sessionData.session.access_token;
     try {
       console.log("Refreshing token before making edge function call");
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
@@ -49,36 +56,33 @@ export async function startScraping({
         // Continue with current token as a fallback
       } else if (refreshResult && refreshResult.session) {
         console.log("Token refreshed successfully");
+        accessToken = refreshResult.session.access_token;
       }
     } catch (refreshError) {
       console.error("Exception during token refresh:", refreshError);
       // Continue with current token as a fallback
     }
     
-    // Get the latest session after potential refresh
-    const { data: freshSessionData } = await supabase.auth.getSession();
-    const freshAccessToken = freshSessionData.session?.access_token;
-    
-    if (!freshAccessToken) {
+    if (!accessToken) {
       console.error("No access token available");
       toast.error("Authentication error. Please sign in again.");
       return { success: false, error: "No access token available" };
     }
     
-    console.log("Calling edge function with fresh access token");
+    console.log("Calling edge function with access token length:", accessToken.length);
     
     // Make the edge function call with explicit headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: { keywords, country, states, fields, rating },
       headers: {
-        Authorization: `Bearer ${freshAccessToken}`
+        Authorization: `Bearer ${accessToken}`
       }
     });
     
     if (error) {
       console.error("Error from edge function:", error);
       toast.error(error.message || "Failed to start scraping");
-      throw error;
+      return { success: false, error: error.message || "Failed to start scraping" };
     }
     
     console.log("Edge function call successful:", data);

@@ -45,35 +45,39 @@ export default function FormSubmissionHandler({
       if (!useKeyword && !selectedCategory) {
         setFormError("Please select a category or use a keyword");
         toast.error("Please select a category or use a keyword");
+        setIsLoading(false);
         return;
       }
       
       if (!selectedCountry) {
         setFormError("Please select a country");
         toast.error("Please select a country");
+        setIsLoading(false);
         return;
       }
       
       if (selectedStates.length === 0) {
         setFormError("Please select at least one state");
         toast.error("Please select at least one state");
+        setIsLoading(false);
         return;
       }
       
       if (selectedDataTypes.length === 0) {
         setFormError("Please select at least one data type to extract");
         toast.error("Please select at least one data type to extract");
+        setIsLoading(false);
         return;
       }
       
-      // Ensure session is fresh
+      // Ensure session is fresh before making the request
       try {
-        console.log("Attempting to refresh session before scraping...");
-        await refreshSession();
-        console.log("Session refreshed successfully");
+        console.log("Refreshing session before scraping...");
+        const freshSession = await refreshSession();
+        console.log("Session refreshed successfully", !!freshSession);
       } catch (refreshError) {
         console.error("Failed to refresh session:", refreshError);
-        // We'll try to continue anyway
+        // Continue anyway, the scraper service will try again
       }
       
       // Prepare keywords
