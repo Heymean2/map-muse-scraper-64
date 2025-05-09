@@ -1,4 +1,5 @@
 
 // Re-export all task-related functions from their specialized modules
-export { startScraping, getUserScrapingTasks, getScrapingResults } from './taskManagement';
+export { startScraping } from './scrapeStarter';
+export { getUserScrapingTasks, getScrapingResults } from './taskRetrieval';
 export { getUserPlanInfo } from './planInfo';
