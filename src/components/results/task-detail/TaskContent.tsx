@@ -1,8 +1,9 @@
 
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
-import TaskInfoCard from "./TaskInfoCard";
+import { Button } from "@/components/ui/button";
+import { Download, Eye } from "lucide-react";
 
 interface TaskContentProps {
   taskId: string | null;
@@ -28,44 +29,134 @@ export default function TaskContent({
     return () => {};
   };
 
-  return (
-    <div className="container max-w-6xl mx-auto px-4 pb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <motion.div 
-          className="col-span-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <TaskInfoCard 
-            searchInfo={results?.search_info}
-            totalCount={results?.total_count || 0}
-            completedAt={results?.updated_at}
-            taskStatus={results?.status}
-          />
-        </motion.div>
+  // Display the completed success message if no data or task is completed
+  if (results?.status === "completed" && (!results?.search_info?.data || !results?.search_info?.data.length)) {
+    return (
+      <div className="container max-w-6xl mx-auto px-4 py-8">
+        <Card className="overflow-hidden border bg-white shadow-sm">
+          <CardContent className="p-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center text-center"
+            >
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Task Completed Successfully</h2>
+              <p className="text-gray-600 max-w-lg mb-8">
+                Your data is ready to be downloaded. No preview is available, but you can download the full CSV file.
+              </p>
+              
+              <div className="flex gap-4">
+                <Button 
+                  className="gap-2" 
+                  onClick={getExportCsvHandler()}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Results
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  Preview CSV
+                </Button>
+              </div>
+            </motion.div>
+          </CardContent>
+        </Card>
         
-        <motion.div 
-          className="col-span-1 md:col-span-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="overflow-hidden shadow-sm border-0 bg-white">
-            <CardContent className="p-0">
-              <ResultsContent 
-                loading={isLoading}
-                error={error} 
-                taskId={taskId} 
-                results={results}
-                exportCSV={getExportCsvHandler()}
-                isLimited={isLimited}
-                planInfo={planInfo}
-              />
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Search Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {results?.search_info?.keywords && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-500">Keywords</span>
+                  <span className="text-sm font-medium">{results.search_info.keywords}</span>
+                </div>
+              )}
+              
+              {results?.search_info?.location && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-500">Location</span>
+                  <span className="text-sm font-medium">{results.search_info.location}</span>
+                </div>
+              )}
+              
+              {results?.search_info?.fields && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-500">Fields</span>
+                  <span className="text-sm font-medium">
+                    {Array.isArray(results.search_info.fields) 
+                      ? results.search_info.fields.join(", ")
+                      : typeof results.search_info.fields === 'string'
+                        ? results.search_info.fields
+                        : ''}
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </motion.div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Results</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500">Total Count</span>
+                <span className="text-sm font-medium">{results?.total_count || 0} results</span>
+              </div>
+              
+              {results?.updated_at && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-500">Completed At</span>
+                  <span className="text-sm font-medium">
+                    {new Date(results.updated_at).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              
+              {results?.created_at && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-500">Created At</span>
+                  <span className="text-sm font-medium">
+                    {new Date(results.created_at).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="container max-w-6xl mx-auto px-4 py-8">
+      <Card className="overflow-hidden shadow-sm border bg-white">
+        <CardContent className="p-0">
+          <ResultsContent 
+            loading={isLoading}
+            error={error} 
+            taskId={taskId} 
+            results={results}
+            exportCSV={getExportCsvHandler()}
+            isLimited={isLimited}
+            planInfo={planInfo}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, MapPin, RefreshCw, Tag, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -53,100 +53,93 @@ export default function TaskHeader({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="relative overflow-hidden"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 z-0"></div>
-      
-      <div className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
+    <div className="bg-slate-50 border-b py-6">
+      <div className="container max-w-6xl mx-auto px-4">
         <div className="flex flex-col gap-6">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-center">
             <Button
-              as={Link}
-              to="/result"
               variant="ghost"
               size="sm"
-              className="hover:bg-white/30 gap-1 mb-4"
+              className="hover:bg-white/30 gap-1"
+              asChild
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back to results
+              <Link to="/result">
+                <ArrowLeft className="h-4 w-4" />
+                Back to results
+              </Link>
             </Button>
             
             <Button 
               onClick={onRefresh}
               size="sm"
-              className="gap-2 bg-white text-indigo-600 hover:bg-white/90 hover:text-indigo-700 shadow-sm"
+              variant="outline"
+              className="gap-2"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Refresh</span>
             </Button>
           </div>
           
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{title}</h1>
-              <Badge className={`${getStatusColor(status)} ml-2 flex items-center gap-1`}>
+              <Badge className={`${getStatusColor(status)} ml-2 flex items-center gap-1 capitalize`}>
                 {getStatusIcon(status)}
-                <span className="capitalize">{status}</span>
+                {status}
               </Badge>
             </div>
             
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-600">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               {createdAt && (
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-indigo-500" />
-                  <div>
-                    <span>Created {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
-                    <span className="text-gray-400 ml-1">({format(new Date(createdAt), "MMM d, yyyy")})</span>
-                  </div>
+                  <span className="text-slate-700">Created:</span>
+                  <span>{createdAt && format(new Date(createdAt), "MMM d, yyyy")}</span>
                 </div>
               )}
               
               {location && (
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-indigo-500" />
+                  <span className="text-slate-700">Location:</span>
                   <span>{location}</span>
                 </div>
               )}
-              
-              {fields && fields.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Tag className="h-3.5 w-3.5 text-indigo-500" />
-                  <span>{fields.join(", ")}</span>
-                </div>
-              )}
             </div>
+            
+            {fields && fields.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 text-sm">
+                <span className="text-slate-700">Fields:</span>
+                <span className="text-slate-600">{fields.join(", ")}</span>
+              </div>
+            )}
           </div>
           
-          {resultUrl && (
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                className="gap-2"
-                onClick={() => window.open(resultUrl, '_blank')}
-              >
-                <Download className="h-4 w-4" />
-                <span>Export CSV</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert("Link copied to clipboard!");
-                }}
-              >
-                <Share2 className="h-4 w-4" />
-                <span>Share</span>
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {resultUrl && (
+              <>
+                <Button 
+                  className="gap-2"
+                  onClick={() => window.open(resultUrl, '_blank')}
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Export CSV</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert("Link copied to clipboard!");
+                  }}
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Share</span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

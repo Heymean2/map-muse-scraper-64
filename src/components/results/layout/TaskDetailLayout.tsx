@@ -17,7 +17,7 @@ export default function TaskDetailLayout({ children }: TaskDetailLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
       <div className="flex-grow pt-16">
         <div className="w-full">

@@ -42,15 +42,6 @@ export default function TaskDetail() {
     });
   };
 
-  // Extract task-specific properties safely
-  const taskKeywords = taskResults && 'keywords' in taskResults ? taskResults.keywords : 'Task Details';
-  const taskCreatedAt = taskResults && 'created_at' in taskResults ? taskResults.created_at : null;
-  const searchInfo = taskResults && 'search_info' in taskResults ? taskResults.search_info : null;
-  const resultUrl = taskResults && 'result_url' in taskResults ? taskResults.result_url : null;
-  const isLimited = taskResults && 'limited' in taskResults ? taskResults.limited : false;
-  const currentPlan = taskResults && 'current_plan' in taskResults ? taskResults.current_plan : null;
-  const taskStatus = taskResults && 'status' in taskResults ? taskResults.status : 'processing';
-
   // Helper function to ensure fields is an array before using join
   const ensureArray = (value: any) => {
     if (Array.isArray(value)) return value;
@@ -62,12 +53,23 @@ export default function TaskDetail() {
     return [String(value)]; // Convert single value to array
   };
 
+  // Extract task-specific properties safely
+  const taskKeywords = taskResults && 'keywords' in taskResults ? taskResults.keywords : (
+    taskResults?.search_info?.keywords || 'Task Details'
+  );
+  const taskCreatedAt = taskResults && 'created_at' in taskResults ? taskResults.created_at : null;
+  const searchInfo = taskResults && 'search_info' in taskResults ? taskResults.search_info : null;
+  const resultUrl = taskResults && 'result_url' in taskResults ? taskResults.result_url : null;
+  const isLimited = taskResults && 'limited' in taskResults ? taskResults.limited : false;
+  const currentPlan = taskResults && 'current_plan' in taskResults ? taskResults.current_plan : null;
+  const taskStatus = taskResults && 'status' in taskResults ? taskResults.status : 'processing';
+
   // Safely access the fields
   const fieldsArray = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
 
   return (
     <TaskDetailLayout>
-      <div className="bg-gradient-to-b from-white to-gray-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <TaskHeader 
           title={searchInfo?.keywords || taskKeywords || "Task Details"}
           status={taskStatus as string}
