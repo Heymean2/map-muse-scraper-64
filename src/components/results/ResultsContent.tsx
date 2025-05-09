@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import CSVPreview from "./CSVPreview";
 import ResultsLoadingState from "./content/ResultsLoadingState";
@@ -35,12 +35,9 @@ export default function ResultsContent({
   
   const handleUpgradeClick = () => {
     navigate("/dashboard/billing");
-    toast("Let's upgrade your plan!", {
+    toast({
+      title: "Let's upgrade your plan!",
       description: "Access all your data and continue scraping with our Pro plan.",
-      action: {
-        label: "Dismiss",
-        onClick: () => {},
-      },
     });
   };
   
@@ -86,7 +83,7 @@ export default function ResultsContent({
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-slate-200 shadow-md animate-fade-in">
       <ResultsTabbedContent 
         data={results.data}
         searchInfo={results.search_info}

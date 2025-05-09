@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, RefreshCw } from "lucide-react";
 import ResultsContent from "@/components/results/ResultsContent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TaskList from "@/components/results/TaskList";
@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { ScrapingRequest } from "@/services/scraper/types";
+import { toast } from "@/components/ui/use-toast";
 
 interface Task {
   id: string;
@@ -37,13 +38,14 @@ export default function TaskDetail() {
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [taskId]);
 
   // Get the current task's results
   const { 
     data: taskResults,
     isLoading: taskLoading,
-    error: taskError 
+    error: taskError,
+    refetch: refetchTaskResults
   } = useQuery({
     queryKey: ['scrapingResults', taskId],
     queryFn: () => getScrapingResults(taskId),
@@ -51,7 +53,7 @@ export default function TaskDetail() {
   });
 
   // Get all tasks for the sidebar
-  const { data: allTasksData } = useQuery({
+  const { data: allTasksData, refetch: refetchAllTasks } = useQuery({
     queryKey: ['allScrapingTasks'],
     queryFn: () => getScrapingResults(),
   });
@@ -76,6 +78,15 @@ export default function TaskDetail() {
     navigate(`/result/scrape/${task.task_id}`);
   };
 
+  const handleRefresh = () => {
+    refetchTaskResults();
+    refetchAllTasks();
+    toast({
+      title: "Refreshing data",
+      description: "Getting the latest results for you."
+    });
+  };
+
   // Extract task-specific properties safely
   const taskKeywords = taskResults && 'keywords' in taskResults ? taskResults.keywords : 'Task Details';
   const taskCreatedAt = taskResults && 'created_at' in taskResults ? taskResults.created_at : null;
@@ -88,7 +99,7 @@ export default function TaskDetail() {
     <DashboardLayout>
       <div className="flex flex-col md:flex-row h-full">
         {/* Left sidebar with task list */}
-        <div className="w-full md:w-80 flex-shrink-0 border-r">
+        <div className="w-full md:w-80 flex-shrink-0 border-r shadow-sm bg-white dark:bg-slate-900">
           <TaskList 
             userTasks={otherTasks}
             tasksLoading={!allTasksData}
@@ -115,22 +126,34 @@ export default function TaskDetail() {
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="flex items-center mb-6">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/result')}
-              className="mr-4"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Results
-            </Button>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/result')}
+                className="mr-4 hover:bg-slate-100 transition-colors"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Results
+              </Button>
+              
+              {taskCreatedAt && (
+                <div className="flex items-center text-sm text-slate-500">
+                  <Clock className="mr-1 h-4 w-4" />
+                  <span>Created {formatDistanceToNow(new Date(taskCreatedAt), { addSuffix: true })}</span>
+                </div>
+              )}
+            </div>
             
-            {taskCreatedAt && (
-              <div className="flex items-center text-sm text-slate-500">
-                <Clock className="mr-1 h-4 w-4" />
-                <span>Created {formatDistanceToNow(new Date(taskCreatedAt), { addSuffix: true })}</span>
-              </div>
-            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
           </div>
 
           {taskLoading ? (
@@ -142,19 +165,21 @@ export default function TaskDetail() {
               Error loading task results. Please try again later.
             </div>
           ) : (
-            <ResultsContent 
-              loading={false} 
-              error={null} 
-              taskId={taskId || null} 
-              results={taskResults} 
-              exportCSV={() => {
-                if (resultUrl) {
-                  window.open(resultUrl, '_blank');
-                }
-              }}
-              isLimited={isLimited}
-              planInfo={currentPlan}
-            />
+            <div className="animate-fade-in">
+              <ResultsContent 
+                loading={false} 
+                error={null} 
+                taskId={taskId || null} 
+                results={taskResults} 
+                exportCSV={() => {
+                  if (resultUrl) {
+                    window.open(resultUrl, '_blank');
+                  }
+                }}
+                isLimited={isLimited}
+                planInfo={currentPlan}
+              />
+            </div>
           )}
         </div>
       </div>

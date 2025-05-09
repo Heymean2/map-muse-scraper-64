@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { useQuery } from "@tanstack/react-query";
@@ -16,9 +16,9 @@ export default function Results() {
   const isTaskDetailPage = location.pathname.includes('/scrape/');
   
   // Scroll to top when component mounts
-  useState(() => {
+  useEffect(() => {
     window.scrollTo(0, 0);
-  });
+  }, []);
 
   // Fetch all tasks for the user
   const { data, isLoading, error, refetch } = useQuery({
@@ -41,12 +41,13 @@ export default function Results() {
         <Route path="/" element={
           <div className="p-6">
             <ResultsHeader tasksCount={tasks?.length} />
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6 animate-fade-in">
               <TasksContainer 
                 isLoading={isLoading}
                 error={error}
                 tasks={tasks}
                 onTaskSelect={handleTaskSelect}
+                onRefresh={refetch}
               />
             </div>
           </div>

@@ -45,7 +45,7 @@ export default function ResultsTabbedContent({
 
   return (
     <>
-      <CardHeader>
+      <CardHeader className="bg-slate-50 dark:bg-slate-800 border-b">
         <ResultsDataHeader 
           title="Task Results" 
           description={`Showing data for "${searchInfo?.keywords}" (${totalCount} results)`}
@@ -55,33 +55,35 @@ export default function ResultsTabbedContent({
         />
         
         {isLimited && (
-          <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 text-sm font-medium mt-2">
+          <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 text-sm font-medium mt-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-md border border-yellow-200 dark:border-yellow-800">
             <Lock className="h-3 w-3" />
             <span>Showing limited preview (5 rows)</span>
           </div>
         )}
       </CardHeader>
       
-      <CardContent>
-        <Tabs value={activeView} onValueChange={setActiveView} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="table" className="flex items-center gap-1">
-              <Table className="h-4 w-4" />
-              <span>Table View</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1">
-              <BarChart className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-            {searchInfo?.location && (
-              <TabsTrigger value="map" className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>Map View</span>
+      <CardContent className="p-0">
+        <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+          <div className="px-6 pt-6">
+            <TabsList className="w-full max-w-md grid grid-cols-3">
+              <TabsTrigger value="table" className="flex items-center gap-1">
+                <Table className="h-4 w-4" />
+                <span>Table View</span>
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="analytics" className="flex items-center gap-1">
+                <BarChart className="h-4 w-4" />
+                <span>Analytics</span>
+              </TabsTrigger>
+              {searchInfo?.location && (
+                <TabsTrigger value="map" className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>Map View</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
           
-          <TabsContent value="table" className="mt-4">
+          <TabsContent value="table" className="mt-4 px-6">
             <ResultsTable 
               data={getLimitedData()} 
               searchInfo={searchInfo}
@@ -90,27 +92,29 @@ export default function ResultsTabbedContent({
             />
           </TabsContent>
           
-          <TabsContent value="analytics" className="mt-4">
+          <TabsContent value="analytics" className="mt-4 px-6">
             <ResultsAnalyticsView isLimited={isLimited} />
           </TabsContent>
           
-          <TabsContent value="map" className="mt-4">
+          <TabsContent value="map" className="mt-4 px-6">
             <ResultsMapView isLimited={isLimited} />
           </TabsContent>
+          
+          <div className="px-6 pb-6">
+            <div className="mt-6">
+              <SearchInfoCard 
+                totalCount={totalCount} 
+                searchInfo={{
+                  keywords: searchInfo?.keywords,
+                  location: searchInfo?.location,
+                  fields: searchInfo?.fields,
+                  rating: searchInfo?.rating
+                }}
+                completedAt={updated_at}
+              />
+            </div>
+          </div>
         </Tabs>
-        
-        <div className="mt-6">
-          <SearchInfoCard 
-            totalCount={totalCount} 
-            searchInfo={{
-              keywords: searchInfo?.keywords,
-              location: searchInfo?.location,
-              fields: searchInfo?.fields,
-              rating: searchInfo?.rating
-            }}
-            completedAt={updated_at}
-          />
-        </div>
       </CardContent>
     </>
   );
