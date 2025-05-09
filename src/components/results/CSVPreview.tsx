@@ -3,16 +3,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { downloadCsvFromUrl } from '@/services/scraper';
+import { Button } from '@/components/ui/button';
+import { Download, X, Code, Table as TableIcon, Trophy } from 'lucide-react';
 
-// Import our new components
-import CSVPreviewModal from './csv-preview/CSVPreviewModal';
+// Import our components
 import CSVPreviewLoading from './csv-preview/CSVPreviewLoading';
 import CSVPreviewError from './csv-preview/CSVPreviewError';
 import CSVPreviewTable from './csv-preview/CSVPreviewTable';
 import CSVPreviewRaw from './csv-preview/CSVPreviewRaw';
-import CSVPreviewLimitedNotice from './csv-preview/CSVPreviewLimitedNotice';
-import CSVPreviewActions from './csv-preview/CSVPreviewActions';
 import { parseCSV, getLimitedCSVData } from './csv-preview/parseCSV';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface CSVPreviewProps {
   url: string;
@@ -68,69 +75,99 @@ export default function CSVPreview({
     navigate("/dashboard/billing");
     onClose();
   };
-  
-  if (isLoading) {
-    return (
-      <CSVPreviewModal onClose={onClose}>
-        <CSVPreviewLoading />
-      </CSVPreviewModal>
-    );
-  }
-  
-  if (error) {
-    return (
-      <CSVPreviewModal onClose={onClose}>
-        <CSVPreviewError 
-          error={error} 
-          onClose={onClose} 
-          onDownload={!isLimited ? handleDownload : undefined} 
-          isLimited={isLimited} 
-        />
-      </CSVPreviewModal>
-    );
-  }
-  
+
   return (
-    <CSVPreviewModal onClose={onClose}>
-      {isLimited && (
-        <CSVPreviewLimitedNotice 
-          maxPreviewRows={maxPreviewRows} 
-          totalCount={totalCount} 
-          onUpgrade={handleUpgrade} 
-        />
-      )}
+    <Card className="animate-fade-in shadow-md border-slate-200">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <div>
+          <CardTitle className="text-xl">CSV Data Preview</CardTitle>
+          <CardDescription>
+            {isLimited ? `Showing ${maxPreviewRows} rows preview` : 'Raw data from your scraping task'}
+          </CardDescription>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
       
-      <Tabs defaultValue="table" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="table">Table View</TabsTrigger>
-          <TabsTrigger value="raw">Raw Text</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="table" className="w-full">
-          {csvData.length > 0 ? (
-            <CSVPreviewTable
-              csvData={csvData}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              rowsPerPage={rowsPerPage}
-              isLimited={isLimited}
-            />
-          ) : (
-            <div className="text-center py-8">No data available</div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="raw">
-          <CSVPreviewRaw csvData={csvData} isLimited={isLimited} />
-        </TabsContent>
-      </Tabs>
+      <CardContent>
+        {isLoading ? (
+          <CSVPreviewLoading />
+        ) : error ? (
+          <CSVPreviewError 
+            error={error} 
+            onClose={onClose} 
+            onDownload={!isLimited ? handleDownload : undefined} 
+            isLimited={isLimited} 
+          />
+        ) : (
+          <>
+            {isLimited && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-yellow-800">Limited Preview</p>
+                  <p className="text-sm text-yellow-700">
+                    Showing only {maxPreviewRows} rows out of {totalCount}. Upgrade your plan to access all data.
+                  </p>
+                </div>
+                <Button onClick={handleUpgrade} size="sm" className="flex items-center gap-1">
+                  <Trophy className="h-4 w-4" />
+                  Upgrade
+                </Button>
+              </div>
+            )}
+            
+            <Tabs defaultValue="table" className="w-full">
+              <TabsList className="mb-4 w-full sm:w-auto">
+                <TabsTrigger value="table" className="flex items-center gap-1">
+                  <TableIcon className="h-4 w-4" />
+                  <span>Table View</span>
+                </TabsTrigger>
+                <TabsTrigger value="raw" className="flex items-center gap-1">
+                  <Code className="h-4 w-4" />
+                  <span>Raw Text</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="table" className="w-full">
+                {csvData.length > 0 ? (
+                  <div className="border rounded-md overflow-hidden">
+                    <CSVPreviewTable
+                      csvData={csvData}
+                      currentPage={currentPage}
+                      setCurrentPage={setCurrentPage}
+                      rowsPerPage={rowsPerPage}
+                      isLimited={isLimited}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">No data available</div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="raw">
+                <CSVPreviewRaw csvData={csvData} isLimited={isLimited} />
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+      </CardContent>
       
-      <CSVPreviewActions 
-        onClose={onClose} 
-        onDownload={!isLimited ? handleDownload : undefined}
-        onUpgrade={isLimited ? handleUpgrade : undefined}
-        isLimited={isLimited}
-      />
-    </CSVPreviewModal>
+      <CardFooter className="flex justify-end space-x-2 pt-4 border-t">
+        <Button variant="outline" onClick={onClose}>Close</Button>
+        
+        {!isLimited && !isLoading && !error ? (
+          <Button onClick={handleDownload} className="gap-2">
+            <Download className="h-4 w-4" />
+            Download CSV
+          </Button>
+        ) : isLimited && !isLoading && !error ? (
+          <Button onClick={handleUpgrade} className="gap-2">
+            <Trophy className="h-4 w-4" />
+            Upgrade Now
+          </Button>
+        ) : null}
+      </CardFooter>
+    </Card>
   );
 }

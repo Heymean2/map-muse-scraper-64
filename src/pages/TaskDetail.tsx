@@ -4,10 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, RefreshCw } from "lucide-react";
+import { ArrowLeft, Clock, RefreshCw, X } from "lucide-react";
 import ResultsContent from "@/components/results/ResultsContent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import TaskList from "@/components/results/TaskList";
 import { formatDistanceToNow } from "date-fns";
 import { 
   Breadcrumb,
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ScrapingRequest } from "@/services/scraper/types";
 import { toast } from "@/components/ui/use-toast";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface Task {
   id: string;
@@ -34,6 +34,7 @@ export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const [otherTasks, setOtherTasks] = useState<Task[]>([]);
+  const [showTasksList, setShowTasksList] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function TaskDetail() {
 
   const handleTaskClick = (task: Task) => {
     navigate(`/result/scrape/${task.task_id}`);
+    setShowTasksList(false);
   };
 
   const handleRefresh = () => {
@@ -97,92 +99,121 @@ export default function TaskDetail() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col md:flex-row h-full">
-        {/* Left sidebar with task list */}
-        <div className="w-full md:w-80 flex-shrink-0 border-r shadow-sm bg-white dark:bg-slate-900">
-          <TaskList 
-            userTasks={otherTasks}
-            tasksLoading={!allTasksData}
-            currentTaskId={taskId || null}
-            onTaskClick={handleTaskClick}
-          />
-        </div>
+      <div className="max-w-7xl mx-auto p-6">
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/result">Results</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{searchInfo?.keywords || taskKeywords || "Task Details"}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-        {/* Main content area */}
-        <div className="flex-grow p-6 overflow-y-auto">
-          <Breadcrumb className="mb-4">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/result">Results</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{searchInfo?.keywords || taskKeywords || "Task Details"}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/result')}
-                className="mr-4 hover:bg-slate-100 transition-colors"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Results
-              </Button>
-              
-              {taskCreatedAt && (
-                <div className="flex items-center text-sm text-slate-500">
-                  <Clock className="mr-1 h-4 w-4" />
-                  <span>Created {formatDistanceToNow(new Date(taskCreatedAt), { addSuffix: true })}</span>
-                </div>
-              )}
-            </div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/result')}
+              className="hover:bg-slate-100 transition-colors"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Results
+            </Button>
             
             <Button 
               variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              className="gap-2"
+              onClick={() => setShowTasksList(true)}
+              className="md:hidden"
             >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
+              View All Tasks
             </Button>
+            
+            {taskCreatedAt && (
+              <div className="hidden md:flex items-center text-sm text-slate-500">
+                <Clock className="mr-1 h-4 w-4" />
+                <span>Created {formatDistanceToNow(new Date(taskCreatedAt), { addSuffix: true })}</span>
+              </div>
+            )}
           </div>
-
-          {taskLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : taskError ? (
-            <div className="p-4 border rounded bg-red-50 text-red-700">
-              Error loading task results. Please try again later.
-            </div>
-          ) : (
-            <div className="animate-fade-in">
-              <ResultsContent 
-                loading={false} 
-                error={null} 
-                taskId={taskId || null} 
-                results={taskResults} 
-                exportCSV={() => {
-                  if (resultUrl) {
-                    window.open(resultUrl, '_blank');
-                  }
-                }}
-                isLimited={isLimited}
-                planInfo={currentPlan}
-              />
-            </div>
-          )}
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
         </div>
+
+        {taskLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : taskError ? (
+          <div className="p-4 border rounded bg-red-50 text-red-700">
+            Error loading task results. Please try again later.
+          </div>
+        ) : (
+          <div className="animate-fade-in">
+            <ResultsContent 
+              loading={false} 
+              error={null} 
+              taskId={taskId || null} 
+              results={taskResults} 
+              exportCSV={() => {
+                if (resultUrl) {
+                  window.open(resultUrl, '_blank');
+                }
+              }}
+              isLimited={isLimited}
+              planInfo={currentPlan}
+            />
+          </div>
+        )}
       </div>
+      
+      {/* Mobile Tasks Sheet */}
+      <Sheet open={showTasksList} onOpenChange={setShowTasksList}>
+        <SheetContent side="left" className="w-full sm:max-w-md p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>All Tasks</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto max-h-[calc(100vh-80px)]">
+            {otherTasks.map(task => (
+              <div
+                key={task.id}
+                className={`p-4 border-b cursor-pointer hover:bg-slate-50 ${
+                  task.task_id === taskId ? 'bg-primary/5 border-primary' : ''
+                }`}
+                onClick={() => handleTaskClick(task)}
+              >
+                <div className="font-medium">{task.keywords}</div>
+                <div className="flex justify-between items-center mt-1 text-sm">
+                  <span className="text-muted-foreground">
+                    {formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    task.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    task.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {task.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }

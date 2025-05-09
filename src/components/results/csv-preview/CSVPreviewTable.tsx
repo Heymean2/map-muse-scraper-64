@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface CSVPreviewTableProps {
   csvData: string[][];
@@ -42,7 +43,7 @@ export default function CSVPreviewTable({
               <tr 
                 key={rowIndex + startIndex} 
                 className={`transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
-                  rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/20'
+                  rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/10'
                 }`}
               >
                 {row.map((cell, cellIndex) => (
@@ -60,8 +61,8 @@ export default function CSVPreviewTable({
       </div>
       
       {totalPages > 1 && !isLimited && (
-        <div className="flex items-center justify-between mt-4 px-2">
-          <div className="text-sm text-slate-500">
+        <div className="flex items-center justify-between p-4 bg-slate-50 border-t">
+          <div className="text-sm text-slate-600">
             Showing rows {startIndex} to {endIndex - 1} of {csvData.length - 1}
           </div>
           <div className="flex items-center space-x-2">
@@ -91,10 +92,10 @@ export default function CSVPreviewTable({
       )}
       
       {isLimited && (
-        <div className="flex justify-center mt-4">
-          <p className="text-xs text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
-            {csvData.length - 1} rows shown (limited preview)
-          </p>
+        <div className="flex justify-center py-3 bg-slate-50 border-t">
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            Limited preview ({csvData.length - 1} rows shown)
+          </Badge>
         </div>
       )}
     </>

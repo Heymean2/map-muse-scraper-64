@@ -5,12 +5,12 @@ import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { useQuery } from "@tanstack/react-query";
 import TaskDetail from "@/pages/TaskDetail";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import ResultsHeader from "@/components/results/ResultsHeader";
-import TasksContainer from "@/components/results/TasksContainer";
+import ResultsDashboard from "@/components/results/ResultsDashboard";
 import { ScrapingRequest } from "@/services/scraper/types";
 
 export default function Results() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list');
   const navigate = useNavigate();
   const location = useLocation();
   const isTaskDetailPage = location.pathname.includes('/scrape/');
@@ -39,18 +39,15 @@ export default function Results() {
     <DashboardLayout>
       <Routes>
         <Route path="/" element={
-          <div className="p-6">
-            <ResultsHeader tasksCount={tasks?.length} />
-            <div className="grid grid-cols-1 gap-6 animate-fade-in">
-              <TasksContainer 
-                isLoading={isLoading}
-                error={error}
-                tasks={tasks}
-                onTaskSelect={handleTaskSelect}
-                onRefresh={refetch}
-              />
-            </div>
-          </div>
+          <ResultsDashboard 
+            tasks={tasks} 
+            isLoading={isLoading} 
+            error={error} 
+            onTaskSelect={handleTaskSelect}
+            onRefresh={refetch}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+          />
         } />
         <Route path="/scrape/:taskId" element={<TaskDetail />} />
         <Route path="*" element={<Navigate to="/result" replace />} />

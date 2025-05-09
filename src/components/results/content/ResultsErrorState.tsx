@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ResultsErrorStateProps {
@@ -13,13 +13,20 @@ export default function ResultsErrorState({ error }: ResultsErrorStateProps) {
   };
 
   return (
-    <div className="bg-red-50 dark:bg-red-900/20 p-8 rounded-lg border border-red-200 dark:border-red-800 text-center">
-      <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-red-700 dark:text-red-400 mb-2">Error Loading Results</h3>
-      <p className="text-red-700 dark:text-red-400 mb-6">{error}</p>
-      <Button onClick={handleRefresh} variant="outline" className="border-red-300">
-        Try Again
-      </Button>
+    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <div className="p-8 text-center flex flex-col items-center">
+        <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center mb-4 border border-red-100">
+          <AlertCircle className="h-10 w-10 text-red-500" />
+        </div>
+        
+        <h3 className="text-xl font-medium text-gray-900 mb-2">Error Loading Results</h3>
+        <p className="text-gray-600 mb-6 max-w-md">{error}</p>
+        
+        <Button onClick={handleRefresh} className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Try Again
+        </Button>
+      </div>
     </div>
   );
 }
