@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { checkUserFreeTierLimit } from "./plans";
+import { getUserPlanInfo } from "./userPlanService";
 
 // Subscribe to a plan
 export async function subscribeToPlan(planId: string) {
@@ -38,6 +38,3 @@ export async function subscribeToPlan(planId: string) {
     return { success: false, error: error.message || "Failed to subscribe to plan" };
   }
 }
-
-// Export checkUserFreeTierLimit for backward compatibility
-export { checkUserFreeTierLimit };
