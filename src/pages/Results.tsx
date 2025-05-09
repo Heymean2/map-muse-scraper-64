@@ -6,14 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import TaskDetail from "@/pages/TaskDetail";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ResultsDashboard from "@/components/results/ResultsDashboard";
-import { ScrapingRequest } from "@/services/scraper/types";
 
 export default function Results() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list');
   const navigate = useNavigate();
   const location = useLocation();
-  const isTaskDetailPage = location.pathname.includes('/scrape/');
   
   // Scroll to top when component mounts
   useEffect(() => {
@@ -36,22 +34,25 @@ export default function Results() {
   const tasks = data && 'tasks' in data ? data.tasks : [];
 
   return (
-    <DashboardLayout>
-      <Routes>
-        <Route path="/" element={
-          <ResultsDashboard 
-            tasks={tasks} 
-            isLoading={isLoading} 
-            error={error} 
-            onTaskSelect={handleTaskSelect}
-            onRefresh={refetch}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-          />
-        } />
-        <Route path="/scrape/:taskId" element={<TaskDetail />} />
-        <Route path="*" element={<Navigate to="/result" replace />} />
-      </Routes>
-    </DashboardLayout>
+    <Routes>
+      <Route 
+        path="/" 
+        element={
+          <DashboardLayout>
+            <ResultsDashboard 
+              tasks={tasks} 
+              isLoading={isLoading} 
+              error={error} 
+              onTaskSelect={handleTaskSelect}
+              onRefresh={refetch}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+            />
+          </DashboardLayout>
+        } 
+      />
+      <Route path="/scrape/:taskId" element={<TaskDetail />} />
+      <Route path="*" element={<Navigate to="/result" replace />} />
+    </Routes>
   );
 }
