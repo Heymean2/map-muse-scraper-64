@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
   FileText, 
   Search, 
   UserCircle, 
@@ -75,11 +74,6 @@ export default function DashboardSidebar() {
   
   const menuItems = [
     {
-      title: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/dashboard",
-    },
-    {
       title: "Results",
       icon: FileText,
       path: "/result",
@@ -109,9 +103,11 @@ export default function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 mt-4">
         <div className="flex items-center">
-          {/* Empty header as requested */}
+          <Link to="/dashboard" className="text-xl font-semibold">
+            MapScraper
+          </Link>
         </div>
       </SidebarHeader>
       
@@ -125,8 +121,9 @@ export default function DashboardSidebar() {
                   isActive={isActive(item.path)}
                   tooltip={item.title}
                   onMouseEnter={item.onMouseEnter}
+                  className="my-1.5 flex items-center justify-start"
                 >
-                  <Link to={item.path} className="transition-colors">
+                  <Link to={item.path} className="transition-colors flex items-center space-x-3">
                     <item.icon className="w-5 h-5" />
                     <span>{item.title}</span>
                   </Link>
@@ -137,7 +134,7 @@ export default function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 mt-auto">
         <div className="space-y-3">
           <div 
             className="flex items-center space-x-2 p-3 bg-muted/80 rounded-lg cursor-pointer hover:bg-muted transition-colors"
@@ -156,7 +153,7 @@ export default function DashboardSidebar() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center gap-2 justify-center"
             onClick={() => signOut()}
           >
             <LogOut className="w-4 h-4" />

@@ -26,9 +26,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="flex-grow pt-16">
+      {/* Increased top padding from pt-16 to pt-20 to prevent navbar overlap */}
+      <div className="flex-grow pt-20">
         <SidebarProvider>
-          <div className="flex min-h-[calc(100vh-4rem)] w-full">
+          <div className="flex min-h-[calc(100vh-5rem)] w-full">
             <DashboardSidebar />
             <SidebarRail />
             <SidebarInset className="p-4 md:p-6 w-full">
