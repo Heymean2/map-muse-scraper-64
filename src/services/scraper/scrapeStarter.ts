@@ -79,13 +79,17 @@ export async function startScraping({
     
     console.log("Calling edge function with access token length:", accessToken.length);
     
+    // Get the API key from the client configuration in integrations/supabase/client.ts
+    // We can't access the protected supabaseKey directly, so we'll use the one from the module
+    const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bHduaXpmZ2dwbGN0ZHR1anN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwMzUwMjYsImV4cCI6MjA1NzYxMTAyNn0.-ajeJzWjufIy4RUkotdMgYWprFuQOJzA7a_aIYuCPA4";
+    
     // Make the edge function call with explicit headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: { keywords, country, states, fields, rating },
       headers: {
         Authorization: `Bearer ${accessToken}`,
         // Also add apikey explicitly to ensure it's present
-        apikey: supabase.supabaseKey
+        apikey: apiKey
       }
     });
     
