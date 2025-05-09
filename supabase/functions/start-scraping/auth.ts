@@ -51,14 +51,38 @@ export function getSupabaseClient(req: Request): SupabaseClient {
 // Authenticate user and return user data or throw error
 export async function authenticateUser(supabase: SupabaseClient) {
   try {
+    // First try with getUser() which should work with the provided JWT
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError) {
-      console.error("Auth error:", userError.message);
+      console.error("Auth error with getUser:", userError.message);
+      
+      // Fall back to getSession for compatibility
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData.session) {
+        console.error("Session error:", sessionError?.message || "No session found");
+        throw {
+          status: 401,
+          message: "Authentication failed: No valid session found",
+          debug: { 
+            userError: userError.message,
+            sessionError: sessionError?.message || "No session data" 
+          }
+        };
+      }
+      
+      // Use the user from session if available
+      if (sessionData.session?.user) {
+        console.log("Authentication successful via session fallback");
+        return sessionData.session.user;
+      }
+      
+      // If we still don't have a user, throw error
       throw {
         status: 401,
-        message: "Authentication failed: " + userError.message,
-        debug: { error_details: userError }
+        message: "Authentication required. Please sign in to use this feature.",
+        debug: { auth_header_present: !!supabase.auth }
       };
     }
     

@@ -21,70 +21,15 @@ serve(async (req) => {
     
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
+    let user;
 
     try {
       // Authenticate user
-      const user = await authenticateUser(supabase);
-      
-      // Get request body
-      let requestData;
-      try {
-        requestData = await req.json();
-        console.log("Received request data:", JSON.stringify(requestData));
-      } catch (e) {
-        console.error("Failed to parse request body:", e);
-        return new Response(
-          JSON.stringify({ success: false, error: "Invalid request body" }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
-      const { keywords, country, states, fields, rating } = requestData;
-      console.log("Processing request for keywords:", keywords);
-
-      // Validate parameters
-      const validation = validateScrapingParams({ keywords, country, states, fields });
-      if (!validation.isValid) {
-        console.error("Validation failed:", validation.error);
-        return new Response(
-          JSON.stringify({ success: false, error: validation.error }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-
-      // Check user's plan access
-      await checkPlanAccess(supabase, user.id, fields);
-
-      // Generate a unique task ID
-      const taskId = generateTaskId();
-      console.log("Generated task ID:", taskId);
-
-      // Create scraping request record
-      await createScrapingRequest(supabase, user.id, taskId, { 
-        keywords, country, states, fields, rating 
-      });
-
-      // Return successful response with task ID
-      return new Response(
-        JSON.stringify({
-          success: true,
-          taskId,
-          message: "Scraping task started successfully"
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-
+      user = await authenticateUser(supabase);
+      console.log("Authentication successful for user:", user.id);
     } catch (authError) {
-      // Handle authentication and authorization errors
-      console.error("Authentication error:", authError);
+      // Enhanced error logging for authentication failures
+      console.error("Authentication error details:", JSON.stringify(authError, null, 2));
       
       return new Response(
         JSON.stringify({ 
@@ -98,6 +43,62 @@ serve(async (req) => {
         }
       );
     }
+      
+    // Get request body
+    let requestData;
+    try {
+      requestData = await req.json();
+      console.log("Received request data:", JSON.stringify(requestData));
+    } catch (e) {
+      console.error("Failed to parse request body:", e);
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid request body" }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    const { keywords, country, states, fields, rating } = requestData;
+    console.log("Processing request for keywords:", keywords);
+
+    // Validate parameters
+    const validation = validateScrapingParams({ keywords, country, states, fields });
+    if (!validation.isValid) {
+      console.error("Validation failed:", validation.error);
+      return new Response(
+        JSON.stringify({ success: false, error: validation.error }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Check user's plan access
+    await checkPlanAccess(supabase, user.id, fields);
+
+    // Generate a unique task ID
+    const taskId = generateTaskId();
+    console.log("Generated task ID:", taskId);
+
+    // Create scraping request record
+    await createScrapingRequest(supabase, user.id, taskId, { 
+      keywords, country, states, fields, rating 
+    });
+
+    // Return successful response with task ID
+    return new Response(
+      JSON.stringify({
+        success: true,
+        taskId,
+        message: "Scraping task started successfully"
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error: any) {
     console.error('Error in start-scraping function:', error.message || error);

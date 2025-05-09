@@ -75,9 +75,16 @@ export default function FormSubmissionHandler({
         console.log("Refreshing session before scraping...");
         const freshSession = await refreshSession();
         console.log("Session refreshed successfully", !!freshSession);
+        
+        // Wait a bit for token to be properly saved/propagated
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (refreshError) {
         console.error("Failed to refresh session:", refreshError);
-        // Continue anyway, the scraper service will try again
+        // Try to sign in again if refresh fails
+        toast.error("Session refresh failed. Please try signing in again.");
+        setFormError("Session refresh failed. Please try signing in again.");
+        setIsLoading(false);
+        return;
       }
       
       // Prepare keywords
@@ -103,6 +110,12 @@ export default function FormSubmissionHandler({
         toast.dismiss(toastId);
         toast.error(result.error || "Failed to start scraping");
         setFormError(result.error || "Failed to start scraping");
+        
+        // If auth error, redirect to auth page
+        if (result.error?.toLowerCase().includes('auth')) {
+          toast.error("Authentication issue detected. Please sign in again.");
+          navigate('/auth', { state: { returnTo: '/dashboard/scrape' } });
+        }
       }
     } catch (error: any) {
       console.error("Error submitting form:", error);

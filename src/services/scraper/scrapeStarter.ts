@@ -53,7 +53,15 @@ export async function startScraping({
       
       if (refreshError) {
         console.error("Failed to refresh token:", refreshError);
-        // Continue with current token as a fallback
+        // If refresh fails, try to get a session again as fallback
+        const { data: retrySession } = await supabase.auth.getSession();
+        if (retrySession?.session) {
+          accessToken = retrySession.session.access_token;
+          console.log("Retrieved token via fallback method");
+        } else {
+          // Continue with current token as a last resort
+          console.log("Using existing token as fallback");
+        }
       } else if (refreshResult && refreshResult.session) {
         console.log("Token refreshed successfully");
         accessToken = refreshResult.session.access_token;
@@ -75,7 +83,9 @@ export async function startScraping({
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: { keywords, country, states, fields, rating },
       headers: {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
+        // Also add apikey explicitly to ensure it's present
+        apikey: supabase.supabaseKey
       }
     });
     
