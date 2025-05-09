@@ -4,7 +4,8 @@ import Navbar from "@/components/Navbar";
 import DashboardSidebar from "./DashboardSidebar";
 import { 
   SidebarProvider, 
-  SidebarInset 
+  SidebarInset,
+  SidebarRail
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -29,7 +30,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <SidebarProvider>
           <div className="flex min-h-[calc(100vh-4rem)] w-full">
             <DashboardSidebar />
-            <SidebarInset className="p-6">
+            <SidebarRail />
+            <SidebarInset className="p-4 md:p-6 w-full">
               {children}
             </SidebarInset>
           </div>

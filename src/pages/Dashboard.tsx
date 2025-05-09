@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ScraperForm from "@/components/ScraperForm";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserPlanInfo, getUserScrapingTasks } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
@@ -34,7 +33,7 @@ function DashboardHome() {
     tasksData.filter(task => task.status === 'processing').length : 0;
   
   return (
-    <Container>
+    <div className="w-full px-4 md:px-0">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Monitor your scraping tasks and usage</p>
@@ -137,7 +136,7 @@ function DashboardHome() {
           </CardContent>
         </Card>
       </div>
-    </Container>
+    </div>
   );
 }
 

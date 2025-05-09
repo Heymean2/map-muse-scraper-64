@@ -21,9 +21,9 @@ export default function Settings() {
   
   return (
     <DashboardLayout>
-      <Container>
+      <div className="w-full max-w-full">
         <div className="space-y-6 pb-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 md:px-0">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
               <p className="text-muted-foreground mt-1">
@@ -32,7 +32,7 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 md:px-0">
             {/* Settings Sidebar */}
             <div className="lg:col-span-3">
               <div className="sticky top-20">
@@ -191,7 +191,7 @@ export default function Settings() {
             </div>
           </div>
         </div>
-      </Container>
+      </div>
     </DashboardLayout>
   );
 }
