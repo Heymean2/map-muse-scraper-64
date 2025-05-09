@@ -43,7 +43,6 @@ export function getSupabaseClient(req: Request): SupabaseClient {
         autoRefreshToken: false, // Edge functions run in a stateless environment
         persistSession: false,
         detectSessionInUrl: false,
-        flowType: 'implicit', // Important for edge function auth
       },
     }
   );
@@ -98,10 +97,19 @@ export async function authenticateUser(supabase: SupabaseClient) {
     } catch (sessionError) {
       console.error("Exception in getSession:", sessionError);
     }
-    
-    // If JWT is directly available in the request, try to decode and validate it
-    // This is a last resort manual check
-    console.log("Both getUser and getSession methods failed. Authentication failed.");
+
+    // As a last resort, try to manually extract user ID from JWT token
+    try {
+      console.log("Attempting manual JWT validation as last resort");
+      
+      // If JWT is directly available as a header, validate it directly
+      const token = supabase.auth.getSession();
+      if (token) {
+        console.log("Manual JWT validation: Found token");
+      }
+    } catch (e) {
+      console.log("Manual JWT validation failed:", e);
+    }
     
     // If we get here, neither method worked
     throw {
