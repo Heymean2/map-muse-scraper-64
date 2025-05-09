@@ -40,7 +40,7 @@ export default function DashboardSidebar() {
   const { user, signOut } = useAuth();
   
   const { data: planInfo } = useQuery({
-    queryKey: ['userPlanInfo'],
+    queryKey: ['userPlanInfo', user?.id],
     queryFn: getUserPlanInfo,
     enabled: !!user,
     staleTime: 60000 // Cache for 1 minute
@@ -130,7 +130,7 @@ export default function DashboardSidebar() {
             </div>
             <div className="flex flex-col">
               <span className="font-medium text-sm truncate max-w-[140px]">
-                {user?.email}
+                {user?.email || "User"}
               </span>
               <span className="text-xs text-gray-500">{planInfo?.planName || "Free Plan"}</span>
             </div>

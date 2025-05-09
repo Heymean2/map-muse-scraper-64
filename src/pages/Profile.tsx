@@ -32,16 +32,20 @@ export default function Profile() {
     const fetchUserProfile = async () => {
       if (!user?.id) return;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-        
-      if (data && !error) {
-        setUserProfile(data);
-      } else {
-        console.error("Error fetching profile:", error);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (data && !error) {
+          setUserProfile(data);
+        } else {
+          console.error("Error fetching profile:", error);
+        }
+      } catch (error) {
+        console.error("Exception fetching profile:", error);
       }
     };
     
@@ -50,18 +54,23 @@ export default function Profile() {
 
   // Get user's plan info
   const { data: planInfo } = useQuery({
-    queryKey: ['userPlanInfo'],
+    queryKey: ['userPlanInfo', user?.id],
     queryFn: async () => {
       if (!userProfile?.plan_id) return { planName: 'Free Plan' };
       
-      const { data, error } = await supabase
-        .from('pricing_plans')
-        .select('name')
-        .eq('id', userProfile.plan_id)
-        .single();
-      
-      if (error) throw error;
-      return { planName: data?.name || 'Free Plan' };
+      try {
+        const { data, error } = await supabase
+          .from('pricing_plans')
+          .select('name')
+          .eq('id', userProfile.plan_id)
+          .single();
+        
+        if (error) throw error;
+        return { planName: data?.name || 'Free Plan' };
+      } catch (error) {
+        console.error("Error fetching plan info:", error);
+        return { planName: 'Free Plan' };
+      }
     },
     enabled: !!userProfile?.plan_id
   });
@@ -114,7 +123,7 @@ export default function Profile() {
                     <div className="flex items-center gap-2 text-sm">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Email:</span>
-                      <span className="font-medium">{user?.email}</span>
+                      <span className="font-medium">{user?.email || "Not provided"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -162,7 +171,7 @@ export default function Profile() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Full Name</h3>
-                      <p className="font-medium">{userProfile?.full_name || "Not provided"}</p>
+                      <p className="font-medium">{userProfile?.full_name || user?.email?.split('@')[0] || "Not provided"}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Job Title</h3>
