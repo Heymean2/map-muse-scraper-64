@@ -2,10 +2,8 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardHeader, CardContent } from "@/components/ui/card";
-import { BarChart, MapPin, Table, Lock, FileJson, FileSpreadsheet } from "lucide-react";
+import { Table, Lock, FileJson, FileSpreadsheet } from "lucide-react";
 import ResultsTable from "../ResultsTable";
-import ResultsAnalyticsView from "./ResultsAnalyticsView";
-import ResultsMapView from "./ResultsMapView";
 import SearchInfoCard from "../SearchInfoCard";
 import ResultsDataHeader from "./ResultsDataHeader";
 
@@ -136,21 +134,11 @@ export default function ResultsTabbedContent({
       <CardContent className="p-0">
         <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
           <div className="px-6 pt-6">
-            <TabsList className="w-full max-w-md grid grid-cols-3">
-              <TabsTrigger value="table" className="flex items-center gap-1">
+            <TabsList className="w-full max-w-md">
+              <TabsTrigger value="table" className="flex items-center gap-1 w-full">
                 <Table className="h-4 w-4" />
                 <span>Table View</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-1">
-                <BarChart className="h-4 w-4" />
-                <span>Analytics</span>
-              </TabsTrigger>
-              {searchInfo?.location && (
-                <TabsTrigger value="map" className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>Map View</span>
-                </TabsTrigger>
-              )}
             </TabsList>
           </div>
           
@@ -163,14 +151,6 @@ export default function ResultsTabbedContent({
             />
           </TabsContent>
           
-          <TabsContent value="analytics" className="mt-4 px-6">
-            <ResultsAnalyticsView isLimited={isLimited} />
-          </TabsContent>
-          
-          <TabsContent value="map" className="mt-4 px-6">
-            <ResultsMapView isLimited={isLimited} />
-          </TabsContent>
-          
           <div className="px-6 pb-6">
             <div className="mt-6">
               <SearchInfoCard 
@@ -178,7 +158,7 @@ export default function ResultsTabbedContent({
                 searchInfo={{
                   keywords: searchInfo?.keywords,
                   location: searchInfo?.location,
-                  fields: searchInfo?.fields, // The fields property will be properly handled in SearchInfoCard
+                  fields: searchInfo?.fields,
                   rating: searchInfo?.rating
                 }}
                 completedAt={updated_at}

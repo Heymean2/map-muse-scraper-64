@@ -16,7 +16,6 @@ import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
-import Settings from "@/pages/Settings";
 import Results from "@/pages/Results";
 import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";

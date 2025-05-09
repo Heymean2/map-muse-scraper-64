@@ -6,9 +6,7 @@ import {
   LayoutList, 
   CalendarDays, 
   Plus, 
-  RefreshCw, 
-  BarChart4,
-  Filter
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,7 +120,7 @@ export default function ResultsDashboard({
       />
       
       {/* View Selection Tabs */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex justify-center">
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full md:w-auto">
           <TabsList>
             <TabsTrigger value="list" className="flex items-center gap-1">
@@ -139,17 +137,6 @@ export default function ResultsDashboard({
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button variant="outline" size="sm" className="gap-1">
-            <Filter className="h-4 w-4" />
-            <span>Filter</span>
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1">
-            <BarChart4 className="h-4 w-4" />
-            <span>Analytics</span>
-          </Button>
-        </div>
       </div>
 
       {/* Content Based on View Mode */}
