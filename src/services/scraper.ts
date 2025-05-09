@@ -7,7 +7,7 @@ import { getUserPlanInfo } from "./scraper/planInfo";
 // Export getUserPlanInfo from tasks.ts
 export { getUserPlanInfo } from "./scraper/planInfo";
 
-// Start a new scraping task
+// Start a new scraping task using the secure edge function
 export async function startScraping(scrapingConfig: {
   keywords: string;
   country: string;
@@ -20,31 +20,20 @@ export async function startScraping(scrapingConfig: {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      toast.error("Authentication required. Please sign in to use this feature.");
       return { success: false, error: "Authentication required" };
     }
-    
-    // Get user's plan info to check restrictions
-    const userPlanInfo = await getUserPlanInfo();
-    const planName = userPlanInfo?.planName?.toLowerCase() || "free";
-    
-    // Check if the user has access to all requested data fields based on their plan
-    if (scrapingConfig.fields.includes("reviews") && !planName.includes("pro") && !planName.includes("enterprise")) {
-      return { 
-        success: false, 
-        error: "Your current plan does not allow access to review data. Please upgrade to Pro." 
-      };
-    }
-    
-    // In a real implementation, this would call a serverless function
-    // to start the scraping task
+
+    // Call our secure edge function
     const { data, error } = await supabase.functions.invoke('start-scraping', {
-      body: {
-        ...scrapingConfig,
-        userId: user.id,
-      }
+      body: scrapingConfig
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error from edge function:", error);
+      toast.error(error.message || "Failed to start scraping");
+      throw error;
+    }
     
     return { success: true, task_id: data?.taskId };
   } catch (error: any) {
@@ -87,7 +76,18 @@ export async function subscribeToPlan(planId: string) {
 // Download CSV from URL
 export async function downloadCsvFromUrl(url: string) {
   try {
-    const response = await fetch(url);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Authentication required. Please sign in to download results.");
+      throw new Error("Authentication required");
+    }
+    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to download CSV: ${response.status} ${response.statusText}`);

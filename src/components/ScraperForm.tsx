@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import RatingSelector from "./scraper/RatingSelector";
 
 export default function ScraperForm() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   
   // Form state
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,11 +34,23 @@ export default function ScraperForm() {
   
   // Rating state
   const [selectedRating, setSelectedRating] = useState<string>("");
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!user && !session) {
+      toast.error("You must be logged in to use this feature");
+      navigate("/auth", { 
+        state: { 
+          returnTo: "/dashboard/scrape" 
+        }
+      });
+    }
+  }, [user, session, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if user is authenticated
+    // Double-check authentication
     if (!user) {
       toast.error("You must be logged in to use this feature");
       navigate("/auth");
@@ -99,6 +111,17 @@ export default function ScraperForm() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (!user && !session) {
+    return (
+      <Container className="max-w-4xl">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="max-w-4xl">
