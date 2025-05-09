@@ -85,7 +85,7 @@ serve(async (req) => {
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
 
-    // Verify user is authenticated
+    // Manually verify user authentication - This is critical since we're not using automatic JWT verification
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError) {
