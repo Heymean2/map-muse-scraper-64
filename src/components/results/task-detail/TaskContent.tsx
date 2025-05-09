@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Download, Eye, FileJson } from "lucide-react";
 import SearchInfoCard from "@/components/results/SearchInfoCard";
 

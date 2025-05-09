@@ -75,8 +75,8 @@ export default function ResultsContent({
         onDownload={exportCSV}
         onDownloadJson={exportJSON}
         isLimited={isLimited}
-        resultUrl={results?.result_url}
-        jsonResultUrl={results?.json_result_url}
+        result_url={results?.result_url}
+        json_result_url={results?.json_result_url}
       />
     );
   }
