@@ -141,8 +141,8 @@ export default function PreferencesTab() {
             <div>
               <h3 className="text-lg font-medium mb-4">Export Format</h3>
               <div className="flex flex-wrap gap-5">
-                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
-                  className={exportFormat === "csv" ? "border-primary bg-primary/5" : "border-border"}
+                <div 
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30 ${exportFormat === "csv" ? "border-primary bg-primary/5" : "border-border"}`}
                   onClick={() => setExportFormat("csv")}
                 >
                   <input 
@@ -160,8 +160,8 @@ export default function PreferencesTab() {
                   {exportFormat === "csv" && <Badge variant="secondary" className="ml-2">Default</Badge>}
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
-                  className={exportFormat === "json" ? "border-primary bg-primary/5" : "border-border"}
+                <div 
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30 ${exportFormat === "json" ? "border-primary bg-primary/5" : "border-border"}`}
                   onClick={() => setExportFormat("json")}
                 >
                   <input 
@@ -178,8 +178,8 @@ export default function PreferencesTab() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30"
-                  className={exportFormat === "excel" ? "border-primary bg-primary/5" : "border-border"}
+                <div 
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30 ${exportFormat === "excel" ? "border-primary bg-primary/5" : "border-border"}`}
                   onClick={() => setExportFormat("excel")}
                 >
                   <input 
