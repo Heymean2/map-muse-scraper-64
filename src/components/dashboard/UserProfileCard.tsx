@@ -29,22 +29,6 @@ export default function UserProfileCard() {
   const { toast } = useToast();
   const [loadingProgress, setLoadingProgress] = useState(0);
   
-  // Simulate loading progress
-  useEffect(() => {
-    if (authLoading || (user && isLoading)) {
-      const interval = setInterval(() => {
-        setLoadingProgress(prev => {
-          const next = prev + Math.random() * 15;
-          return next > 90 ? 90 : next;
-        });
-      }, 300);
-      
-      return () => clearInterval(interval);
-    } else if (!isLoading) {
-      setLoadingProgress(100);
-    }
-  }, [authLoading, isLoading, user]);
-  
   // Fetch user profile data
   const { data: profile, isLoading, error, refetch } = useQuery({
     queryKey: ['userProfile', user?.id],
@@ -78,6 +62,22 @@ export default function UserProfileCard() {
     refetchOnWindowFocus: false,
     retry: 1
   });
+  
+  // Simulate loading progress
+  useEffect(() => {
+    if (authLoading || (user && isLoading)) {
+      const interval = setInterval(() => {
+        setLoadingProgress(prev => {
+          const next = prev + Math.random() * 15;
+          return next > 90 ? 90 : next;
+        });
+      }, 300);
+      
+      return () => clearInterval(interval);
+    } else if (!isLoading) {
+      setLoadingProgress(100);
+    }
+  }, [authLoading, isLoading, user]);
 
   if (authLoading) {
     return (
