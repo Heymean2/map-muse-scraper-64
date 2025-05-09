@@ -17,7 +17,8 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  User
+  User,
+  LayoutDashboard
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,6 +74,11 @@ export default function DashboardSidebar() {
   };
   
   const menuItems = [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/dashboard",
+    },
     {
       title: "Results",
       icon: FileText,
