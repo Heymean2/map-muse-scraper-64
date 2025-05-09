@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import TaskDetailLayout from "@/components/results/layout/TaskDetailLayout";
 import TaskHeader from "@/components/results/task-detail/TaskHeader";
 import TaskContent from "@/components/results/task-detail/TaskContent";
+import { ScrapingResultSingle, ScrapingResultMultiple } from "@/services/scraper/types";
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -57,43 +58,45 @@ export default function TaskDetail() {
   const getTaskData = () => {
     if (!taskResults) return null;
     
-    // Extract task-specific properties safely
-    let keywords;
-    let createdAt;
-    let searchInfo;
-    let resultUrl;
-    let isLimited;
-    let currentPlan;
-    let status;
-    let fields;
+    // Type guard to determine if we have a single result or multiple results
+    const isSingleResult = (result: any): result is ScrapingResultSingle => 
+      !('tasks' in result);
     
-    // Handle possible different data structures
-    if ('keywords' in taskResults) {
-      keywords = taskResults.keywords;
-    } else if (taskResults.search_info?.keywords) {
-      keywords = taskResults.search_info.keywords;
-    } else {
-      keywords = 'Task Details';
+    if (!isSingleResult(taskResults)) {
+      // This is a multiple result, which shouldn't happen when we have a taskId
+      // But handle it gracefully anyway
+      return null;
     }
     
-    createdAt = 'created_at' in taskResults ? taskResults.created_at : null;
-    resultUrl = 'result_url' in taskResults ? taskResults.result_url : null;
-    isLimited = 'limited' in taskResults ? taskResults.limited : false;
-    currentPlan = 'current_plan' in taskResults ? taskResults.current_plan : null;
-    status = 'status' in taskResults ? taskResults.status : 'processing';
+    // Now we know we're working with a single result
+    const singleResult = taskResults;
     
-    // Get search info
-    if ('search_info' in taskResults) {
-      searchInfo = taskResults.search_info;
-      fields = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+    // Extract task-specific properties safely
+    const keywords = singleResult.keywords || 
+                    (singleResult.search_info?.keywords) || 
+                    'Task Details';
+                    
+    const createdAt = singleResult.created_at || null;
+    const resultUrl = singleResult.result_url || null;
+    const isLimited = 'limited' in singleResult ? singleResult.limited : false;
+    const currentPlan = 'current_plan' in singleResult ? singleResult.current_plan : null;
+    const status = singleResult.status || 'processing';
+    
+    // Get search info and fields
+    let searchInfo = null;
+    let fields: string[] = [];
+    
+    if (singleResult.search_info) {
+      searchInfo = singleResult.search_info;
+      fields = searchInfo.fields ? ensureArray(searchInfo.fields) : [];
     } else {
       // Fallback if search_info doesn't exist
       searchInfo = {
         keywords,
-        location: taskResults.location,
-        fields: taskResults.fields
+        location: `${singleResult.country || ''} - ${singleResult.states || ''}`,
+        fields: singleResult.fields ? ensureArray(singleResult.fields) : []
       };
-      fields = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+      fields = ensureArray(singleResult.fields);
     }
     
     return {
@@ -116,7 +119,7 @@ export default function TaskDetail() {
         {taskData && (
           <TaskHeader 
             title={taskData.keywords || "Task Details"}
-            status={taskData.status as string}
+            status={taskData.status}
             createdAt={taskData.createdAt}
             location={taskData.searchInfo?.location}
             fields={taskData.fields}
@@ -164,15 +167,25 @@ export default function TaskDetail() {
                 </div>
               </Card>
             </motion.div>
-          ) : (
+          ) : taskData ? (
             <TaskContent 
-              taskId={taskId}
+              taskId={taskId || null}
               results={taskResults}
               isLoading={isLoading}
               error={error}
-              isLimited={taskData?.isLimited || false}
-              planInfo={taskData?.currentPlan}
+              isLimited={taskData.isLimited || false}
+              planInfo={taskData.currentPlan}
             />
+          ) : (
+            <div className="max-w-5xl mx-auto px-4 py-12 text-center">
+              <Card className="p-5">
+                <h3 className="text-lg font-medium mb-2">No Task Data Available</h3>
+                <p className="mb-4">We couldn't find any information for this task.</p>
+                <Button onClick={() => navigate('/result')}>
+                  Return to Results
+                </Button>
+              </Card>
+            </div>
           )}
         </AnimatePresence>
       </div>

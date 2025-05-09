@@ -4,6 +4,11 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import { 
+  SidebarProvider, 
+  SidebarInset,
+  SidebarRail
+} from "@/components/ui/sidebar";
 
 interface TaskDetailLayoutProps {
   children: ReactNode;
@@ -20,13 +25,16 @@ export default function TaskDetailLayout({ children }: TaskDetailLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-grow h-full pt-16">
-        <div className="hidden md:block w-64 border-r bg-background shadow-sm">
-          <DashboardSidebar />
-        </div>
-        <div className="flex-1 overflow-auto">
-          {children}
-        </div>
+      <div className="flex-grow pt-16">
+        <SidebarProvider>
+          <div className="flex min-h-[calc(100vh-4rem)] w-full">
+            <DashboardSidebar />
+            <SidebarRail />
+            <SidebarInset className="p-4 md:p-6 w-full">
+              {children}
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
       </div>
     </div>
   );

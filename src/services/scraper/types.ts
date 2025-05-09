@@ -55,3 +55,21 @@ export interface FreeTierLimitInfo {
   freeRowsLimit: number;
   credits: number;
 }
+
+// Define explicit return types for getScrapingResults
+export interface ScrapingResultSingle extends ScrapingRequest {
+  search_info?: {
+    keywords?: string;
+    location?: string;
+    fields?: string[] | string;
+    rating?: string;
+  };
+  data?: any[];
+  total_count?: number;
+  limited?: boolean;
+  current_plan?: any;
+}
+
+export interface ScrapingResultMultiple {
+  tasks: ScrapingRequest[];
+}
