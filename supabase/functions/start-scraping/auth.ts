@@ -25,11 +25,11 @@ export function getSupabaseClient(req: Request): SupabaseClient {
     jwtToken = authorization.substring('Bearer '.length);
     console.log("JWT token extracted successfully, length:", jwtToken.length);
   } else {
-    console.warn("Authorization header not in expected 'Bearer <token>' format");
+    console.warn("Authorization header not in expected 'Bearer <token>' format:", authorization.substring(0, 20) + "...");
   }
   
   // Create Supabase client with auth headers
-  return createClient(
+  const client = createClient(
     supabaseUrl,
     supabaseAnonKey,
     {
@@ -46,57 +46,58 @@ export function getSupabaseClient(req: Request): SupabaseClient {
       },
     }
   );
+  
+  console.log("Supabase client created successfully");
+  return client;
 }
 
 // Authenticate user and return user data or throw error
 export async function authenticateUser(supabase: SupabaseClient) {
   try {
-    // First try with getUser() which should work with the provided JWT
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log("Attempting to authenticate user...");
     
-    if (userError) {
-      console.error("Auth error with getUser:", userError.message);
+    try {
+      // First try with getUser() which should work with the provided JWT
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
+      if (!userError && user) {
+        console.log("Authentication successful via getUser()");
+        return user;
+      }
+      
+      if (userError) {
+        console.log("Auth error with getUser:", userError.message);
+        // Continue to fallback methods
+      }
+    } catch (getUserError) {
+      console.log("Exception in getUser:", getUserError);
+      // Continue to fallback methods
+    }
+    
+    try {
       // Fall back to getSession for compatibility
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !sessionData.session) {
-        console.error("Session error:", sessionError?.message || "No session found");
-        throw {
-          status: 401,
-          message: "Authentication failed: No valid session found",
-          debug: { 
-            userError: userError.message,
-            sessionError: sessionError?.message || "No session data" 
-          }
-        };
-      }
-      
-      // Use the user from session if available
-      if (sessionData.session?.user) {
-        console.log("Authentication successful via session fallback");
+      if (!sessionError && sessionData?.session?.user) {
+        console.log("Authentication successful via getSession()");
         return sessionData.session.user;
       }
       
-      // If we still don't have a user, throw error
-      throw {
-        status: 401,
-        message: "Authentication required. Please sign in to use this feature.",
-        debug: { auth_header_present: !!supabase.auth }
-      };
+      if (sessionError) {
+        console.error("Session error:", sessionError.message);
+      } else if (!sessionData?.session) {
+        console.error("No session found in getSession response");
+      }
+    } catch (sessionError) {
+      console.error("Exception in getSession:", sessionError);
     }
     
-    if (!user) {
-      console.error("No user found in JWT");
-      throw {
-        status: 401,
-        message: "Authentication required. Please sign in to use this feature.",
-        debug: { auth_header_present: !!supabase.auth }
-      };
-    }
-    
-    console.log("User authenticated successfully:", user.id);
-    return user;
+    // If we get here, neither method worked
+    throw {
+      status: 401,
+      message: "Authentication failed: No valid session found",
+      details: "Both getUser and getSession methods failed"
+    };
   } catch (error) {
     console.error("Error in authenticateUser:", error);
     throw {
