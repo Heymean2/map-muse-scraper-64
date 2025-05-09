@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Download, Eye, Trophy, MapPin } from "lucide-react";
+import { Clock, Download, Eye, Trophy, MapPin, FileJson, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import CSVPreview from "../CSVPreview";
@@ -15,10 +15,13 @@ interface ResultsStatusCardProps {
   search_info?: any;
   total_count?: number;
   result_url?: string;
+  json_result_url?: string;
   isLimited: boolean;
   updated_at?: string;
   onShowCsvPreview: () => void;
+  onShowJsonPreview: () => void;
   onDownload: () => void;
+  onDownloadJson?: () => void;
 }
 
 export default function ResultsStatusCard({
@@ -27,10 +30,13 @@ export default function ResultsStatusCard({
   search_info,
   total_count = 0,
   result_url,
+  json_result_url,
   isLimited,
   updated_at,
   onShowCsvPreview,
-  onDownload
+  onShowJsonPreview,
+  onDownload,
+  onDownloadJson
 }: ResultsStatusCardProps) {
   const navigate = useNavigate();
   
@@ -72,41 +78,90 @@ export default function ResultsStatusCard({
               Task Completed Successfully
             </h3>
             <p className="text-green-700 dark:text-green-400">
-              Your data is ready to be downloaded. No preview is available, but you can download the full CSV file.
+              Your data is ready to be downloaded. No preview is available, but you can download the full files.
             </p>
             
-            <div className="flex gap-2 mt-2">
-              {result_url && !isLimited && (
-                <>
-                  <Button 
-                    className="gap-2" 
-                    onClick={onDownload}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Results
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    className="gap-2" 
-                    onClick={onShowCsvPreview}
-                  >
-                    <Eye className="h-4 w-4" />
-                    Preview CSV
-                  </Button>
-                </>
-              )}
-              
-              {isLimited && (
-                <Button 
-                  className="gap-2" 
-                  onClick={handleUpgradeClick}
-                >
-                  <Trophy className="h-4 w-4" />
-                  Upgrade Now
-                </Button>
-              )}
-            </div>
+            {!isLimited && (
+              <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full max-w-md">
+                <div className="flex-1 border rounded-md p-3 bg-white">
+                  <div className="font-medium mb-1 flex items-center gap-1.5">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    <span>CSV</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {result_url && (
+                      <>
+                        <Button 
+                          className="w-full gap-2 text-sm" 
+                          onClick={onDownload}
+                          size="sm"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download CSV
+                        </Button>
+                        
+                        <Button 
+                          variant="outline"
+                          className="w-full gap-2 text-sm" 
+                          onClick={onShowCsvPreview}
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Preview
+                        </Button>
+                      </>
+                    )}
+                    {!result_url && (
+                      <p className="text-sm text-gray-500">CSV not available</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex-1 border rounded-md p-3 bg-white">
+                  <div className="font-medium mb-1 flex items-center gap-1.5">
+                    <FileJson className="h-4 w-4" />
+                    <span>JSON</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {json_result_url && onDownloadJson && (
+                      <>
+                        <Button 
+                          className="w-full gap-2 text-sm" 
+                          onClick={onDownloadJson}
+                          size="sm"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download JSON
+                        </Button>
+                        
+                        <Button 
+                          variant="outline"
+                          className="w-full gap-2 text-sm" 
+                          onClick={onShowJsonPreview}
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Preview
+                        </Button>
+                      </>
+                    )}
+                    {!json_result_url && (
+                      <p className="text-sm text-gray-500">JSON not available</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {isLimited && (
+              <Button 
+                className="gap-2" 
+                onClick={handleUpgradeClick}
+              >
+                <Trophy className="h-4 w-4" />
+                Upgrade Now
+              </Button>
+            )}
           </div>
           
           <div className="mt-6">

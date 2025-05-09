@@ -25,6 +25,7 @@ export interface ScrapingRequest {
   rating?: string;
   status?: string;
   result_url?: string;
+  json_result_url?: string; // New field for JSON result URL
   row_count?: number;
   created_at: string; // Make this required to match TaskItem expectations
   updated_at?: string;

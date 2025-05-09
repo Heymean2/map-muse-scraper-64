@@ -101,6 +101,7 @@ export type Database = {
           created_at: string | null
           fields: string | null
           id: number
+          json_result_url: string | null
           keywords: string
           rating: string | null
           result_url: string | null
@@ -116,6 +117,7 @@ export type Database = {
           created_at?: string | null
           fields?: string | null
           id?: number
+          json_result_url?: string | null
           keywords: string
           rating?: string | null
           result_url?: string | null
@@ -131,6 +133,7 @@ export type Database = {
           created_at?: string | null
           fields?: string | null
           id?: number
+          json_result_url?: string | null
           keywords?: string
           rating?: string | null
           result_url?: string | null

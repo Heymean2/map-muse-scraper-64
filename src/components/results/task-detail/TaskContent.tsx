@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
 import { Button } from "@/components/ui/button";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, FileJson } from "lucide-react";
 import SearchInfoCard from "@/components/results/SearchInfoCard";
 
 interface TaskContentProps {
@@ -26,6 +26,14 @@ export default function TaskContent({
   const getExportCsvHandler = () => {
     if (results && results.result_url) {
       return () => window.open(results.result_url, '_blank');
+    }
+    return () => {};
+  };
+
+  // New handler for JSON export
+  const getExportJsonHandler = () => {
+    if (results && results.json_result_url) {
+      return () => window.open(results.json_result_url, '_blank');
     }
     return () => {};
   };
@@ -67,25 +75,63 @@ export default function TaskContent({
               
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">Task Completed Successfully</h2>
               <p className="text-gray-600 max-w-lg mb-8">
-                Your data is ready to be downloaded. No preview is available, but you can download the full CSV file.
+                Your data is ready to be downloaded. No preview is available, but you can download the full files.
               </p>
               
-              <div className="flex gap-4">
-                <Button 
-                  className="gap-2" 
-                  onClick={getExportCsvHandler()}
-                >
-                  <Download className="h-4 w-4" />
-                  Download Results
-                </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+                {results.result_url && (
+                  <div className="border rounded-md p-4 bg-white">
+                    <h4 className="font-medium mb-2 flex items-center gap-1.5">CSV Format</h4>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        className="gap-2" 
+                        onClick={getExportCsvHandler()}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download CSV
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => {
+                          // This is just a placeholder since we can't directly preview from this view
+                          window.open(results.result_url, '_blank');
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                        Preview CSV
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 
-                <Button 
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  Preview CSV
-                </Button>
+                {results.json_result_url && (
+                  <div className="border rounded-md p-4 bg-white">
+                    <h4 className="font-medium mb-2 flex items-center gap-1.5">JSON Format</h4>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        className="gap-2" 
+                        onClick={getExportJsonHandler()}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download JSON
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => {
+                          // This is just a placeholder since we can't directly preview from this view
+                          window.open(results.json_result_url, '_blank');
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                        Preview JSON
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </CardContent>
@@ -134,6 +180,18 @@ export default function TaskContent({
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Total Count</span>
                 <span className="text-sm font-medium">{results?.total_count || 0} results</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500">Available Formats</span>
+                <div className="flex gap-2">
+                  {results?.result_url && (
+                    <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">CSV</Badge>
+                  )}
+                  {results?.json_result_url && (
+                    <Badge variant="outline" className="text-purple-500 border-purple-200 bg-purple-50">JSON</Badge>
+                  )}
+                </div>
               </div>
               
               {results?.updated_at && (

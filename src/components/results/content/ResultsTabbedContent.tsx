@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardHeader, CardContent } from "@/components/ui/card";
-import { BarChart, MapPin, Table, Lock } from "lucide-react";
+import { BarChart, MapPin, Table, Lock, FileJson, FileSpreadsheet } from "lucide-react";
 import ResultsTable from "../ResultsTable";
 import ResultsAnalyticsView from "./ResultsAnalyticsView";
 import ResultsMapView from "./ResultsMapView";
@@ -15,9 +15,12 @@ interface ResultsTabbedContentProps {
   totalCount: number;
   isLimited: boolean;
   resultUrl?: string;
+  jsonResultUrl?: string;
   exportCsv: () => void;
+  exportJson: () => void;
   updated_at?: string;
   onShowCsvPreview: () => void;
+  onShowJsonPreview: () => void;
 }
 
 export default function ResultsTabbedContent({
@@ -26,11 +29,15 @@ export default function ResultsTabbedContent({
   totalCount,
   isLimited,
   resultUrl,
+  jsonResultUrl,
   exportCsv,
+  exportJson,
   updated_at,
-  onShowCsvPreview
+  onShowCsvPreview,
+  onShowJsonPreview
 }: ResultsTabbedContentProps) {
   const [activeView, setActiveView] = useState("table");
+  const [activeFormat, setActiveFormat] = useState<"csv" | "json">("csv");
   
   // Limit data to 5 rows if user has exceeded free tier
   const getLimitedData = () => {
@@ -54,6 +61,26 @@ export default function ResultsTabbedContent({
     return [String(value)]; // Convert single value to array
   };
 
+  const handleFormatToggle = (format: "csv" | "json") => {
+    setActiveFormat(format);
+  };
+
+  const handleExport = () => {
+    if (activeFormat === "csv") {
+      exportCsv();
+    } else {
+      exportJson();
+    }
+  };
+
+  const handleShowPreview = () => {
+    if (activeFormat === "csv") {
+      onShowCsvPreview();
+    } else {
+      onShowJsonPreview();
+    }
+  };
+
   return (
     <>
       <CardHeader className="bg-slate-50 dark:bg-slate-800 border-b">
@@ -61,9 +88,42 @@ export default function ResultsTabbedContent({
           title="Task Results" 
           description={`Showing data for "${searchInfo?.keywords}" (${totalCount} results)`}
           isLimited={isLimited}
-          resultUrl={resultUrl}
-          onExportCsv={exportCsv}
+          resultUrl={activeFormat === "csv" ? resultUrl : jsonResultUrl}
+          onExportCsv={handleExport}
         />
+        
+        {/* Format selector */}
+        {(resultUrl || jsonResultUrl) && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-sm text-slate-500">Format:</span>
+            <div className="inline-flex items-center rounded-md border border-slate-200 bg-white">
+              <button
+                onClick={() => handleFormatToggle("csv")}
+                className={`flex items-center gap-1 px-3 py-1 text-sm ${
+                  activeFormat === "csv" 
+                    ? "bg-slate-100 text-slate-900 font-medium" 
+                    : "text-slate-600 hover:bg-slate-50"
+                } rounded-l-md transition-colors`}
+                disabled={!resultUrl}
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <span>CSV</span>
+              </button>
+              <button
+                onClick={() => handleFormatToggle("json")}
+                className={`flex items-center gap-1 px-3 py-1 text-sm ${
+                  activeFormat === "json" 
+                    ? "bg-slate-100 text-slate-900 font-medium" 
+                    : "text-slate-600 hover:bg-slate-50"
+                } rounded-r-md transition-colors border-l`}
+                disabled={!jsonResultUrl}
+              >
+                <FileJson className="h-3.5 w-3.5" />
+                <span>JSON</span>
+              </button>
+            </div>
+          </div>
+        )}
         
         {isLimited && (
           <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 text-sm font-medium mt-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-md border border-yellow-200 dark:border-yellow-800">

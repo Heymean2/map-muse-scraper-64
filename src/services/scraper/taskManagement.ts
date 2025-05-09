@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapingRequest } from "./types";
 import { toast } from "sonner";
