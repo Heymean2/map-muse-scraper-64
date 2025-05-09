@@ -17,7 +17,7 @@ export default function AccountTab() {
         <p className="text-muted-foreground">Manage your account settings and preferences</p>
       </div>
       
-      <Tabs defaultValue="account" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full mb-8">
           <TabsTrigger value="account" className="flex items-center gap-1.5">
             <UserCircle className="h-4 w-4" />
