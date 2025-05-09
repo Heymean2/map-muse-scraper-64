@@ -27,7 +27,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/settings/*" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/account" element={<Profile />} />
           <Route path="/result/*" element={<Results />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="*" element={<NotFound />} />
