@@ -14,6 +14,11 @@ function getSupabaseClient(req: Request): SupabaseClient {
   const apikey = req.headers.get('apikey') || '';
 
   console.log("Authorization header present:", !!authorization);
+  if (authorization) {
+    console.log("Auth header starts with:", authorization.substring(0, 15) + "...");
+  } else {
+    console.log("WARNING: No authorization header found!");
+  }
   
   return createClient(
     Deno.env.get('SUPABASE_URL') || '',
@@ -64,19 +69,18 @@ serve(async (req) => {
   try {
     console.log("Edge function start-scraping received request");
     
-    // Log headers (without sensitive information)
-    const headers = Array.from(req.headers.entries())
-      .filter(([key]) => !key.toLowerCase().includes('authorization') && !key.toLowerCase().includes('apikey'))
-      .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
-    console.log("Request headers:", JSON.stringify(headers));
-    
-    // NEW: Explicitly log if Authorization header is present
-    const hasAuth = req.headers.has('Authorization');
-    console.log("Authorization header exists:", hasAuth);
-    if (hasAuth) {
-      const authHeader = req.headers.get('Authorization') || '';
-      console.log("Auth header starts with:", authHeader.substring(0, 15) + "...");
+    // Log all headers for debugging (redacting sensitive info)
+    console.log("--- REQUEST HEADERS ---");
+    for (const [key, value] of req.headers.entries()) {
+      if (key.toLowerCase() === 'authorization') {
+        console.log(`${key}: ${value.substring(0, 15)}...`);
+      } else if (key.toLowerCase() === 'apikey') {
+        console.log(`${key}: [REDACTED]`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
     }
+    console.log("---------------------");
     
     // Initialize Supabase client with user's JWT
     const supabase = getSupabaseClient(req);
@@ -89,7 +93,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Authentication error: " + userError.message
+          error: "Authentication error: " + userError.message,
+          debug: { has_auth_header: !!req.headers.get('Authorization') }
         }),
         { 
           status: 401, 
@@ -103,7 +108,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Unauthorized. Please sign in to use this feature." 
+          error: "Unauthorized. Please sign in to use this feature.",
+          debug: { has_auth_header: !!req.headers.get('Authorization') }
         }),
         { 
           status: 401, 

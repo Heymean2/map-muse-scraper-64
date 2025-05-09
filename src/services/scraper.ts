@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ScrapingRequest, UserPlanInfo } from "@/services/scraper/types";
@@ -56,14 +55,9 @@ export async function startScraping(scrapingConfig: {
     const { data: freshSession } = await supabase.auth.getSession();
     console.log("Session available:", !!freshSession.session);
     
-    // The supabase client will automatically include the Authorization header
+    // Make the edge function call
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: scrapingConfig,
-      // Explicitly set to include credentials and authorization
-      headers: {
-        "Content-Type": "application/json",
-        // IMPORTANT: Don't manually set Authorization header - let the Supabase client handle it
-      }
     });
 
     if (error) {

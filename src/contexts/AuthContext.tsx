@@ -11,7 +11,7 @@ type AuthContextType = {
   loading: boolean;
   isLoading: boolean;
   signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+  refreshSession: () => Promise<Session | null>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isLoading: true,
   signOut: async () => {},
-  refreshSession: async () => {},
+  refreshSession: async () => null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -105,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Session refreshed successfully");
       setSession(data.session);
       setUser(data.session?.user || null);
+      return data.session;
     } catch (error) {
       console.error("Failed to refresh session:", error);
       throw error;
