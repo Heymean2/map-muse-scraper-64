@@ -1,18 +1,16 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, AlertCircle, Check } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function ProfileSection() {
   const { user } = useAuth();
-  const { toast } = useToast();
   
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -20,19 +18,18 @@ export default function ProfileSection() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isEmailChangeLoading, setIsEmailChangeLoading] = useState(false);
   const [isPasswordChangeLoading, setIsPasswordChangeLoading] = useState(false);
+  const [emailSuccess, setEmailSuccess] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   
   // Handle email change
   const handleEmailChange = async () => {
     if (!newEmail) {
-      toast({
-        title: "Email Required",
-        description: "Please enter a new email address.",
-        variant: "destructive",
-      });
+      toast.error("Please enter a new email address.");
       return;
     }
     
     setIsEmailChangeLoading(true);
+    setEmailSuccess(false);
     
     try {
       const { error } = await supabase.auth.updateUser({ 
@@ -41,18 +38,12 @@ export default function ProfileSection() {
       
       if (error) throw error;
       
-      toast({
-        title: "Verification Email Sent",
-        description: "Please check your new email inbox to confirm the change.",
-      });
-      
-      setNewEmail("");
+      toast.success("Verification email sent. Please check your inbox.");
+      setEmailSuccess(true);
+      // Keep the email in the field so user remembers what they entered
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update email. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to update email. Please try again.");
+      setEmailSuccess(false);
     } finally {
       setIsEmailChangeLoading(false);
     }
@@ -61,146 +52,177 @@ export default function ProfileSection() {
   // Handle password change
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast({
-        title: "All Fields Required",
-        description: "Please fill in all password fields.",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all password fields.");
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "New password and confirmation must match.",
-        variant: "destructive",
-      });
+      toast.error("New password and confirmation don't match.");
       return;
     }
     
     if (newPassword.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
+      toast.error("Password must be at least 6 characters long.");
       return;
     }
     
     setIsPasswordChangeLoading(true);
+    setPasswordSuccess(false);
     
     try {
-      // Update the password directly
       const { error } = await supabase.auth.updateUser({ 
         password: newPassword 
       });
       
       if (error) throw error;
       
-      toast({
-        title: "Password Updated",
-        description: "Your password has been changed successfully.",
-      });
-      
+      toast.success("Password updated successfully.");
+      setPasswordSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to update password. Please try again.");
+      setPasswordSuccess(false);
     } finally {
       setIsPasswordChangeLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Account Management</CardTitle>
+    <Card className="border border-border shadow-sm">
+      <CardHeader className="bg-muted/50">
+        <CardTitle className="text-xl flex items-center gap-2">
+          <Lock className="h-5 w-5 text-primary" />
+          Account Management
+        </CardTitle>
         <CardDescription>Update your email and password</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-6">
         {/* Email Change Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Change Email</h3>
-          <div className="grid gap-2">
-            <div className="mb-2">
-              <Label htmlFor="current-email">Current Email</Label>
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
+              Email Settings
+            </h3>
+            {emailSuccess && (
+              <span className="text-sm text-green-600 flex items-center gap-1">
+                <Check className="h-4 w-4" />
+                Verification email sent
+              </span>
+            )}
+          </div>
+          
+          <div className="grid gap-3">
+            <div>
+              <Label htmlFor="current-email" className="text-sm font-medium">
+                Current Email
+              </Label>
               <Input 
                 id="current-email" 
                 value={user?.email || ""}
                 disabled
-                className="bg-slate-50"
-              />
-            </div>
-            <Label htmlFor="new-email">New Email Address</Label>
-            <div className="flex gap-2">
-              <Input 
-                id="new-email" 
-                type="email" 
-                placeholder="Enter new email" 
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-              />
-              <Button 
-                onClick={handleEmailChange}
-                disabled={isEmailChangeLoading || !newEmail}
-              >
-                {isEmailChangeLoading ? "Updating..." : "Update"}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              You'll need to verify your new email address before the change takes effect.
-            </p>
-          </div>
-        </div>
-        
-        <Separator />
-        
-        {/* Password Change Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Change Password</h3>
-          <div className="space-y-3">
-            <div className="grid gap-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <Input 
-                id="current-password" 
-                type="password" 
-                placeholder="Enter current password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="bg-muted/50 mt-1"
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="new-password">New Password</Label>
+            <div>
+              <Label htmlFor="new-email" className="text-sm font-medium">
+                New Email Address
+              </Label>
+              <div className="flex gap-2 mt-1">
+                <Input 
+                  id="new-email" 
+                  type="email" 
+                  placeholder="Enter new email" 
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleEmailChange}
+                  disabled={isEmailChangeLoading || !newEmail}
+                  className="whitespace-nowrap"
+                >
+                  {isEmailChangeLoading ? "Sending..." : "Update Email"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                You'll need to verify your new email address before the change takes effect.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Password Change Section */}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary" />
+              Password Settings
+            </h3>
+            {passwordSuccess && (
+              <span className="text-sm text-green-600 flex items-center gap-1">
+                <Check className="h-4 w-4" />
+                Password updated
+              </span>
+            )}
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="current-password" className="text-sm font-medium">
+                Current Password
+              </Label>
+              <Input 
+                id="current-password" 
+                type="password" 
+                placeholder="Enter your current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="new-password" className="text-sm font-medium">
+                New Password
+              </Label>
               <Input 
                 id="new-password" 
                 type="password" 
                 placeholder="Enter new password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                className="mt-1"
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <div>
+              <Label htmlFor="confirm-password" className="text-sm font-medium">
+                Confirm New Password
+              </Label>
               <Input 
                 id="confirm-password" 
                 type="password" 
-                placeholder="Confirm new password"
+                placeholder="Confirm your new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-1"
               />
+              {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Passwords don't match
+                </div>
+              )}
             </div>
             
             <Button 
               onClick={handlePasswordChange}
               disabled={isPasswordChangeLoading || !currentPassword || !newPassword || !confirmPassword}
-              className="mt-2"
+              className="w-full mt-2"
             >
               {isPasswordChangeLoading ? "Updating..." : "Update Password"}
             </Button>
