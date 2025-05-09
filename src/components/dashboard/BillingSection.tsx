@@ -26,13 +26,14 @@ export default function BillingSection() {
   });
   
   // Get available subscription plans from Supabase
+  // Using the actual columns available in the pricing_plans table
   const { data: subscriptionPlans, isLoading: plansLoading } = useQuery({
     queryKey: ['subscriptionPlans'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
-        .select('id, name, price, plan_type')
-        .eq('plan_type', 'subscription')
+        .select('id, name, price')
+        .eq('billing_period', 'monthly') // Filter by billing_period instead of plan_type
         .order('price', { ascending: true });
         
       if (error) throw error;

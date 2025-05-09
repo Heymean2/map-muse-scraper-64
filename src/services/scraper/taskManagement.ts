@@ -123,7 +123,7 @@ export async function getScrapingResults(taskId?: string | null): Promise<Scrapi
         created_at: data.created_at || new Date().toISOString()
       };
       
-      // Add search_info if not present in database
+      // Create search_info object
       const searchInfo = {
         keywords: data.keywords,
         location: `${data.country} - ${data.states}`,
