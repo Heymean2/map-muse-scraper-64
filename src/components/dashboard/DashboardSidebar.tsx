@@ -20,11 +20,20 @@ import {
   LogOut,
   User
 } from "lucide-react";
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
+
+// Preload billing components
+const preloadBillingComponents = () => {
+  // Dynamic import for the BillingSection component to preload it
+  import("@/components/dashboard/BillingSection").catch(err => 
+    console.error("Error preloading billing components:", err)
+  );
+};
 
 export default function DashboardSidebar() {
   const location = useLocation();
@@ -36,6 +45,11 @@ export default function DashboardSidebar() {
     enabled: !!user,
     staleTime: 60000 // Cache for 1 minute
   });
+  
+  // Preload billing components when dashboard loads
+  useEffect(() => {
+    preloadBillingComponents();
+  }, []);
   
   const isActive = (path: string) => {
     return location.pathname.startsWith(path);
@@ -60,12 +74,13 @@ export default function DashboardSidebar() {
     {
       title: "Profile",
       icon: UserCircle,
-      path: "/profile", // Changed from /dashboard/profile to /profile
+      path: "/profile", 
     },
     {
       title: "Billing",
       icon: CreditCard,
       path: "/dashboard/billing",
+      onMouseEnter: preloadBillingComponents, // Also preload on hover
     },
     {
       title: "Settings",
@@ -91,6 +106,7 @@ export default function DashboardSidebar() {
                   asChild 
                   isActive={isActive(item.path)}
                   tooltip={item.title}
+                  onMouseEnter={item.onMouseEnter}
                 >
                   <Link to={item.path}>
                     <item.icon className="w-5 h-5" />
