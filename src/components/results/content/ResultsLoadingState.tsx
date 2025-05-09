@@ -12,7 +12,7 @@ export default function ResultsLoadingState() {
       transition: {
         duration: 0.8,
         repeat: Infinity,
-        repeatType: "reverse"
+        repeatType: "reverse" as const // Fix typing issue by using "as const"
       }
     }
   };
@@ -82,7 +82,7 @@ export default function ResultsLoadingState() {
               transition={{ 
                 duration: 2, 
                 repeat: Infinity, 
-                repeatType: "reverse",
+                repeatType: "reverse" as const, // Fix typing issue
                 ease: "easeInOut"
               }}
             >

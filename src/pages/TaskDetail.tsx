@@ -6,7 +6,7 @@ import { getScrapingResults } from "@/services/scraper/taskManagement";
 import { Button } from "@/components/ui/button";
 import { 
   ArrowLeft, Clock, RefreshCw, X, ChevronRight, 
-  Calendar, Tag, MapPin, Check, Download, Share2 
+  Calendar, Tag, MapPin, Check, Download, Share2, AlertCircle 
 } from "lucide-react";
 import ResultsContent from "@/components/results/ResultsContent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";

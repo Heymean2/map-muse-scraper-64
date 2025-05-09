@@ -43,6 +43,13 @@ export default function ResultsTabbedContent({
     return data;
   };
 
+  // Ensure fields is always an array before using join method
+  const ensureArray = (value: any) => {
+    if (Array.isArray(value)) return value;
+    if (value === null || value === undefined) return [];
+    return [value]; // Convert single value to array
+  };
+
   return (
     <>
       <CardHeader className="bg-slate-50 dark:bg-slate-800 border-b">
@@ -107,7 +114,7 @@ export default function ResultsTabbedContent({
                 searchInfo={{
                   keywords: searchInfo?.keywords,
                   location: searchInfo?.location,
-                  fields: searchInfo?.fields,
+                  fields: ensureArray(searchInfo?.fields), // Ensure fields is an array
                   rating: searchInfo?.rating
                 }}
                 completedAt={updated_at}
