@@ -42,6 +42,8 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
     }
 
     if (isMobile) {
+      const SIDEBAR_WIDTH_MOBILE = "18rem";
+      
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
           <SheetContent
