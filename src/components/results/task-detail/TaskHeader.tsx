@@ -53,8 +53,8 @@ export default function TaskHeader({
   };
 
   return (
-    <div className="bg-slate-50 border-b py-6">
-      <div className="container max-w-6xl mx-auto px-4">
+    <div className="bg-white border-b py-6">
+      <div className="max-w-5xl mx-auto px-4">
         <div className="flex flex-col gap-6">
           <div className="flex justify-between items-center">
             <Button

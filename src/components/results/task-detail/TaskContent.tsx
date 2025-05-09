@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
 import { Button } from "@/components/ui/button";
 import { Download, Eye } from "lucide-react";
+import SearchInfoCard from "@/components/results/SearchInfoCard";
 
 interface TaskContentProps {
   taskId: string | null;
@@ -29,10 +30,27 @@ export default function TaskContent({
     return () => {};
   };
 
+  // Get search info from various possible locations in the results object
+  const getSearchInfo = () => {
+    if (results?.search_info) {
+      return results.search_info;
+    }
+    
+    // Try to extract from the results object directly if needed
+    return {
+      keywords: results?.keywords || '',
+      location: results?.location || '',
+      fields: results?.fields || [],
+      data: results?.data || []
+    };
+  };
+  
+  const searchInfo = getSearchInfo();
+
   // Display the completed success message if no data or task is completed
-  if (results?.status === "completed" && (!results?.search_info?.data || !results?.search_info?.data.length)) {
+  if (results?.status === "completed" && (!searchInfo?.data || !searchInfo?.data.length)) {
     return (
-      <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         <Card className="overflow-hidden border bg-white shadow-sm">
           <CardContent className="p-8">
             <motion.div
@@ -79,28 +97,28 @@ export default function TaskContent({
               <CardTitle className="text-lg font-medium">Search Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {results?.search_info?.keywords && (
+              {searchInfo?.keywords && (
                 <div className="flex justify-between">
                   <span className="text-sm text-slate-500">Keywords</span>
-                  <span className="text-sm font-medium">{results.search_info.keywords}</span>
+                  <span className="text-sm font-medium">{searchInfo.keywords}</span>
                 </div>
               )}
               
-              {results?.search_info?.location && (
+              {searchInfo?.location && (
                 <div className="flex justify-between">
                   <span className="text-sm text-slate-500">Location</span>
-                  <span className="text-sm font-medium">{results.search_info.location}</span>
+                  <span className="text-sm font-medium">{searchInfo.location}</span>
                 </div>
               )}
               
-              {results?.search_info?.fields && (
+              {searchInfo?.fields && (
                 <div className="flex justify-between">
                   <span className="text-sm text-slate-500">Fields</span>
                   <span className="text-sm font-medium">
-                    {Array.isArray(results.search_info.fields) 
-                      ? results.search_info.fields.join(", ")
-                      : typeof results.search_info.fields === 'string'
-                        ? results.search_info.fields
+                    {Array.isArray(searchInfo.fields) 
+                      ? searchInfo.fields.join(", ")
+                      : typeof searchInfo.fields === 'string'
+                        ? searchInfo.fields
                         : ''}
                   </span>
                 </div>
@@ -143,7 +161,7 @@ export default function TaskContent({
   }
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       <Card className="overflow-hidden shadow-sm border bg-white">
         <CardContent className="p-0">
           <ResultsContent 
@@ -157,6 +175,22 @@ export default function TaskContent({
           />
         </CardContent>
       </Card>
+      
+      {searchInfo && (
+        <div className="mt-6">
+          <SearchInfoCard 
+            searchInfo={{
+              keywords: searchInfo.keywords,
+              location: searchInfo.location,
+              fields: Array.isArray(searchInfo.fields) ? searchInfo.fields : 
+                typeof searchInfo.fields === 'string' ? searchInfo.fields.split(',') : [],
+              rating: searchInfo.rating
+            }}
+            totalCount={results?.total_count || 0}
+            completedAt={results?.updated_at}
+          />
+        </div>
+      )}
     </div>
   );
 }

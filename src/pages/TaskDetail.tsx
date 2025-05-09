@@ -52,33 +52,78 @@ export default function TaskDetail() {
     if (value === null || value === undefined) return [];
     return [String(value)]; // Convert single value to array
   };
-
-  // Extract task-specific properties safely
-  const taskKeywords = taskResults && 'keywords' in taskResults ? taskResults.keywords : (
-    taskResults?.search_info?.keywords || 'Task Details'
-  );
-  const taskCreatedAt = taskResults && 'created_at' in taskResults ? taskResults.created_at : null;
-  const searchInfo = taskResults && 'search_info' in taskResults ? taskResults.search_info : null;
-  const resultUrl = taskResults && 'result_url' in taskResults ? taskResults.result_url : null;
-  const isLimited = taskResults && 'limited' in taskResults ? taskResults.limited : false;
-  const currentPlan = taskResults && 'current_plan' in taskResults ? taskResults.current_plan : null;
-  const taskStatus = taskResults && 'status' in taskResults ? taskResults.status : 'processing';
-
-  // Safely access the fields
-  const fieldsArray = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+  
+  // Safely access task data regardless of structure
+  const getTaskData = () => {
+    if (!taskResults) return null;
+    
+    // Extract task-specific properties safely
+    let keywords;
+    let createdAt;
+    let searchInfo;
+    let resultUrl;
+    let isLimited;
+    let currentPlan;
+    let status;
+    let fields;
+    
+    // Handle possible different data structures
+    if ('keywords' in taskResults) {
+      keywords = taskResults.keywords;
+    } else if (taskResults.search_info?.keywords) {
+      keywords = taskResults.search_info.keywords;
+    } else {
+      keywords = 'Task Details';
+    }
+    
+    createdAt = 'created_at' in taskResults ? taskResults.created_at : null;
+    resultUrl = 'result_url' in taskResults ? taskResults.result_url : null;
+    isLimited = 'limited' in taskResults ? taskResults.limited : false;
+    currentPlan = 'current_plan' in taskResults ? taskResults.current_plan : null;
+    status = 'status' in taskResults ? taskResults.status : 'processing';
+    
+    // Get search info
+    if ('search_info' in taskResults) {
+      searchInfo = taskResults.search_info;
+      fields = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+    } else {
+      // Fallback if search_info doesn't exist
+      searchInfo = {
+        keywords,
+        location: taskResults.location,
+        fields: taskResults.fields
+      };
+      fields = searchInfo?.fields ? ensureArray(searchInfo.fields) : [];
+    }
+    
+    return {
+      keywords,
+      createdAt,
+      searchInfo,
+      resultUrl,
+      isLimited,
+      currentPlan,
+      status,
+      fields
+    };
+  };
+  
+  const taskData = getTaskData();
 
   return (
     <TaskDetailLayout>
       <div className="bg-white min-h-screen">
-        <TaskHeader 
-          title={searchInfo?.keywords || taskKeywords || "Task Details"}
-          status={taskStatus as string}
-          createdAt={taskCreatedAt}
-          location={searchInfo?.location}
-          fields={fieldsArray}
-          resultUrl={resultUrl}
-          onRefresh={handleRefresh}
-        />
+        {taskData && (
+          <TaskHeader 
+            title={taskData.keywords || "Task Details"}
+            status={taskData.status as string}
+            createdAt={taskData.createdAt}
+            location={taskData.searchInfo?.location}
+            fields={taskData.fields}
+            resultUrl={taskData.resultUrl}
+            onRefresh={handleRefresh}
+          />
+        )}
         
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -88,7 +133,7 @@ export default function TaskDetail() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="container max-w-6xl mx-auto px-4 py-12 flex justify-center"
+              className="max-w-5xl mx-auto px-4 py-12 flex justify-center"
             >
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
@@ -102,7 +147,7 @@ export default function TaskDetail() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="container max-w-6xl mx-auto px-4 py-12"
+              className="max-w-5xl mx-auto px-4 py-12"
             >
               <Card className="p-5 border rounded bg-red-50 text-red-700 flex items-center justify-center flex-col">
                 <AlertCircle className="h-10 w-10 mb-4 text-red-500" />
@@ -125,8 +170,8 @@ export default function TaskDetail() {
               results={taskResults}
               isLoading={isLoading}
               error={error}
-              isLimited={isLimited}
-              planInfo={currentPlan}
+              isLimited={taskData?.isLimited || false}
+              planInfo={taskData?.currentPlan}
             />
           )}
         </AnimatePresence>
