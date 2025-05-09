@@ -53,51 +53,33 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
-          company: string | null
           created_at: string
           credits: number | null
           email: string
-          full_name: string | null
           id: string
           is_admin: boolean | null
-          job_title: string | null
-          location: string | null
           notification_settings: Json | null
           plan_id: number | null
           total_rows: number | null
           updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          company?: string | null
           created_at?: string
           credits?: number | null
           email: string
-          full_name?: string | null
           id: string
           is_admin?: boolean | null
-          job_title?: string | null
-          location?: string | null
           notification_settings?: Json | null
           plan_id?: number | null
           total_rows?: number | null
           updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          company?: string | null
           created_at?: string
           credits?: number | null
           email?: string
-          full_name?: string | null
           id?: string
           is_admin?: boolean | null
-          job_title?: string | null
-          location?: string | null
           notification_settings?: Json | null
           plan_id?: number | null
           total_rows?: number | null

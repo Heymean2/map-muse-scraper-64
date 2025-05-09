@@ -18,7 +18,7 @@ export default function Profile() {
             <h1 className="text-3xl font-bold">Account Settings</h1>
             <p className="text-muted-foreground">Manage your account information and settings</p>
           </div>
-          <Link to="/dashboard/billing">
+          <Link to="/dashboard/settings">
             <Button variant="outline" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
