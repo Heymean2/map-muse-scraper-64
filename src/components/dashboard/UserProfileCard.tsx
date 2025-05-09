@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { User, UserCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface UserProfile {
   id: string;
@@ -23,39 +24,63 @@ interface UserProfile {
 }
 
 export default function UserProfileCard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   
   // Fetch user profile data
-  const { data: profile, isLoading, error } = useQuery({
-    queryKey: ['userProfile'],
+  const { data: profile, isLoading, error, refetch } = useQuery({
+    queryKey: ['userProfile', user?.id],
     queryFn: async (): Promise<UserProfile | null> => {
       if (!user) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, plan:pricing_plans(*)')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast({
-          title: "Error loading profile",
-          description: "Could not fetch your profile information",
-          variant: "destructive"
-        });
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*, plan:pricing_plans(*)')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast({
+            title: "Error loading profile",
+            description: "Could not fetch your profile information",
+            variant: "destructive"
+          });
+          throw error;
+        }
+        
+        return data;
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        throw err;
       }
-      
-      return data;
     },
     enabled: !!user,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    retry: 1
   });
 
-  if (isLoading) {
+  if (authLoading) {
     return <ProfileCardSkeleton />;
+  }
+
+  if (!user) {
+    return (
+      <Card className="border border-border shadow-sm overflow-hidden">
+        <CardHeader className="bg-muted/50 pb-4">
+          <CardTitle className="text-xl">User Profile</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-muted-foreground mb-4">
+            You need to be signed in to view your profile.
+          </div>
+          <Button asChild>
+            <a href="/auth">Sign In</a>
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error || !profile) {
@@ -65,9 +90,12 @@ export default function UserProfileCard() {
           <CardTitle className="text-xl">User Profile</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground mb-4">
             Could not load profile data. Please try again later.
           </div>
+          <Button onClick={() => refetch()} variant="outline" size="sm">
+            Retry
+          </Button>
         </CardContent>
       </Card>
     );
