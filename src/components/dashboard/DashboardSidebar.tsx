@@ -60,7 +60,7 @@ export default function DashboardSidebar() {
     {
       title: "Profile",
       icon: UserCircle,
-      path: "/dashboard/profile",
+      path: "/profile", // Changed from /dashboard/profile to /profile
     },
     {
       title: "Billing",
