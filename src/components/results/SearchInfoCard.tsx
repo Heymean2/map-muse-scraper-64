@@ -24,7 +24,11 @@ export default function SearchInfoCard({
   const getFieldsArray = () => {
     if (!searchInfo?.fields) return [];
     if (Array.isArray(searchInfo.fields)) return searchInfo.fields;
-    return [searchInfo.fields]; // Convert string to array with single item
+    if (typeof searchInfo.fields === 'string') {
+      // Handle comma-separated string
+      return searchInfo.fields.split(',').map(field => field.trim());
+    }
+    return [String(searchInfo.fields)]; // Convert non-string to string and wrap in array
   };
 
   const fieldsArray = getFieldsArray();

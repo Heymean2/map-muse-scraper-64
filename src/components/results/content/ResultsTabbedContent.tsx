@@ -46,8 +46,12 @@ export default function ResultsTabbedContent({
   // Ensure fields is always an array before using join method
   const ensureArray = (value: any) => {
     if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      // Handle comma-separated string
+      return value.split(',').map(item => item.trim());
+    }
     if (value === null || value === undefined) return [];
-    return [value]; // Convert single value to array
+    return [String(value)]; // Convert single value to array
   };
 
   return (
@@ -114,7 +118,7 @@ export default function ResultsTabbedContent({
                 searchInfo={{
                   keywords: searchInfo?.keywords,
                   location: searchInfo?.location,
-                  fields: ensureArray(searchInfo?.fields), // Ensure fields is an array
+                  fields: searchInfo?.fields, // The fields property will be properly handled in SearchInfoCard
                   rating: searchInfo?.rating
                 }}
                 completedAt={updated_at}
