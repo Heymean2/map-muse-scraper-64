@@ -17,7 +17,7 @@ import RatingSelector from "./scraper/RatingSelector";
 
 export default function ScraperForm() {
   const navigate = useNavigate();
-  const { user, session } = useAuth();
+  const { user, session, refreshSession } = useAuth();
   
   // Form state
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +34,9 @@ export default function ScraperForm() {
   
   // Rating state
   const [selectedRating, setSelectedRating] = useState<string>("");
+  
+  // Error state
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -50,6 +53,9 @@ export default function ScraperForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear any previous errors
+    setFormError(null);
+    
     // Double-check authentication
     if (!user) {
       toast.error("You must be logged in to use this feature");
@@ -60,35 +66,49 @@ export default function ScraperForm() {
     setIsLoading(true);
     
     try {
-      // Validate form
+      // Form validation
       if (!useKeyword && !selectedCategory) {
+        setFormError("Please select a category or use a keyword");
         toast.error("Please select a category or use a keyword");
         setIsLoading(false);
         return;
       }
       
       if (!selectedCountry) {
+        setFormError("Please select a country");
         toast.error("Please select a country");
         setIsLoading(false);
         return;
       }
       
       if (selectedStates.length === 0) {
+        setFormError("Please select at least one state");
         toast.error("Please select at least one state");
         setIsLoading(false);
         return;
       }
       
       if (selectedDataTypes.length === 0) {
+        setFormError("Please select at least one data type to extract");
         toast.error("Please select at least one data type to extract");
         setIsLoading(false);
         return;
       }
       
+      // Ensure session is fresh
+      try {
+        await refreshSession();
+      } catch (refreshError) {
+        console.error("Failed to refresh session:", refreshError);
+        // Continue anyway, the scraper service will handle this
+      }
+      
       // Prepare keywords
       const keywords = useKeyword ? searchQuery : selectedCategory;
       
-      // Start scraping
+      // Start scraping with loading toast
+      const toastId = toast.loading("Starting scraping process...");
+      
       const result = await startScraping({
         keywords,
         country: selectedCountry,
@@ -98,15 +118,19 @@ export default function ScraperForm() {
       });
       
       if (result.success) {
+        toast.dismiss(toastId);
         toast.success("Scraping started successfully");
         // Redirect to results page with task ID
         navigate(`/result${result.task_id ? `?task_id=${result.task_id}` : ''}`);
       } else {
+        toast.dismiss(toastId);
         toast.error(result.error || "Failed to start scraping");
+        setFormError(result.error || "Failed to start scraping");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error);
       toast.error("An error occurred while processing your request");
+      setFormError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +162,12 @@ export default function ScraperForm() {
         <div className="w-full max-w-xl">
           <Card className={`glass-card ${withDelay(animationClasses.fadeIn, 300)}`}>
             <CardContent className="pt-6">
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                  {formError}
+                </div>
+              )}
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <CategorySelector 
                   searchQuery={searchQuery}
@@ -166,7 +196,15 @@ export default function ScraperForm() {
                 />
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Processing..." : "Start Scraping"}
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : "Start Scraping"}
                 </Button>
               </form>
             </CardContent>

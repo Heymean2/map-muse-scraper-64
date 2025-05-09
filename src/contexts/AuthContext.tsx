@@ -103,7 +103,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setSession(data.session);
       setUser(data.session?.user || null);
-      return data.session;
+      
+      // Changed to return void instead of the session
     } catch (error) {
       console.error("Failed to refresh session:", error);
       throw error;
