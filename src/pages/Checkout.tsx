@@ -52,7 +52,7 @@ export default function Checkout() {
   const packageSizeParam = searchParams.get("packageSize");
   // Convert packageSize to number explicitly, ensuring it's a valid number
   const [creditQuantity, setCreditQuantity] = useState<number>(
-    packageSizeParam ? Number(parseInt(packageSizeParam)) || 1 : 1
+    packageSizeParam ? Number(packageSizeParam) || 1 : 1
   );
   
   const creditPrice = planData?.price_per_credit || 0.001;
@@ -80,7 +80,7 @@ export default function Checkout() {
 
   // PayPal configuration options
   const paypalOptions = {
-    "client-id": "test", // Replace with actual client ID in production
+    clientId: "test", // Replace with actual client ID in production
     currency: "USD",
     intent: "capture",
   };

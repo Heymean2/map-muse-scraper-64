@@ -2,7 +2,7 @@
 // Type definitions for PayPal JavaScript SDK
 // These types supplement the @paypal/react-paypal-js package types
 
-import { PayPalScriptOptions } from '@paypal/react-paypal-js';
+import { PayPalScriptOptions as ReactPayPalScriptOptions } from '@paypal/react-paypal-js';
 
 // Extend the window interface for any custom PayPal properties we might need
 declare global {
@@ -24,5 +24,12 @@ export interface PayPalTransactionDetails {
   };
 }
 
+// Extending the PayPalScriptOptions to match our usage
+export interface PayPalScriptOptions extends ReactPayPalScriptOptions {
+  clientId: string;
+  currency: string;
+  intent: string;
+}
+
 // Re-export types from the official package for convenience
-export type { PayPalScriptOptions };
+export type { ReactPayPalScriptOptions };

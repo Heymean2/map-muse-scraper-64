@@ -53,6 +53,7 @@ export function PayPalButtons({
           return actions.order.create({
             purchase_units: [{
               amount: {
+                currency_code: "USD",
                 value: totalAmount.toFixed(2)
               },
               description: planType === 'subscription' 
