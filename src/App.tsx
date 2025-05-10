@@ -21,9 +21,6 @@ import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
 import Billing from "@/pages/Billing";
 
-// Create a client
-const queryClient = new QueryClient();
-
 // Route listener component to save routes
 function RouteListener() {
   const location = useLocation();
@@ -36,6 +33,9 @@ function RouteListener() {
 }
 
 function App() {
+  // Create a new QueryClient instance inside the component
+  const queryClient = new QueryClient();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

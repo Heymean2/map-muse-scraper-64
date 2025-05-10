@@ -10,7 +10,6 @@ export function usePaymentProcessing() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const session = supabase.auth.getSession();
 
   // Create order for PayPal
   const createOrder = async (selectedPlan: any) => {
@@ -24,8 +23,8 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const sessionResponse = await session;
-      const token = sessionResponse.data.session?.access_token;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
@@ -79,8 +78,8 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const sessionResponse = await session;
-      const token = sessionResponse.data.session?.access_token;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
