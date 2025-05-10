@@ -47,17 +47,17 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
   };
 
   return (
-    <Card className="overflow-hidden border-slate-200 hover:shadow-md transition-all">
+    <Card className="overflow-hidden border-slate-200 hover:shadow-card-hover transition-all">
       <CardHeader className="bg-slate-50 border-b border-slate-100">
         <CardTitle className="flex items-center gap-2">
           {isCreditPlan ? (
             <>
-              <CreditCard className="h-5 w-5 text-google-blue" />
+              <CreditCard className="h-5 w-5 text-violet-primary" />
               <span>Credit Package</span>
             </>
           ) : (
             <>
-              <CalendarClock className="h-5 w-5 text-google-blue" />
+              <CalendarClock className="h-5 w-5 text-violet-primary" />
               <span>{selectedPlan.name}</span>
             </>
           )}
@@ -65,7 +65,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
       </CardHeader>
       <CardContent className="p-6">
         <div className="mb-4">
-          <div className="text-2xl font-bold text-google-blue">${calculateTotal()}</div>
+          <div className="text-2xl font-bold text-violet-primary">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
               ? `$${formatPricePerCredit(getPricePerCredit())} per credit × ${customCredits?.toLocaleString() || ""} credits`

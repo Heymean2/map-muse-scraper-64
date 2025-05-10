@@ -79,9 +79,9 @@ export default function DashboardSidebar() {
       title: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
-      color: "text-google-blue",
+      color: "text-violet-primary",
       hoverBg: "hover:bg-primary-subtle",
-      activeColor: "group-data-[active=true]:text-google-blue"
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "Results",
@@ -89,7 +89,7 @@ export default function DashboardSidebar() {
       path: "/result",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-google-blue"
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "New Scrape",
@@ -97,7 +97,7 @@ export default function DashboardSidebar() {
       path: "/dashboard/scrape",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-google-blue"
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "Profile",
@@ -105,7 +105,7 @@ export default function DashboardSidebar() {
       path: "/profile",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-google-blue"
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "Billing",
@@ -113,7 +113,7 @@ export default function DashboardSidebar() {
       path: "/dashboard/billing",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-google-blue",
+      activeColor: "group-data-[active=true]:text-violet-primary",
       onMouseEnter: handleBillingHover,
     },
     {
@@ -121,8 +121,8 @@ export default function DashboardSidebar() {
       icon: Settings,
       path: "/dashboard/settings",
       color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-google-blue"
+      hoverBg: "hover:bg-slate-50", 
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
   ];
 
@@ -130,7 +130,7 @@ export default function DashboardSidebar() {
     <Sidebar className="border-r border-slate-200">
       <SidebarHeader className="p-4 mt-4">
         <div className="flex items-center gap-2">
-          <MapPin className="h-6 w-6 text-google-red" />
+          <MapPin className="h-6 w-6 text-violet-primary" />
           <Link to="/dashboard" className="text-xl font-semibold">
             MapScraper
           </Link>
@@ -150,7 +150,7 @@ export default function DashboardSidebar() {
                   className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg}`}
                 >
                   <Link to={item.path} className="transition-colors flex items-center space-x-3">
-                    <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-google-blue" : item.color} transition-all duration-300 group-hover:scale-110`} />
+                    <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-violet-primary" : item.color} transition-all duration-300 group-hover:scale-110`} />
                     <span className="group-hover:translate-x-1 transition-transform duration-300">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
@@ -165,7 +165,7 @@ export default function DashboardSidebar() {
           <div 
             className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors"
           >
-            <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-google-blue">
+            <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-violet-primary">
               <User className="w-5 h-5" />
             </div>
             <div className="flex flex-col">

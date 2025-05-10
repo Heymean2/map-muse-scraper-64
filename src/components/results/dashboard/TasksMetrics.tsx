@@ -23,10 +23,10 @@ export default function TasksMetrics({
       title: "Total Tasks",
       value: totalTasks,
       icon: MapPin,
-      color: "text-google-blue",
+      color: "text-violet-primary",
       bgColor: "bg-primary-subtle",
       borderColor: "border-primary-subtle",
-      ringClass: "before:ring-google-blue/10"
+      ringClass: "before:ring-violet-primary/10"
     },
     {
       title: "Completed",
@@ -62,7 +62,7 @@ export default function TasksMetrics({
       {metrics.map((metric) => (
         <Card 
           key={metric.title} 
-          className={`relative overflow-hidden transition-all hover:shadow-md border-slate-100 hover:translate-y-[-2px] duration-300`}
+          className={`relative overflow-hidden transition-all hover:shadow-card-hover border-slate-100 hover:translate-y-[-2px] duration-300`}
         >
           <div className="p-6">
             <div className="flex items-center justify-between">

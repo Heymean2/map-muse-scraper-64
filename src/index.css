@@ -17,19 +17,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 20%;
 
-    /* Google Blue as primary (30%) */
-    --primary: 217 89% 61%;
+    /* Violet as primary (30%) - was Google Blue */
+    --primary: 260 30% 54%;
     --primary-foreground: 0 0% 100%;
 
-    /* Google Green as secondary - used selectively */
-    --secondary: 135 55% 43%;
+    /* Light violet as secondary - used selectively */
+    --secondary: 255 86% 75%;
     --secondary-foreground: 0 0% 100%;
 
     /* Muted neutrals - part of the 60% */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 220 15% 40%;
+    --muted: 260 30% 96.1%;
+    --muted-foreground: 260 15% 40%;
 
-    /* Google Red as accent - used sparingly (10%) */
+    /* Keep red as accent - used sparingly (10%) */
     --accent: 5 90% 56%;
     --accent-foreground: 0 0% 100%;
 
@@ -38,9 +38,9 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Subtle borders - part of the 60% */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 260 31.8% 91.4%;
+    --input: 260 31.8% 91.4%;
+    --ring: 260 84% 54.9%;
 
     --radius: 0.75rem;
 
@@ -50,12 +50,12 @@
     /* Sidebar follows the same 60-30-10 principle */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 20%;
-    --sidebar-primary: 217 89% 61%;
+    --sidebar-primary: 260 30% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 89% 95%;
-    --sidebar-accent-foreground: 217 89% 40%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 260 30% 95%;
+    --sidebar-accent-foreground: 260 30% 40%;
+    --sidebar-border: 260 13% 91%;
+    --sidebar-ring: 260 91.2% 59.8%;
   }
 
   .dark {
@@ -69,16 +69,16 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    /* Maintain color identities across modes */
-    --primary: 217 89% 61%;
+    /* Maintain violet identity across modes */
+    --primary: 260 30% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 135 55% 43%;
+    --secondary: 255 86% 75%;
     --secondary-foreground: 0 0% 100%;
 
     /* Darker muted colors */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 260 32.6% 17.5%;
+    --muted-foreground: 260 20.2% 65.1%;
 
     --accent: 5 90% 56%;
     --accent-foreground: 0 0% 100%;
@@ -86,21 +86,21 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 260 32.6% 17.5%;
+    --input: 260 32.6% 17.5%;
+    --ring: 260 26.8% 83.9%;
     
     --header-bg: 222.2 47.4% 11.2%;
     --header-bg-alpha: 22, 23, 29;
     
     --sidebar-background: 222.2 47.4% 11.2%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 89% 61%;
+    --sidebar-primary: 260 30% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 80% 25%;
+    --sidebar-accent: 260 80% 25%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 32.6% 17.5%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 260 32.6% 17.5%;
+    --sidebar-ring: 260 91.2% 59.8%;
   }
 }
 
@@ -130,7 +130,7 @@
   }
   
   .map-pin::before {
-    @apply content-[''] absolute -left-1 top-1/2 w-2 h-2 rounded-full bg-primary;
+    @apply content-[''] absolute -left-1 top-1/2 w-2 h-2 rounded-full bg-violet-primary;
   }
   
   .map-grid {
@@ -140,20 +140,20 @@
   
   /* Modern cards with refined design */
   .modern-card {
-    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all;
+    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all;
   }
   
   .primary-card {
-    @apply rounded-xl bg-google-blue/5 border border-google-blue/20 shadow-sm hover:shadow-md transition-all;
+    @apply rounded-xl bg-violet-primary/5 border border-violet-primary/20 shadow-sm hover:shadow-card-hover transition-all;
   }
   
   .accent-card {
-    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all;
+    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all;
   }
   
   /* Refined button styles */
   .btn-primary {
-    @apply bg-google-blue text-white hover:bg-google-blue/90 transition-colors;
+    @apply bg-violet-primary text-white hover:bg-violet-primary/90 transition-colors;
   }
   
   .btn-outline {
@@ -190,7 +190,7 @@
 
 /* Soft shadow */
 .shadow-soft {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px rgba(126, 105, 171, 0.08);
 }
 
 /* Scrollbar styling */
@@ -204,24 +204,24 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(126, 105, 171, 0.2);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(126, 105, 171, 0.3);
 }
 
 /* Map-inspired pulse animation - refined for subtlety */
 @keyframes map-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.3);
+    box-shadow: 0 0 0 0 rgba(126, 105, 171, 0.3);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+    box-shadow: 0 0 0 10px rgba(126, 105, 171, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+    box-shadow: 0 0 0 0 rgba(126, 105, 171, 0);
   }
 }
 
@@ -239,7 +239,7 @@
 
 /* New utility classes for 60-30-10 rule */
 .bg-primary-subtle {
-  @apply bg-google-blue/5;
+  @apply bg-violet-primary/5;
 }
 
 .bg-secondary-subtle {
@@ -255,7 +255,7 @@
 }
 
 .border-primary-subtle {
-  @apply border-google-blue/20;
+  @apply border-violet-primary/20;
 }
 
 .border-secondary-subtle {
@@ -268,4 +268,29 @@
 
 .border-warning-subtle {
   @apply border-google-yellow/20;
+}
+
+/* New violet-specific utility classes */
+.bg-violet-gradient {
+  @apply bg-gradient-violet;
+}
+
+.bg-violet-soft-gradient {
+  @apply bg-gradient-violet-soft;
+}
+
+.text-violet {
+  @apply text-violet-primary;
+}
+
+.text-violet-light {
+  @apply text-violet-light;
+}
+
+.hover-violet {
+  @apply hover:text-violet-primary transition-colors duration-200;
+}
+
+.card-hover {
+  @apply hover:shadow-card-hover transition-all duration-300 hover:translate-y-[-2px];
 }

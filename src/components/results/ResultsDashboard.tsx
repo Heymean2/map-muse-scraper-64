@@ -81,7 +81,7 @@ export default function ResultsDashboard({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard" className="text-google-blue hover:text-google-blue/80">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard" className="text-violet-primary hover:text-violet-primary/80">Dashboard</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -90,7 +90,7 @@ export default function ResultsDashboard({
             </BreadcrumbList>
           </Breadcrumb>
           <h1 className="text-2xl font-bold mt-2 flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-google-blue" />
+            <MapPin className="h-6 w-6 text-violet-primary" />
             Scraping Results
           </h1>
         </div>
@@ -108,7 +108,7 @@ export default function ResultsDashboard({
           
           <Button
             onClick={handleNewTask}
-            className="gap-1 bg-google-blue hover:bg-google-blue/90 transition-colors"
+            className="gap-1 bg-violet-primary hover:bg-violet-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New Task</span>
@@ -122,7 +122,7 @@ export default function ResultsDashboard({
         <Input 
           type="text" 
           placeholder="Search tasks by keyword..." 
-          className="pl-10 border-slate-200 focus:border-google-blue focus:ring-google-blue/20"
+          className="pl-10 border-slate-200 focus:border-violet-primary focus:ring-violet-primary/20"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -143,21 +143,21 @@ export default function ResultsDashboard({
           <TabsList className="bg-slate-100">
             <TabsTrigger 
               value="list" 
-              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
+              className="flex items-center gap-1 data-[state=active]:bg-violet-primary data-[state=active]:text-white"
             >
               <LayoutList className="h-4 w-4" />
               <span>List</span>
             </TabsTrigger>
             <TabsTrigger 
               value="board" 
-              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
+              className="flex items-center gap-1 data-[state=active]:bg-violet-primary data-[state=active]:text-white"
             >
               <LayoutGrid className="h-4 w-4" />
               <span>Board</span>
             </TabsTrigger>
             <TabsTrigger 
               value="calendar" 
-              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
+              className="flex items-center gap-1 data-[state=active]:bg-violet-primary data-[state=active]:text-white"
             >
               <CalendarDays className="h-4 w-4" />
               <span>Calendar</span>
@@ -167,7 +167,7 @@ export default function ResultsDashboard({
       </div>
 
       {/* Content Based on View Mode */}
-      <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-all">
+      <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-card-hover transition-all">
         <CardContent className="p-0">
           {viewMode === 'list' && (
             <TasksListView 

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,12 +62,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Google Maps inspired colors - using strategic colors
+				// Violet palette replacing Google colors
+				violet: {
+					primary: '#7E69AB',    // Dark violet (replaces blue)
+					light: '#9B87F5',      // Light violet accent
+					subtle: '#D6BCFA',     // Very light violet for backgrounds
+					dark: '#1A1F2C',       // Darker shade
+				},
+				// Keep some original colors for functionality
 				google: {
-					blue: '#4285F4',    // Primary brand color (30%)
-					red: '#EA4335',     // Accent color (used sparingly, 10%)
-					yellow: '#FBBC05',  // Accent color (used sparingly, 10%) 
-					green: '#34A853',   // Accent color (used sparingly, 10%)
+					red: '#EA4335',     // Keep for errors/destructive actions
+					yellow: '#FBBC05',  // Keep for warnings
+					green: '#34A853',   // Keep for success states
 				}
 			},
 			borderRadius: {
@@ -123,6 +128,14 @@ export default {
 			fontFamily: {
 				// Modern, clean font family
 				sans: ['Inter', 'system-ui', 'sans-serif'],
+			},
+			boxShadow: {
+				'card-hover': '0 10px 15px -3px rgba(126, 105, 171, 0.1), 0 4px 6px -2px rgba(126, 105, 171, 0.05)',
+				'subtle': '0 2px 10px rgba(126, 105, 171, 0.08)',
+			},
+			backgroundImage: {
+				'gradient-violet': 'linear-gradient(135deg, #9B87F5 0%, #7E69AB 100%)',
+				'gradient-violet-soft': 'linear-gradient(135deg, #D6BCFA 0%, #9B87F5 100%)',
 			},
 		}
 	},
