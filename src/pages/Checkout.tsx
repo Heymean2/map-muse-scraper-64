@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -27,7 +26,7 @@ interface PlanInfo {
 
 // Component for credit card form
 const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }) => {
-  const { cardFields, getState } = usePayPalHostedFields();
+  const { cardFields } = usePayPalHostedFields();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submitHandler = () => {
@@ -50,7 +49,7 @@ const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }
     });
   };
   
-  const isFormInvalid = !cardFields || !getState()?.isComplete;
+  const isFormInvalid = !cardFields;
 
   return (
     <div className="mt-6">
@@ -73,6 +72,10 @@ const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }
             <PayPalHostedField
               id="card-number"
               hostedFieldType="number"
+              options={{
+                selector: "#card-number",
+                placeholder: "Card number"
+              }}
               className="w-full bg-transparent"
             />
           </div>
@@ -85,6 +88,10 @@ const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }
               <PayPalHostedField
                 id="expiration-date"
                 hostedFieldType="expirationDate"
+                options={{
+                  selector: "#expiration-date",
+                  placeholder: "MM/YY"
+                }}
                 className="w-full bg-transparent"
               />
             </div>
@@ -96,6 +103,10 @@ const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }
               <PayPalHostedField
                 id="cvv"
                 hostedFieldType="cvv"
+                options={{
+                  selector: "#cvv",
+                  placeholder: "123"
+                }}
                 className="w-full bg-transparent"
               />
             </div>

@@ -27,8 +27,8 @@ export interface PayPalTransactionDetails {
 // Extending the PayPalScriptOptions to match our usage
 export interface PayPalScriptOptions extends ReactPayPalScriptOptions {
   clientId: string;
-  currency: string;
-  intent: string;
+  currency?: string;
+  intent?: string;
 }
 
 // Re-export types from the official package for convenience
