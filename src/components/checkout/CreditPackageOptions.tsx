@@ -46,7 +46,7 @@ export function CreditPackageOptions({
     if (creditQuantity !== customAmount) {
       setCustomAmount(creditQuantity || 1000);
     }
-  }, [creditQuantity]);
+  }, [creditQuantity, customAmount]);
 
   return (
     <Card className="mt-6">

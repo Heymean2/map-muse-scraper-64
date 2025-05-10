@@ -13,7 +13,10 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
     return null;
   }
 
-  const isCreditPlan = selectedPlan.billing_period === 'credits';
+  // Determine if we're viewing a credit plan based on plan type or URL parameters
+  const isCreditPlan = selectedPlan.billing_period === 'credits' || 
+                      (window.location.search.includes('planType=credits'));
+  
   const features = [
     "Unlimited data extractions",
     "Export to CSV and Excel",
@@ -29,13 +32,19 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
     return selectedPlan.price?.toFixed(2) || "0.00";
   };
 
+  // Determine the title to display based on plan type
+  const getTitle = () => {
+    if (isCreditPlan && customCredits) {
+      return `${customCredits.toLocaleString()} Credits`;
+    }
+    return selectedPlan.name;
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-muted/50">
         <CardTitle>
-          {isCreditPlan && customCredits 
-            ? `${customCredits.toLocaleString()} Credits` 
-            : selectedPlan.name}
+          {isCreditPlan ? "Credit Package" : selectedPlan.name}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
@@ -43,7 +52,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
           <div className="text-2xl font-bold">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
-              ? `$${creditPrice?.toFixed(5) || "0.00"} per credit`
+              ? `$${creditPrice?.toFixed(5) || "0.00"} per credit × ${customCredits?.toLocaleString() || ""} credits`
               : `Billed ${selectedPlan.billing_period}`}
           </div>
         </div>

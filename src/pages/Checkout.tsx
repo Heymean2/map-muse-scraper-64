@@ -53,13 +53,18 @@ export default function Checkout() {
     
     // If we have plansData and a planId parameter, set the selected plan
     if (plansData && planIdParam) {
-      const plan = plansData.find(p => String(p.id) === planIdParam);
-      if (plan) {
-        setSelectedPlan(plan);
-        
-        // If it's a credit plan, set the credit price
-        if (plan.billing_period === 'credits') {
-          setCreditPrice(plan.price_per_credit || 0.00299);
+      // If it's a credit plan, find the credit plan
+      if (planTypeParam === 'credits') {
+        const creditPlan = plansData.find(p => p.billing_period === 'credits');
+        if (creditPlan) {
+          setSelectedPlan(creditPlan);
+          setCreditPrice(creditPlan.price_per_credit || 0.00299);
+        }
+      } else {
+        // For subscription plans, find by ID
+        const plan = plansData.find(p => String(p.id) === planIdParam);
+        if (plan) {
+          setSelectedPlan(plan);
         }
       }
     } else if (plansData && plansData.length > 0 && !planIdParam) {
@@ -146,12 +151,12 @@ export default function Checkout() {
     );
   }
 
+  const pageTitle = planType === 'credits' ? 'Purchase Credits' : 'Upgrade Your Plan';
+
   return (
     <DashboardLayout>
       <Container className="py-8">
-        <h1 className="text-3xl font-bold mb-8">
-          {planType === 'credits' ? 'Purchase Credits' : 'Upgrade Your Plan'}
-        </h1>
+        <h1 className="text-3xl font-bold mb-8">{pageTitle}</h1>
         
         {isError && (
           <Alert variant="destructive" className="mb-6">
@@ -169,7 +174,7 @@ export default function Checkout() {
                   {planType === 'credits' ? 'Selected Credit Package' : 'Selected Plan'}
                 </CardTitle>
                 <CardDescription>
-                  {selectedPlan?.name || "Checkout"}
+                  {planType === 'credits' ? 'Purchase credits for data extraction' : selectedPlan?.name}
                 </CardDescription>
                 <Button 
                   variant="ghost" 
