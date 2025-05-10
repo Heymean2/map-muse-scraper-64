@@ -8,6 +8,11 @@ export async function authenticate(req) {
   const authorization = req.headers.get('Authorization') || '';
   const apikey = req.headers.get('apikey') || '';
   
+  console.log("Auth headers received:", { 
+    authorization: authorization ? `${authorization.substring(0, 15)}...` : 'none', 
+    apikey: apikey ? 'present' : 'none' 
+  });
+  
   if (!authorization || !authorization.startsWith('Bearer ')) {
     console.error("Missing or invalid Authorization header");
     throw {
@@ -38,6 +43,8 @@ export async function authenticate(req) {
       };
     }
     
+    console.log("Creating Supabase client with URL:", supabaseUrl);
+    
     const supabase = createClient(
       supabaseUrl,
       supabaseAnonKey,
@@ -56,14 +63,22 @@ export async function authenticate(req) {
       }
     );
     
-    // Get user from JWT
+    // Try to get user directly from JWT without making additional calls
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (userError || !user) {
-      console.error("Error verifying JWT:", userError?.message || "No user found");
+    if (userError) {
+      console.error("Error verifying JWT:", userError.message);
       throw {
         status: 401,
         message: "Invalid authentication token"
+      };
+    }
+    
+    if (!user) {
+      console.error("No user found in JWT");
+      throw {
+        status: 401,
+        message: "No user associated with token"
       };
     }
     

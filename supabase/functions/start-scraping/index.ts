@@ -28,38 +28,80 @@ serve(async (req) => {
       );
     }
     
+    // Log headers for debugging (masking sensitive data)
+    console.log("Request headers:", {
+      authorization: req.headers.has('Authorization') ? 'Present (masked)' : 'Missing',
+      apikey: req.headers.has('apikey') ? 'Present (masked)' : 'Missing',
+      contentType: req.headers.get('Content-Type')
+    });
+    
     // Step 2: Authenticate user
-    const user = await authenticate(req);
+    let user;
+    try {
+      user = await authenticate(req);
+      console.log("Authentication successful for user:", user.id);
+    } catch (authError) {
+      console.error("Authentication failed:", authError);
+      return new Response(
+        JSON.stringify({ success: false, error: authError.message || "Authentication failed" }),
+        { status: authError.status || 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Step 3: Validate request parameters
     const { keywords, country, states, fields, rating } = requestData;
-    await validateRequest({ keywords, country, states, fields });
+    try {
+      await validateRequest({ keywords, country, states, fields });
+    } catch (validationError) {
+      console.error("Validation error:", validationError);
+      return new Response(
+        JSON.stringify({ success: false, error: validationError.message }),
+        { status: validationError.status || 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Step 4: Check plan access
-    await checkPlanAccess(user.id, fields);
+    try {
+      await checkPlanAccess(user.id, fields);
+    } catch (planError) {
+      console.error("Plan access error:", planError);
+      return new Response(
+        JSON.stringify({ success: false, error: planError.message }),
+        { status: planError.status || 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Step 5: Create scraping task
-    const taskResult = await createScrapingTask({
-      userId: user.id,
-      keywords, 
-      country, 
-      states, 
-      fields,
-      rating
-    });
-    
-    // Return successful response with task ID
-    return new Response(
-      JSON.stringify({
-        success: true,
-        taskId: taskResult.taskId,
-        message: "Scraping task started successfully"
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    try {
+      const taskResult = await createScrapingTask({
+        userId: user.id,
+        keywords, 
+        country, 
+        states, 
+        fields,
+        rating
+      });
+      
+      console.log("Task created successfully:", taskResult.taskId);
+      
+      // Return successful response with task ID
+      return new Response(
+        JSON.stringify({
+          success: true,
+          taskId: taskResult.taskId,
+          message: "Scraping task started successfully"
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (taskError) {
+      console.error("Task creation error:", taskError);
+      return new Response(
+        JSON.stringify({ success: false, error: taskError.message || "Failed to create task" }),
+        { status: taskError.status || 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   } catch (error) {
-    console.error('Error in start-scraping function:', error);
+    console.error('Unexpected error in start-scraping function:', error);
     
     // Determine if this is a custom error with status
     const status = error.status || 500;

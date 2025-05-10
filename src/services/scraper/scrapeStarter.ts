@@ -31,24 +31,27 @@ export async function startScraping({
       return { success: false, error: "No active session" };
     }
     
-    // Ensure token is fresh before making the request
-    try {
-      // Force token refresh to ensure we have the freshest possible token
-      const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        // Continue with current token if refresh fails
-      }
-      
-      // Wait a moment for token to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (refreshError) {
-      console.error("Exception during token refresh:", refreshError);
-      // Continue with current token as a fallback
+    // Force token refresh to ensure we have the freshest possible token
+    const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (refreshError) {
+      console.error("Failed to refresh token:", refreshError);
+      toast.error("Session refresh failed. Please sign in again.");
+      return { success: false, error: "Failed to refresh session: " + refreshError.message };
     }
     
-    // Make the edge function call with explicit headers
+    if (!refreshResult || !refreshResult.session) {
+      console.error("No session after refresh");
+      toast.error("Session refresh failed. Please sign in again.");
+      return { success: false, error: "No session after refresh" };
+    }
+    
+    console.log("Session refreshed successfully, token available:", !!refreshResult.session.access_token);
+    
+    // Wait a moment for token to propagate
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Make the edge function call with explicit auth headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       body: { 
         keywords, 
@@ -56,6 +59,9 @@ export async function startScraping({
         states, 
         fields, 
         rating 
+      },
+      headers: {
+        Authorization: `Bearer ${refreshResult.session.access_token}`
       }
     });
     

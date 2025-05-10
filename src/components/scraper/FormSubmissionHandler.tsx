@@ -92,8 +92,8 @@ export default function FormSubmissionHandler({
         const freshSession = await refreshSession();
         console.log("Session refreshed successfully", !!freshSession);
         
-        // Wait a bit for token to be properly saved/propagated
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Wait for token to be properly saved/propagated
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (refreshError) {
         console.error("Failed to refresh session:", refreshError);
         
@@ -119,13 +119,13 @@ export default function FormSubmissionHandler({
         rating: selectedRating || undefined
       });
       
+      toast.dismiss(toastId);
+      
       if (result.success) {
-        toast.dismiss(toastId);
         toast.success("Scraping started successfully");
         // Redirect to results page with task ID
         navigate(`/result${result.task_id ? `?task_id=${result.task_id}` : ''}`);
       } else {
-        toast.dismiss(toastId);
         toast.error(result.error || "Failed to start scraping");
         setFormError(result.error || "Failed to start scraping");
         
@@ -138,7 +138,7 @@ export default function FormSubmissionHandler({
     } catch (error: any) {
       console.error("Error submitting form:", error);
       toast.error("An error occurred while processing your request");
-      setFormError("An unexpected error occurred. Please try again.");
+      setFormError(`An unexpected error occurred: ${error.message || "Unknown error"}`);
     } finally {
       setIsLoading(false);
     }

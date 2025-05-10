@@ -35,23 +35,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        if (mounted) {
-          console.log(`Auth state changed: ${event}`);
+      async (event, newSession) => {
+        if (!mounted) return;
+        
+        console.log(`Auth state changed: ${event}`);
+        
+        // Update on all auth state changes for better reliability
+        setSession(newSession);
+        setUser(newSession?.user || null);
+        
+        if (event === "SIGNED_IN") {
+          toast.success("Signed in successfully");
           
-          // Update on all auth state changes for better reliability
-          setSession(newSession);
-          setUser(newSession?.user || null);
+          // Ensure session is completely set up
+          setTimeout(() => {
+            setLoading(false);
+          }, 300);
+        } else if (event === "SIGNED_OUT") {
+          toast.info("Signed out successfully");
           setLoading(false);
-          
-          // Provide feedback to user for major auth events
-          if (event === "SIGNED_IN") {
-            toast.success("Signed in successfully");
-          } else if (event === "SIGNED_OUT") {
-            toast.info("Signed out successfully");
-          } else if (event === "TOKEN_REFRESHED") {
-            console.log("Auth token refreshed");
-          }
+        } else if (event === "TOKEN_REFRESHED") {
+          console.log("Auth token refreshed");
+          setLoading(false);
+        } else {
+          setLoading(false);
         }
       }
     );
@@ -64,10 +71,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (error) {
           console.error("Error getting initial session:", error);
-          throw error;
+          if (mounted) setLoading(false);
+          return;
         }
         
-        // Only update state if component is still mounted
         if (mounted) {
           console.log("Initial session retrieved:", !!data.session);
           setSession(data.session);
@@ -76,9 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error("Error getting initial session:", error);
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 
@@ -111,11 +116,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Implement the signOut function
+  // Implement the signOut function with cleanup
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // First clear any cached auth data
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Then sign out
+      await supabase.auth.signOut({ scope: 'global' });
+      
       // Auth state change listener will update the state
+      toast.info("Signed out successfully");
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out");
