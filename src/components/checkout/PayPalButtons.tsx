@@ -24,7 +24,7 @@ export function PayPalButtons({
   onSuccess,
   onProcessingChange
 }: PayPalButtonsProps) {
-  const [{ isPending, isResolved, isRejected, options }] = usePayPalScriptReducer();
+  const [{ isPending, isResolved, isRejected, isScriptError, options }] = usePayPalScriptReducer();
   
   useEffect(() => {
     onProcessingChange(isPending);
@@ -39,7 +39,7 @@ export function PayPalButtons({
     );
   }
   
-  if (isRejected) {
+  if (isRejected || isScriptError) {
     return (
       <Alert variant="destructive" className="mt-6">
         <AlertDescription>
@@ -63,6 +63,7 @@ export function PayPalButtons({
           label: "pay"
         }}
         forceReRender={[totalAmount, options]}
+        fundingSource={undefined}
         createOrder={(data, actions) => {
           return actions.order.create({
             intent: "CAPTURE",

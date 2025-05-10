@@ -86,13 +86,12 @@ export default function Checkout() {
 
   // PayPal configuration options
   const paypalOptions = {
-    "client-id": "test", // Client ID using kebab-case format as expected by PayPal
+    clientId: "test", // Use camelCase format as expected by the PayPalScriptProvider
     currency: "USD",
     intent: "capture",
     components: "buttons",
-    "disable-funding": "credit,card", // Disable competing payment methods
-    "data-client-token": "abc123", // Add mock token for testing
-    "data-sdk-integration-source": "button-factory" // Add integration source
+    vault: false,
+    debug: true // Enable debug mode for development
   };
 
   if (!planId) {
