@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { 
   PayPalButtons,
   PayPalHostedFieldsProvider,
-  usePayPalScriptReducer
+  usePayPalScriptReducer,
+  SCRIPT_LOADING_STATE
 } from "@paypal/react-paypal-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostedFieldsForm } from "./HostedFieldsForm";
@@ -33,15 +34,15 @@ export function PaymentForm({
   // Update the PayPal script with client token when needed for hosted fields
   useEffect(() => {
     if (paymentMethod === "card" && clientToken) {
-      // Using the correct action type for PayPal script reducer
+      // First set loading state to pending before updating options
       dispatch({
         type: "setLoadingStatus",
-        value: "pending"
+        value: SCRIPT_LOADING_STATE.PENDING
       });
       
       // Then set the options
       dispatch({
-        type: "setOptions",
+        type: "resetOptions",
         value: {
           clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
           components: "buttons,hosted-fields",
