@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
