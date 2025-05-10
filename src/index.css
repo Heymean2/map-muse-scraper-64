@@ -283,9 +283,8 @@
   @apply text-violet-primary;
 }
 
-/* Fix for circular dependency - directly use the color value instead of @apply */
 .text-violet-light {
-  color: #9B87F5; /* Using the light violet color directly */
+  @apply text-violet-light;
 }
 
 .hover-violet {
