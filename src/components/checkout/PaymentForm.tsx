@@ -56,14 +56,11 @@ export function PaymentForm({
       </TabsContent>
       
       <TabsContent value="card" className="mt-6">
-        {selectedPlan && clientToken ? (
+        {selectedPlan ? (
           <PayPalHostedFieldsProvider
             createOrder={createOrder}
-            options={{
-              createOrder,
-              components: "hosted-fields",
-              dataClientToken: clientToken
-            }}
+            onApprove={(data) => onApprove(data)}
+            onError={onError}
           >
             <HostedFieldsForm 
               onApprove={(orderData) => onApprove(orderData)} 

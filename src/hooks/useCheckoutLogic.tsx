@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,19 +66,12 @@ export function useCheckoutLogic() {
     }
   }, [plansData, selectedPlan]);
 
-  // Fetch client token for PayPal Hosted Fields
+  // Set a dummy client token for PayPal Hosted Fields
+  // This is now configured in the PayPalScriptProvider instead
   useEffect(() => {
-    const fetchClientToken = async () => {
-      try {
-        // For demo purposes, we're using a dummy token
-        setClientToken("sandbox_8hxpnkht_kzdtzv2btm4p7s4b");
-      } catch (error) {
-        console.error("Error fetching client token:", error);
-        setErrorMessage("Failed to initialize payment form");
-      }
-    };
-
-    fetchClientToken();
+    // For backwards compatibility, we'll still set this value
+    // but we're not using it directly anymore
+    setClientToken(import.meta.env.VITE_PAYPAL_CLIENT_TOKEN || "sandbox_8hxpnkht_kzdtzv2btm4p7s4b");
   }, []);
   
   // Create order for PayPal
