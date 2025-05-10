@@ -6,11 +6,11 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserPlanInfo, getUserScrapingTasks } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
-import { CircleDollarSign, FilePlus2, FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CircleDollarSign, CreditCard, FilePlus2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Settings from "@/pages/Settings";
-import BillingSection from "@/components/dashboard/BillingSection";
 import Billing from "@/pages/Billing";
 
 function DashboardHome() {
@@ -31,6 +31,9 @@ function DashboardHome() {
     
   const processingTasks = tasksData && Array.isArray(tasksData) ? 
     tasksData.filter(task => task.status === 'processing').length : 0;
+    
+  // Determine if the plan is credit-based
+  const isCreditBasedPlan = planInfo?.billing_period === 'credits';
   
   return (
     <div className="w-full px-4 md:px-0">
@@ -49,8 +52,23 @@ function DashboardHome() {
             {planLoading ? (
               <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
             ) : (
-              <div className="text-lg font-medium">
-                {planInfo?.planName || "Free Plan"}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-medium">
+                    {planInfo?.planName || "Free Plan"}
+                  </span>
+                  {planInfo && (
+                    <Badge variant={isCreditBasedPlan ? "outline" : "secondary"} className="text-xs">
+                      {isCreditBasedPlan ? "Pay-Per-Use" : planInfo.isFreePlan ? "Free" : "Subscription"}
+                    </Badge>
+                  )}
+                </div>
+                {isCreditBasedPlan && planInfo && (
+                  <div className="text-sm text-muted-foreground flex items-center gap-1">
+                    <CreditCard className="h-4 w-4" />
+                    <span>{planInfo.credits} credits available</span>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -118,12 +136,26 @@ function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <h3 className="font-semibold">{planInfo?.planName || "Free Plan"}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold">{planInfo?.planName || "Free Plan"}</h3>
+                {planInfo && (
+                  <Badge variant={isCreditBasedPlan ? "outline" : "secondary"} className="text-xs">
+                    {isCreditBasedPlan ? "Pay-Per-Use" : planInfo.isFreePlan ? "Free" : "Subscription"}
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {planInfo?.features?.reviews 
                   ? "Access to all data types including reviews" 
                   : "Basic data access (no reviews)"}
               </p>
+              
+              {isCreditBasedPlan && planInfo && (
+                <div className="mt-2 text-sm flex items-center gap-1 text-muted-foreground">
+                  <CreditCard className="h-4 w-4" />
+                  <span>{planInfo.credits} credits available (${planInfo.price_per_credit?.toFixed(3)} per row)</span>
+                </div>
+              )}
             </div>
             <Button 
               variant="default" 
