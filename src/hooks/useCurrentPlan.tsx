@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 export function useCurrentPlan() {
-  const session = supabase.auth.getSession();
-  
   // Fetch current user plan
   const { 
     data: currentPlanData, 
@@ -13,16 +11,16 @@ export function useCurrentPlan() {
   } = useQuery({
     queryKey: ['currentPlan'],
     queryFn: async () => {
-      const token = (await session).data.session?.access_token;
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!token) {
+      if (!session) {
         throw new Error("Not authenticated");
       }
       
       const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/getCurrentPlan`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         }
       });

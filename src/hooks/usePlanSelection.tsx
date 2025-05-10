@@ -17,17 +17,14 @@ export function usePlanSelection() {
         .order('price');
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
   
   // Set default selected plan when data is loaded
   useEffect(() => {
-    if (plansData && plansData.length > 0) {
-      // If no plan is selected, select the first one available
-      if (!selectedPlan) {
-        setSelectedPlan(plansData[0]);
-      }
+    if (plansData && plansData.length > 0 && !selectedPlan) {
+      setSelectedPlan(plansData[0]);
     }
   }, [plansData, selectedPlan]);
 

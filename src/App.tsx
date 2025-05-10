@@ -21,6 +21,7 @@ import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
 import Billing from "@/pages/Billing";
 
+// Create a client
 const queryClient = new QueryClient();
 
 // Route listener component to save routes
