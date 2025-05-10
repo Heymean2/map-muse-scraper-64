@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   PayPalButtons,
@@ -37,7 +36,7 @@ export function PaymentForm({
     if (paymentMethod === "card" && clientToken) {
       // First set loading state to pending before updating options
       dispatch({
-        type: DISPATCH_ACTION.SET_LOADING_STATUS,
+        type: DISPATCH_ACTION.LOADING_STATUS,
         value: SCRIPT_LOADING_STATE.PENDING
       });
       
