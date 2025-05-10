@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -60,9 +59,9 @@ export default function Checkout() {
 
   // Get package size from URL param or default to 1
   const packageSizeParam = searchParams.get("packageSize");
-  // Convert packageSize to number explicitly
+  // Convert packageSize to number explicitly, ensuring it's a valid number
   const [creditQuantity, setCreditQuantity] = useState<number>(
-    packageSizeParam ? parseInt(packageSizeParam, 10) || 1 : 1
+    packageSizeParam ? Number(parseInt(packageSizeParam, 10) || 1) : 1
   );
   
   const creditPrice = planData?.price_per_credit || 0.001;
