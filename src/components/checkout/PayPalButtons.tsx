@@ -1,7 +1,9 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { PayPalButtons as ReactPayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PayPalButtonsProps {
   totalAmount: number;
@@ -22,22 +24,33 @@ export function PayPalButtons({
   onSuccess,
   onProcessingChange
 }: PayPalButtonsProps) {
-  const [{ isPending }] = usePayPalScriptReducer();
+  const [{ isPending, isResolved, isRejected, options }] = usePayPalScriptReducer();
   
   useEffect(() => {
-    if (isPending) {
-      onProcessingChange(true);
-    } else {
-      onProcessingChange(false);
-    }
+    onProcessingChange(isPending);
   }, [isPending, onProcessingChange]);
   
   if (isPending) {
     return (
-      <div className="mt-6 p-4 text-center">
-        <p>Loading PayPal...</p>
+      <div className="mt-6 p-4 flex flex-col items-center justify-center space-y-2">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-center text-muted-foreground">Loading PayPal...</p>
       </div>
     );
+  }
+  
+  if (isRejected) {
+    return (
+      <Alert variant="destructive" className="mt-6">
+        <AlertDescription>
+          Failed to load PayPal. Please refresh the page or try a different payment method.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  if (!isResolved) {
+    return null;
   }
 
   return (
@@ -49,6 +62,7 @@ export function PayPalButtons({
           shape: "rect",
           label: "pay"
         }}
+        forceReRender={[totalAmount, options]}
         createOrder={(data, actions) => {
           return actions.order.create({
             intent: "CAPTURE",
