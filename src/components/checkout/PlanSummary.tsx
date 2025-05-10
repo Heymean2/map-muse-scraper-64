@@ -42,7 +42,8 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
 
   // Format price per credit with proper precision (5 decimal places)
   const formatPricePerCredit = (price: number) => {
-    return price.toFixed(5);
+    // Ensure we display at least 3 decimal places and up to 5 if needed
+    return price.toFixed(5).replace(/0+$/, '').replace(/\.$/, '.00');
   };
 
   return (

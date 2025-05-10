@@ -19,6 +19,12 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
   const [creditAmount, setCreditAmount] = useState<number>(1000);
   const navigate = useNavigate();
 
+  // Format price with proper precision
+  const formatPricePerCredit = (price: number) => {
+    if (!price || price < 0.001) return "0.00299";
+    return price.toFixed(5).replace(/0+$/, '').replace(/\.$/, '.00');
+  };
+
   const handlePurchase = () => {
     if (creditAmount < 1000) {
       toast.error("Minimum purchase is 1,000 credits");
@@ -82,7 +88,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
               Total: ${(creditAmount * pricePerCredit).toFixed(2)}
             </p>
             <p className="text-sm text-slate-700">
-              ${pricePerCredit.toFixed(3)} per credit × {creditAmount.toLocaleString()} credits
+              ${formatPricePerCredit(pricePerCredit)} per credit × {creditAmount.toLocaleString()} credits
             </p>
           </div>
         </CardContent>

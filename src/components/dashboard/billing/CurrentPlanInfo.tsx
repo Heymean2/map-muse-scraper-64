@@ -19,6 +19,13 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
   const isSubscriptionPlan = userPlan?.billing_period === 'monthly' && !userPlan?.isFreePlan;
   // Check if user has both plan types
   const hasBothPlanTypes = userPlan?.hasBothPlanTypes;
+
+  // Format price per credit with proper precision
+  const formatPricePerCredit = (price?: number) => {
+    if (!price || price < 0.001) return "0.00299";
+    // Format with the right number of decimal places and remove trailing zeros
+    return price.toFixed(5).replace(/0+$/, '').replace(/\.$/, '.00');
+  };
   
   return (
     <div className="mt-8 bg-slate-50 dark:bg-slate-900/50 p-6 rounded-lg">
@@ -67,7 +74,7 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
               
               <div className="flex justify-between text-sm">
                 <span>Price per Credit:</span>
-                <span className="font-medium">${userPlan?.price_per_credit?.toFixed(3) || 0.001}</span>
+                <span className="font-medium">${formatPricePerCredit(userPlan?.price_per_credit)}</span>
               </div>
             </div>
           </div>
@@ -135,7 +142,7 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
                   You have {userPlan?.credits} credits available for use after your subscription.
                 </p>
                 <div className="text-xs text-muted-foreground">
-                  ${userPlan?.price_per_credit?.toFixed(3) || 0.001} per credit
+                  ${formatPricePerCredit(userPlan?.price_per_credit)} per credit
                 </div>
               </div>
             </div>
