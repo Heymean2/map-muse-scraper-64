@@ -42,8 +42,10 @@ export function CreditPackageOptions({
   };
   
   useEffect(() => {
-    // Initialize with current value
-    setCustomAmount(creditQuantity || 1000);
+    // Update local state when prop changes (from URL or parent)
+    if (creditQuantity !== customAmount) {
+      setCustomAmount(creditQuantity || 1000);
+    }
   }, [creditQuantity]);
 
   return (
@@ -88,7 +90,7 @@ export function CreditPackageOptions({
               Total: ${calculatePrice(customAmount, creditPrice).toFixed(2)}
             </p>
             <p className="text-sm text-slate-700">
-              ${creditPrice} per credit × {customAmount.toLocaleString()} credits
+              ${creditPrice.toFixed(5)} per credit × {customAmount.toLocaleString()} credits
             </p>
             <p className="text-xs text-slate-500">
               Each credit allows you to extract 1 row of data.

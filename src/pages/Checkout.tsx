@@ -68,6 +68,28 @@ export default function Checkout() {
     }
   }, [location, plansData, setSelectedPlan, navigate]);
 
+  // Update URL when credit amount changes
+  useEffect(() => {
+    if (planType === 'credits' && selectedPlan) {
+      const params = new URLSearchParams(location.search);
+      params.set('creditAmount', creditAmount.toString());
+      
+      // Update URL without full page reload
+      const newUrl = `${location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [creditAmount, planType, selectedPlan, location]);
+
+  // Wrapper for createOrder to include creditAmount
+  const handleCreateOrder = async () => {
+    return createOrder();
+  };
+
+  // Wrapper for captureOrder to include creditAmount
+  const handleCaptureOrder = async (orderID: string) => {
+    return captureOrder(orderID);
+  };
+
   if (currentPlanLoading || plansLoading) {
     return (
       <DashboardLayout>
@@ -169,8 +191,8 @@ export default function Checkout() {
                 <PaymentForm
                   selectedPlan={selectedPlan}
                   isProcessing={isProcessing}
-                  createOrder={createOrder}
-                  onApprove={(data) => captureOrder(data.orderID)}
+                  createOrder={handleCreateOrder}
+                  onApprove={(data) => handleCaptureOrder(data.orderID)}
                   onError={handlePayPalError}
                 />
               </CardContent>

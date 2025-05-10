@@ -43,7 +43,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
           <div className="text-2xl font-bold">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
-              ? `$${selectedPlan.price_per_credit?.toFixed(3) || "0.00"} per credit`
+              ? `$${creditPrice?.toFixed(5) || "0.00"} per credit`
               : `Billed ${selectedPlan.billing_period}`}
           </div>
         </div>
