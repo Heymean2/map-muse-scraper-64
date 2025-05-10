@@ -66,18 +66,26 @@ export default function Checkout() {
     ? planData?.price || 0 
     : (creditPrice * totalCredits);
 
-  // Load PayPal script
+  // Load PayPal script with the correct parameters
   useEffect(() => {
     if (!paypalLoaded && planData) {
       const script = document.createElement('script');
-      script.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD";
+      // Add the components=buttons parameter to explicitly load the buttons component
+      script.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD&components=buttons";
       script.addEventListener('load', () => {
+        console.log("PayPal SDK loaded successfully");
         setPaypalLoaded(true);
+      });
+      script.addEventListener('error', (e) => {
+        console.error("PayPal SDK failed to load:", e);
+        toast.error("Failed to load payment provider. Please try again later.");
       });
       document.body.appendChild(script);
       
       return () => {
-        document.body.removeChild(script);
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
       };
     }
   }, [paypalLoaded, planData]);
@@ -87,85 +95,92 @@ export default function Checkout() {
     if (paypalLoaded && !paypalButtonRendered && paymentMethod === 'paypal') {
       const paypalContainer = document.getElementById('paypal-button-container');
       
-      if (paypalContainer && window.paypal) {
+      if (paypalContainer && window.paypal && typeof window.paypal.Buttons === 'function') {
         // Clear any existing buttons
         paypalContainer.innerHTML = '';
         
-        window.paypal.Buttons({
-          createOrder: (data, actions) => {
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  value: totalAmount.toFixed(2)
-                },
-                description: planType === 'subscription' 
-                  ? `${planData?.name} Subscription` 
-                  : `${totalCredits} Credits Purchase`
-              }]
-            });
-          },
-          onApprove: async (data, actions) => {
-            setIsProcessing(true);
-            
-            if (actions.order) {
-              const order = await actions.order.capture();
+        try {
+          window.paypal.Buttons({
+            createOrder: (data, actions) => {
+              return actions.order.create({
+                purchase_units: [{
+                  amount: {
+                    value: totalAmount.toFixed(2)
+                  },
+                  description: planType === 'subscription' 
+                    ? `${planData?.name} Subscription` 
+                    : `${totalCredits} Credits Purchase`
+                }]
+              });
+            },
+            onApprove: async (data, actions) => {
+              setIsProcessing(true);
               
-              try {
-                if (planType === 'subscription' && planId) {
-                  const result = await subscribeToPlan(planId);
-                  if (result.success) {
-                    // Record transaction
-                    await recordTransaction({
-                      amount: totalAmount,
-                      planId: planId ? parseInt(planId) : null,
-                      paymentMethod: 'paypal',
-                      paymentId: order.id,
-                      status: 'completed',
-                      billingPeriod: 'monthly',
-                    });
+              if (actions.order) {
+                const order = await actions.order.capture();
+                
+                try {
+                  if (planType === 'subscription' && planId) {
+                    const result = await subscribeToPlan(planId);
+                    if (result.success) {
+                      // Record transaction
+                      await recordTransaction({
+                        amount: totalAmount,
+                        planId: planId ? parseInt(planId) : null,
+                        paymentMethod: 'paypal',
+                        paymentId: order.id,
+                        status: 'completed',
+                        billingPeriod: 'monthly',
+                      });
+                      
+                      setPaymentSuccess(true);
+                      toast.success('Subscription activated successfully!');
+                    } else {
+                      toast.error(result.error || 'Failed to activate subscription');
+                    }
+                  } else if (planType === 'credits') {
+                    const purchased = await purchaseCredits(creditQuantity);
                     
-                    setPaymentSuccess(true);
-                    toast.success('Subscription activated successfully!');
-                  } else {
-                    toast.error(result.error || 'Failed to activate subscription');
+                    if (purchased) {
+                      // Record transaction
+                      await recordTransaction({
+                        amount: totalAmount,
+                        planId: planData?.id || null,
+                        paymentMethod: 'paypal',
+                        paymentId: order.id,
+                        status: 'completed',
+                        creditsPurchased: totalCredits,
+                      });
+                      
+                      setPaymentSuccess(true);
+                      toast.success(`Successfully purchased ${totalCredits} credits!`);
+                    } else {
+                      toast.error('Failed to purchase credits');
+                    }
                   }
-                } else if (planType === 'credits') {
-                  const purchased = await purchaseCredits(creditQuantity);
-                  
-                  if (purchased) {
-                    // Record transaction
-                    await recordTransaction({
-                      amount: totalAmount,
-                      planId: planData?.id || null,
-                      paymentMethod: 'paypal',
-                      paymentId: order.id,
-                      status: 'completed',
-                      creditsPurchased: totalCredits,
-                    });
-                    
-                    setPaymentSuccess(true);
-                    toast.success(`Successfully purchased ${totalCredits} credits!`);
-                  } else {
-                    toast.error('Failed to purchase credits');
-                  }
+                } catch (error: any) {
+                  toast.error(`Payment error: ${error.message || 'Unknown error'}`);
+                } finally {
+                  setIsProcessing(false);
                 }
-              } catch (error: any) {
-                toast.error(`Payment error: ${error.message || 'Unknown error'}`);
-              } finally {
-                setIsProcessing(false);
               }
+            },
+            onCancel: () => {
+              toast.info('Payment cancelled');
+            },
+            onError: (err) => {
+              console.error('PayPal error:', err);
+              toast.error('Payment failed. Please try again.');
             }
-          },
-          onCancel: () => {
-            toast.info('Payment cancelled');
-          },
-          onError: (err) => {
-            console.error('PayPal error:', err);
-            toast.error('Payment failed. Please try again.');
-          }
-        }).render(paypalContainer);
-        
-        setPaypalButtonRendered(true);
+          }).render(paypalContainer);
+          
+          setPaypalButtonRendered(true);
+        } catch (error) {
+          console.error("Error rendering PayPal buttons:", error);
+          toast.error("Error setting up payment method. Please try again or use a different payment option.");
+        }
+      } else if (paypalContainer) {
+        paypalContainer.innerHTML = '<div class="p-4 text-center text-red-500">PayPal payment option is temporarily unavailable. Please try again later or use a different payment method.</div>';
       }
     }
   }, [paypalLoaded, paymentMethod, planData, planId, planType, paypalButtonRendered, creditQuantity, totalAmount, totalCredits]);

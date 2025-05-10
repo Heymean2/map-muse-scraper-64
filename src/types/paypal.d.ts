@@ -14,9 +14,17 @@ interface PayPalButtonsComponentOptions {
   };
 }
 
+interface PayPalActions {
+  order: {
+    create: (options: any) => Promise<string>;
+    capture: () => Promise<any>;
+  };
+}
+
 interface PayPalNamespace {
   Buttons: (options: PayPalButtonsComponentOptions) => {
     render: (container: string | HTMLElement) => void;
+    isEligible?: () => boolean;
   };
 }
 

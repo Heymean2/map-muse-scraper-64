@@ -26,7 +26,7 @@ export function SubscriptionManager({
       return;
     }
     
-    // Navigate to checkout page with plan ID
+    // Navigate to checkout page with plan ID as string (query parameter)
     navigate(`/checkout?planId=${selectedPlanId}&planType=subscription`);
   };
 
