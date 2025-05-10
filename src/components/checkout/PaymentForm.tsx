@@ -4,7 +4,8 @@ import {
   PayPalButtons,
   PayPalHostedFieldsProvider,
   usePayPalScriptReducer,
-  SCRIPT_LOADING_STATE
+  SCRIPT_LOADING_STATE,
+  DISPATCH_ACTION
 } from "@paypal/react-paypal-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostedFieldsForm } from "./HostedFieldsForm";
@@ -36,13 +37,13 @@ export function PaymentForm({
     if (paymentMethod === "card" && clientToken) {
       // First set loading state to pending before updating options
       dispatch({
-        type: "setLoadingStatus",
+        type: DISPATCH_ACTION.SET_LOADING_STATUS,
         value: SCRIPT_LOADING_STATE.PENDING
       });
       
       // Then set the options
       dispatch({
-        type: "resetOptions",
+        type: DISPATCH_ACTION.RESET_OPTIONS,
         value: {
           clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
           components: "buttons,hosted-fields",
