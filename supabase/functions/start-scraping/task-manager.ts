@@ -13,7 +13,9 @@ export async function createScrapingTask({
   country, 
   states, 
   fields,
-  rating
+  rating,
+  planType = 'free',
+  hasBothPlanTypes = false
 }) {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -32,11 +34,17 @@ export async function createScrapingTask({
     
     // Generate unique task ID
     const taskId = generateTaskId();
-    console.log(`Creating scraping task with ID ${taskId} for user ${userId}`);
+    console.log(`Creating scraping task with ID ${taskId} for user ${userId} using plan type: ${planType}`);
     
     // Format fields for storage
     const formattedStates = Array.isArray(states) ? states.join(',') : states;
     const formattedFields = Array.isArray(fields) ? fields.join(',') : fields;
+    
+    // Add plan type metadata for the task
+    const taskMetadata = {
+      planType,
+      hasBothPlanTypes
+    };
     
     // Insert new scraping request
     const { error: insertError } = await supabase
@@ -50,6 +58,7 @@ export async function createScrapingTask({
         fields: formattedFields,
         rating,
         status: 'processing',
+        metadata: taskMetadata,
         created_at: new Date().toISOString()
       });
 
@@ -70,8 +79,8 @@ export async function createScrapingTask({
       };
     }
 
-    console.log(`Scraping task ${taskId} created successfully`);
-    return { success: true, taskId };
+    console.log(`Scraping task ${taskId} created successfully using plan type: ${planType}`);
+    return { success: true, taskId, planType };
     
   } catch (error) {
     console.error('Database error:', error);

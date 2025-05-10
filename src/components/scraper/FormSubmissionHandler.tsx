@@ -2,10 +2,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { startScraping } from "@/services/scraper";
+import { startScraping, getUserPlanInfo } from "@/services/scraper";
 import { useAuth } from "@/contexts/AuthContext";
 import FormError from "./FormError";
 import LoadingButton from "./LoadingButton";
+import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, CreditCard, InfinityIcon } from "lucide-react";
 
 interface FormSubmissionHandlerProps {
   searchQuery: string;
@@ -32,6 +35,18 @@ export default function FormSubmissionHandler({
   const { refreshSession, session } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  // Get user plan information
+  const { data: planInfo } = useQuery({
+    queryKey: ['userPlanInfo'],
+    queryFn: getUserPlanInfo,
+    enabled: !!session
+  });
+  
+  // Determine plan types
+  const isCreditBasedPlan = planInfo?.billing_period === 'credits';
+  const isSubscriptionPlan = planInfo?.billing_period === 'monthly' && !planInfo?.isFreePlan;
+  const hasBothPlanTypes = planInfo?.hasBothPlanTypes;
 
   // Function to ensure user is authenticated
   const ensureAuthenticated = async () => {
@@ -147,6 +162,39 @@ export default function FormSubmissionHandler({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <FormError error={formError} />
+      
+      {/* Show active plan info */}
+      {hasBothPlanTypes && (
+        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <AlertCircle className="h-4 w-4 text-blue-500" />
+          <AlertTitle>You have multiple plans</AlertTitle>
+          <AlertDescription>
+            Your subscription plan will be used first. After your subscription expires, you can use your available credits ({planInfo?.credits} credits).
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {!hasBothPlanTypes && planInfo && (
+        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md mb-4">
+          <div className="text-sm font-medium mb-1">Current Plan:</div>
+          <div className="flex items-center gap-2 text-sm">
+            {isSubscriptionPlan ? (
+              <>
+                <InfinityIcon className="h-4 w-4 text-green-500" />
+                <span>Unlimited access with {planInfo.planName}</span>
+              </>
+            ) : isCreditBasedPlan ? (
+              <>
+                <CreditCard className="h-4 w-4 text-blue-500" />
+                <span>{planInfo.credits} credits available</span>
+              </>
+            ) : (
+              <span>Free Plan ({planInfo.totalRows} / {planInfo.freeRowsLimit} rows used)</span>
+            )}
+          </div>
+        </div>
+      )}
+      
       {children}
       <LoadingButton isLoading={isLoading}>Start Scraping</LoadingButton>
     </form>

@@ -17,14 +17,31 @@ export async function startScraping({
   try {
     console.log("Starting scraping with config:", { keywords, country, states, fields, rating });
     
-    // Check user's plan to see if they have enough credits
+    // Check user's plan to see if they have access to scraping
     const planInfo = await getUserPlanInfo();
     
+    // Determine which plan to use for scraping
+    const useSubscriptionPlan = planInfo?.activeSubscription;
+    const useCreditPlan = !useSubscriptionPlan && (planInfo?.credits || 0) > 0;
+    const isFreeUser = !useSubscriptionPlan && !useCreditPlan;
+    
+    console.log("Plan information:", {
+      useSubscriptionPlan,
+      useCreditPlan,
+      hasBothPlanTypes: planInfo?.hasBothPlanTypes,
+      credits: planInfo?.credits
+    });
+    
     // For credit-based plans, check if user has enough credits
-    const isCreditPlan = planInfo?.planName?.includes("Credit");
-    if (isCreditPlan && (planInfo?.credits || 0) <= 0) {
+    if (useCreditPlan && (planInfo?.credits || 0) <= 0) {
       toast.error("You don't have enough credits. Please purchase more credits to continue.");
       return { success: false, error: "Insufficient credits" };
+    }
+    
+    // For free plans, check if user has reached their limit
+    if (isFreeUser && planInfo?.isExceeded) {
+      toast.error("You have reached your free tier limit. Please upgrade to continue.");
+      return { success: false, error: "Free tier limit reached" };
     }
     
     // Get fresh session token to ensure auth is valid
@@ -72,7 +89,9 @@ export async function startScraping({
         states, 
         fields, 
         rating,
-        isCreditPlan  // Pass this flag to the edge function
+        useCreditPlan,  // Pass plan type flags to the edge function
+        useSubscriptionPlan,
+        hasBothPlanTypes: planInfo?.hasBothPlanTypes || false
       },
       headers: {
         Authorization: `Bearer ${accessToken}`
@@ -89,7 +108,7 @@ export async function startScraping({
     
     // If using credits, deduct credits immediately as a UX improvement
     // (actual deduction will happen server-side as well)
-    if (isCreditPlan && planInfo?.credits) {
+    if (useCreditPlan && planInfo?.credits) {
       const estimatedRowCount = 100; // This is a placeholder, actual count will be determined server-side
       const { error: updateError } = await supabase
         .from('profiles')

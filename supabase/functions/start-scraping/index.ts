@@ -26,7 +26,12 @@ serve(async (req) => {
     let requestData;
     try {
       requestData = await req.json();
-      console.log("Request data:", JSON.stringify(requestData));
+      console.log("Request data:", JSON.stringify({
+        ...requestData,
+        hasBothPlanTypes: requestData.hasBothPlanTypes,
+        useCreditPlan: requestData.useCreditPlan,
+        useSubscriptionPlan: requestData.useSubscriptionPlan
+      }));
     } catch (e) {
       console.error("Failed to parse request body:", e);
       return new Response(
@@ -60,9 +65,14 @@ serve(async (req) => {
       );
     }
     
-    // Step 4: Check plan access
+    // Step 4: Check plan access with plan type information
     try {
-      await checkPlanAccess(user.id, fields);
+      const accessDetails = await checkPlanAccess(user.id, fields, requestData);
+      console.log("Plan access details:", accessDetails);
+      
+      // Add plan type info to the request data
+      requestData.planType = accessDetails.planType;
+      requestData.hasBothPlanTypes = accessDetails.hasBothPlanTypes;
     } catch (planError) {
       console.error("Plan access error:", planError);
       return new Response(
@@ -71,7 +81,7 @@ serve(async (req) => {
       );
     }
     
-    // Step 5: Create scraping task
+    // Step 5: Create scraping task with plan information
     try {
       const taskResult = await createScrapingTask({
         userId: user.id,
@@ -79,7 +89,9 @@ serve(async (req) => {
         country, 
         states, 
         fields,
-        rating
+        rating,
+        planType: requestData.planType || 'free',
+        hasBothPlanTypes: requestData.hasBothPlanTypes || false
       });
       
       console.log("Task created successfully:", taskResult.taskId);
@@ -89,7 +101,9 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           taskId: taskResult.taskId,
-          message: "Scraping task started successfully"
+          message: "Scraping task started successfully",
+          planType: requestData.planType || 'free',
+          hasBothPlanTypes: requestData.hasBothPlanTypes || false
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

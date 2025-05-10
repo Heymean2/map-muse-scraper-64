@@ -2,7 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 // Check if user has access to requested features based on their plan
-export async function checkPlanAccess(userId, fields) {
+export async function checkPlanAccess(userId, fields, requestData) {
   try {
     console.log(`Checking plan access for user ${userId}`);
     
@@ -63,17 +63,45 @@ export async function checkPlanAccess(userId, fields) {
         console.log(`isPaid: ${isPaidPlan}, isCredit: ${isCreditPlan}, isSubscription: ${isSubscriptionPlan}`);
       }
     }
+    
+    // Extract plan type flags from request
+    const useCreditPlan = requestData.useCreditPlan || isCreditPlan;
+    const useSubscriptionPlan = requestData.useSubscriptionPlan || isSubscriptionPlan;
+    const hasBothPlanTypes = requestData.hasBothPlanTypes || false;
+    
+    console.log("Plan flags from request:", {
+      useCreditPlan,
+      useSubscriptionPlan,
+      hasBothPlanTypes
+    });
 
     // Check if user has access to review data
-    if (fields.includes('reviews') && !planFeatures.reviews && !isCreditPlan) {
+    const hasReviewsAccess = isSubscriptionPlan || userCredits > 0 || planFeatures.reviews;
+    if (fields.includes('reviews') && !hasReviewsAccess) {
       throw {
         status: 403,
-        message: "Your current plan does not allow access to review data. Please upgrade to Pro."
+        message: "Your current plan does not allow access to review data. Please upgrade to Pro or purchase credits."
+      };
+    }
+
+    // For subscription plans, no need to check row limits
+    if (useSubscriptionPlan) {
+      console.log("Subscription plan detected - user has unlimited access");
+      
+      // If user has both plan types, log this information
+      if (hasBothPlanTypes) {
+        console.log("User has both subscription and credits. Using subscription plan.");
+      }
+      
+      return { 
+        hasAccess: true, 
+        planType: 'subscription',
+        hasBothPlanTypes
       };
     }
 
     // For credit-based plans, check if user has enough credits
-    if (isCreditPlan) {
+    if (useCreditPlan) {
       console.log(`Credit-based plan detected. User has ${userCredits} credits`);
       if (userCredits <= 0) {
         throw {
@@ -83,13 +111,11 @@ export async function checkPlanAccess(userId, fields) {
       }
       
       // For credit plans, the user has access as long as they have credits
-      return { hasAccess: true, planType: 'credits' };
-    }
-
-    // For subscription plans, no need to check row limits
-    if (isSubscriptionPlan) {
-      console.log("Subscription plan detected - user has unlimited access");
-      return { hasAccess: true, planType: 'subscription' };
+      return { 
+        hasAccess: true, 
+        planType: 'credits',
+        hasBothPlanTypes
+      };
     }
 
     // For free plans, check if user has reached their plan's scraping task limit
@@ -117,7 +143,11 @@ export async function checkPlanAccess(userId, fields) {
     }
 
     console.log(`User ${userId} has access to the requested features`);
-    return { hasAccess: true, planType: 'free' };
+    return { 
+      hasAccess: true, 
+      planType: 'free',
+      hasBothPlanTypes
+    };
     
   } catch (error) {
     console.error("Error checking plan access:", error);

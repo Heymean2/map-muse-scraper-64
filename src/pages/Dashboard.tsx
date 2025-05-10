@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getUserPlanInfo, getUserScrapingTasks } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { CircleDollarSign, CreditCard, FilePlus2, FileText } from "lucide-react";
+import { CircleDollarSign, CreditCard, FilePlus2, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Settings from "@/pages/Settings";
@@ -32,8 +32,10 @@ function DashboardHome() {
   const processingTasks = tasksData && Array.isArray(tasksData) ? 
     tasksData.filter(task => task.status === 'processing').length : 0;
     
-  // Determine if the plan is credit-based
+  // Determine plan types
   const isCreditBasedPlan = planInfo?.billing_period === 'credits';
+  const isSubscriptionPlan = planInfo?.billing_period === 'monthly' && !planInfo?.isFreePlan;
+  const hasBothPlanTypes = planInfo?.hasBothPlanTypes;
   
   return (
     <div className="w-full px-4 md:px-0">
@@ -63,10 +65,35 @@ function DashboardHome() {
                     </Badge>
                   )}
                 </div>
-                {isCreditBasedPlan && planInfo && (
+                
+                {/* Show credits information for both credit plans and users with both plan types */}
+                {(isCreditBasedPlan || hasBothPlanTypes) && planInfo && (
                   <div className="text-sm text-muted-foreground flex items-center gap-1">
                     <CreditCard className="h-4 w-4" />
                     <span>{planInfo.credits} credits available</span>
+                    {planInfo.price_per_credit && (
+                      <span className="text-xs">
+                        (${planInfo.price_per_credit.toFixed(3)} per row)
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Show subscription information */}
+                {isSubscriptionPlan && (
+                  <div className="text-sm text-muted-foreground flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Unlimited access with subscription</span>
+                  </div>
+                )}
+                
+                {/* Show notification for users with both plan types */}
+                {hasBothPlanTypes && (
+                  <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Your subscription plan will be used first. After your subscription expires, you can use your available credits.
+                    </p>
                   </div>
                 )}
               </div>
@@ -150,10 +177,26 @@ function DashboardHome() {
                   : "Basic data access (no reviews)"}
               </p>
               
-              {isCreditBasedPlan && planInfo && (
+              {/* Show credit information */}
+              {(isCreditBasedPlan || hasBothPlanTypes) && planInfo && (
                 <div className="mt-2 text-sm flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-4 w-4" />
-                  <span>{planInfo.credits} credits available (${planInfo.price_per_credit?.toFixed(3)} per row)</span>
+                  <span>{planInfo.credits} credits available</span>
+                  {planInfo.price_per_credit && (
+                    <span>
+                      (${planInfo.price_per_credit.toFixed(3)} per row)
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Notification for users with both plan types */}
+              {hasBothPlanTypes && (
+                <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    You have both a subscription and credits. Your subscription will be used first, and your credits will be available after your subscription expires.
+                  </p>
                 </div>
               )}
             </div>

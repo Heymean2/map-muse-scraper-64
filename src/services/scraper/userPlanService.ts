@@ -26,7 +26,17 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       throw profileError;
     }
     
-    // Get plan details
+    // Get all available plans to check for multiple plan types
+    const { data: allPlans, error: plansError } = await supabase
+      .from('pricing_plans')
+      .select('*');
+      
+    if (plansError) {
+      console.error("Error fetching all pricing plans:", plansError);
+      throw plansError;
+    }
+
+    // Get current plan details
     const { data: planData, error: planError } = await supabase
       .from('pricing_plans')
       .select('*')
@@ -64,13 +74,29 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     const credits = profileData?.credits || 0;
     const price_per_credit = planData?.price_per_credit || 0.001;
     
+    // Check if user has both a subscription plan and credits
+    const hasBothPlanTypes = isSubscriptionPlan && credits > 0;
+    
+    // Find credit-based plan details if user has credits
+    let creditPlanId = null;
+    let creditPlanName = null;
+    
+    if (credits > 0 && !isCreditPlan) {
+      // User has credits but current plan isn't credit-based, find credit plan info
+      const creditPlan = allPlans?.find(plan => plan.billing_period === 'credits');
+      if (creditPlan) {
+        creditPlanId = creditPlan.id.toString();
+        creditPlanName = creditPlan.name;
+      }
+    }
+    
     return {
       planId: profileData?.plan_id?.toString() || null,
       planName,
       hasAccess: true,
       features: {
-        reviews: !isFreePlan || isCreditPlan,
-        analytics: !isFreePlan || isCreditPlan,
+        reviews: !isFreePlan || isCreditPlan || credits > 0,
+        analytics: !isFreePlan || isCreditPlan || credits > 0,
         apiAccess: !isFreePlan && planName.toLowerCase().includes('premium')
       },
       isFreePlan,
@@ -80,7 +106,12 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       credits,
       price_per_credit,
       billing_period: planData?.billing_period,
-      isUnlimited: isSubscriptionPlan
+      isUnlimited: isSubscriptionPlan,
+      hasBothPlanTypes,
+      activeSubscription: isSubscriptionPlan,
+      creditPlanId,
+      creditPlanName,
+      subscriptionPlanId: isSubscriptionPlan ? profileData?.plan_id?.toString() : null,
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
@@ -100,7 +131,8 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       isExceeded: false,
       credits: 0,
       price_per_credit: 0.00299,
-      billing_period: 'monthly'
+      billing_period: 'monthly',
+      hasBothPlanTypes: false
     };
   }
 }
