@@ -41,11 +41,22 @@ export function getPlanFeatures(planName: string): PlanFeature[] {
     ];
   }
   
-  // Default to basic pro
+  if (planName.toLowerCase().includes("standard")) {
+    return [
+      { name: "Unlimited rows", included: true },
+      { name: "All business data fields", included: true },
+      { name: "Review data", included: true },
+      { name: "Basic analytics", included: true },
+      { name: "Standard support", included: true },
+      { name: "Data API access", included: false },
+    ];
+  }
+  
+  // Basic Pro plan (now without reviews)
   return [
     { name: "Unlimited rows", included: true },
     { name: "All business data fields", included: true },
-    { name: "Review data", included: true },
+    { name: "Review data", included: false },
     { name: "Advanced analytics", included: true },
     { name: "Priority support", included: true },
     { name: "Data API access", included: false },
