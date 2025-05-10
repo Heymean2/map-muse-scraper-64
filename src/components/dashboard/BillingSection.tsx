@@ -9,17 +9,23 @@ import { getPlanFeatures } from "./billing/PlanFeatures";
 import { SubscriptionManager } from "./billing/SubscriptionManager";
 import { CurrentPlanInfo } from "./billing/CurrentPlanInfo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreditPackageManager } from "./billing/CreditPackageManager";
+import { Separator } from "@/components/ui/separator";
 
 interface PlanData {
   id: string;
   name: string;
   price: number;
+  billing_period: string;
   is_recommended?: boolean;
+  price_per_credit?: number;
 }
 
 export default function BillingSection() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("subscription");
   
   // Get user's current plan info
   const { data: userPlan, isLoading: userPlanLoading } = useQuery({
@@ -28,79 +34,106 @@ export default function BillingSection() {
   });
   
   // Get available subscription plans from Supabase
-  const { data: subscriptionPlans, isLoading: plansLoading } = useQuery({
-    queryKey: ['subscriptionPlans'],
+  const { data: allPlans, isLoading: plansLoading } = useQuery({
+    queryKey: ['allPlans'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_plans')
-        .select('id, name, price, is_recommended')
-        .eq('billing_period', 'monthly')
+        .select('id, name, price, billing_period, is_recommended, price_per_credit, features')
         .order('price', { ascending: true });
         
       if (error) throw error;
       
-      // Convert to simpler format
-      return (data || []).map(plan => ({
-        id: plan.id.toString(),
-        name: plan.name || "",
-        price: plan.price || 0,
-        is_recommended: plan.is_recommended || false
-      }));
+      return data || [];
     }
   });
+  
+  // Filter plans by billing period (subscription or credits)
+  const subscriptionPlans = allPlans?.filter(plan => plan.billing_period === 'monthly') || [];
+  const creditPlans = allPlans?.filter(plan => plan.billing_period === 'credits') || [];
 
   const isPlanActive = (planId: string) => {
     return userPlan?.planId === planId;
   };
-
+  
   return (
     <Container>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Subscription Plans</h1>
+        <h1 className="text-3xl font-bold">Pricing Plans</h1>
         <p className="text-muted-foreground">Choose the right plan for your data extraction needs</p>
       </div>
       
-      {plansLoading || userPlanLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map(i => (
-            <div key={i} className="border rounded-xl p-6 space-y-4">
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-6 w-1/2" />
-              <Skeleton className="h-10 w-1/4" />
-              <div className="space-y-2 pt-4">
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-2/3" />
-              </div>
-              <Skeleton className="h-10 w-full mt-4" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="subscription">Monthly Subscription</TabsTrigger>
+          <TabsTrigger value="credits">Pay-Per-Use Credits</TabsTrigger>
+        </TabsList>
+        
+        {plansLoading || userPlanLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {subscriptionPlans?.map((plan: PlanData) => (
-              <PlanCard 
-                key={plan.id}
-                plan={plan}
-                isActive={isPlanActive(plan.id)}
-                onSelect={setSelectedPlanId}
-                features={getPlanFeatures(plan.name)}
-              />
+            {[1, 2].map(i => (
+              <div key={i} className="border rounded-xl p-6 space-y-4">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-10 w-1/4" />
+                <div className="space-y-2 pt-4">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-2/3" />
+                </div>
+                <Skeleton className="h-10 w-full mt-4" />
+              </div>
             ))}
           </div>
-          
-          <SubscriptionManager 
-            selectedPlanId={selectedPlanId}
-            isActivePlan={selectedPlanId ? isPlanActive(selectedPlanId) : false}
-            isProcessing={isProcessing}
-            setIsProcessing={setIsProcessing}
-          />
-          
-          <CurrentPlanInfo userPlan={userPlan} />
-        </>
-      )}
+        ) : (
+          <>
+            <TabsContent value="subscription" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {subscriptionPlans?.map((plan: PlanData) => (
+                  <PlanCard 
+                    key={plan.id}
+                    plan={plan}
+                    isActive={isPlanActive(plan.id)}
+                    onSelect={setSelectedPlanId}
+                    features={getPlanFeatures(plan.name)}
+                    planType="subscription"
+                  />
+                ))}
+              </div>
+              
+              <SubscriptionManager 
+                selectedPlanId={selectedPlanId}
+                isActivePlan={selectedPlanId ? isPlanActive(selectedPlanId) : false}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
+              />
+            </TabsContent>
+            
+            <TabsContent value="credits" className="mt-0">
+              {creditPlans?.map((plan: PlanData) => (
+                <div key={plan.id} className="mb-6">
+                  <h2 className="text-2xl font-semibold mb-2">
+                    {plan.name} - ${plan.price_per_credit?.toFixed(3)} per row
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    Pay only for what you use. Each row extracted costs 1 credit.
+                  </p>
+                  
+                  <CreditPackageManager 
+                    pricePerCredit={plan.price_per_credit || 0.001} 
+                    userPlan={userPlan}
+                  />
+                </div>
+              ))}
+            </TabsContent>
+          </>
+        )}
+      </Tabs>
+      
+      <Separator className="my-8" />
+      
+      <CurrentPlanInfo userPlan={userPlan} />
     </Container>
   );
 }

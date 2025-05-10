@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, InfinityIcon } from "lucide-react";
 
 interface PlanFeature {
   name: string;
@@ -16,13 +16,16 @@ interface PlanCardProps {
     description?: string;
     price: number;
     is_recommended?: boolean;
+    price_per_credit?: number;
+    billing_period?: string;
   };
   isActive: boolean;
   onSelect: (planId: string) => void;
   features: PlanFeature[];
+  planType?: "subscription" | "credits";
 }
 
-export function PlanCard({ plan, isActive, onSelect, features }: PlanCardProps) {
+export function PlanCard({ plan, isActive, onSelect, features, planType = "subscription" }: PlanCardProps) {
   return (
     <Card 
       className={`${isActive ? 'border-primary bg-primary/5' : ''} ${plan.is_recommended ? 'border-accent' : ''} transition-all duration-200`}
@@ -35,11 +38,31 @@ export function PlanCard({ plan, isActive, onSelect, features }: PlanCardProps) 
               Recommended
             </Badge>
           )}
+          {isActive && (
+            <Badge variant="outline" className="bg-primary text-primary-foreground">
+              Current Plan
+            </Badge>
+          )}
         </div>
         <CardDescription>{plan.description || ""}</CardDescription>
         <div className="mt-4">
-          <span className="text-3xl font-bold">${parseFloat(plan.price.toString()).toFixed(2)}</span>
-          <span className="text-muted-foreground">/month</span>
+          <div className="flex items-center gap-1">
+            <span className="text-3xl font-bold">${parseFloat(plan.price.toString()).toFixed(2)}</span>
+            {planType === "subscription" && <span className="text-muted-foreground">/month</span>}
+          </div>
+          
+          {plan.billing_period === "monthly" && plan.price > 0 && (
+            <div className="flex items-center mt-1">
+              <InfinityIcon className="h-4 w-4 mr-1 text-green-500" />
+              <span className="text-sm text-muted-foreground">Unlimited rows</span>
+            </div>
+          )}
+          
+          {plan.billing_period === "credits" && (
+            <div className="text-sm text-muted-foreground mt-1">
+              Pay only for what you use
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>

@@ -48,6 +48,7 @@ export interface UserPlanInfo {
   isExceeded?: boolean;
   credits?: number;
   price_per_credit?: number;
+  billing_period?: string; // Added for plan type identification
 }
 
 export interface FreeTierLimitInfo {

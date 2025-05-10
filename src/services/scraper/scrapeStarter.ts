@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ScraperParams, ScraperResponse } from "./types";
+import { getUserPlanInfo } from "./userPlanService";
 
 /**
  * Start a new scraping task
@@ -15,6 +16,16 @@ export async function startScraping({
 }: ScraperParams): Promise<ScraperResponse> {
   try {
     console.log("Starting scraping with config:", { keywords, country, states, fields, rating });
+    
+    // Check user's plan to see if they have enough credits
+    const planInfo = await getUserPlanInfo();
+    
+    // For credit-based plans, check if user has enough credits
+    const isCreditPlan = planInfo?.planName?.includes("Credit");
+    if (isCreditPlan && (planInfo?.credits || 0) <= 0) {
+      toast.error("You don't have enough credits. Please purchase more credits to continue.");
+      return { success: false, error: "Insufficient credits" };
+    }
     
     // Get fresh session token to ensure auth is valid
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -60,7 +71,8 @@ export async function startScraping({
         country, 
         states, 
         fields, 
-        rating 
+        rating,
+        isCreditPlan  // Pass this flag to the edge function
       },
       headers: {
         Authorization: `Bearer ${accessToken}`
@@ -74,6 +86,23 @@ export async function startScraping({
     }
     
     console.log("Edge function call successful:", data);
+    
+    // If using credits, deduct credits immediately as a UX improvement
+    // (actual deduction will happen server-side as well)
+    if (isCreditPlan && planInfo?.credits) {
+      const estimatedRowCount = 100; // This is a placeholder, actual count will be determined server-side
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          credits: Math.max(0, (planInfo.credits - estimatedRowCount)) 
+        })
+        .eq('id', refreshResult.session.user.id);
+      
+      if (updateError) {
+        console.error("Error updating credits (client-side):", updateError);
+      }
+    }
+    
     return { 
       success: true, 
       task_id: data?.taskId || data?.task_id 

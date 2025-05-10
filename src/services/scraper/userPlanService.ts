@@ -29,7 +29,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     // Get plan details
     const { data: planData, error: planError } = await supabase
       .from('pricing_plans')
-      .select('name, row_limit, credits, price_per_credit')
+      .select('*')
       .eq('id', profileData?.plan_id || 1)
       .single();
       
@@ -58,25 +58,27 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     const planName = planData?.name || 'Free Plan';
     const freeRowsLimit = planData?.row_limit || DEFAULT_FREE_TIER_LIMIT;
     const isFreePlan = planName === 'Free Plan';
+    const isCreditPlan = planData?.billing_period === 'credits';
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
     const credits = profileData?.credits || 0;
-    const price_per_credit = planData?.price_per_credit || 0;
+    const price_per_credit = planData?.price_per_credit || 0.001;
     
     return {
       planId: profileData?.plan_id?.toString() || null,
       planName,
       hasAccess: true,
       features: {
-        reviews: !isFreePlan,
-        analytics: !isFreePlan,
-        apiAccess: !isFreePlan
+        reviews: !isFreePlan || isCreditPlan,
+        analytics: !isFreePlan || isCreditPlan,
+        apiAccess: !isFreePlan && planName === 'Premium Pro'
       },
       isFreePlan,
       totalRows,
       freeRowsLimit,
       isExceeded,
       credits,
-      price_per_credit
+      price_per_credit,
+      billing_period: planData?.billing_period
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
