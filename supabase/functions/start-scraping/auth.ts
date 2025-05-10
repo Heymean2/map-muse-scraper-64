@@ -1,51 +1,12 @@
 
-import { Request } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { corsHeaders } from "./cors.ts";
 
-// Helper function to create a Supabase client with the user's JWT
-export function getSupabaseClient(req: Request): SupabaseClient {
+// Authenticate user with JWT
+export async function authenticate(req) {
   // Get Auth token from request
   const authorization = req.headers.get('Authorization') || '';
   const apikey = req.headers.get('apikey') || '';
-  
-  // Debug auth header and apikey presence
-  console.log("Authorization header present:", !!authorization);
-  console.log("API key present:", !!apikey);
-  
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-  
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Missing Supabase URL or anon key in env variables");
-  }
-  
-  // Create Supabase client with auth headers
-  const client = createClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      global: {
-        headers: {
-          Authorization: authorization,
-          apikey,
-        },
-      },
-      auth: {
-        autoRefreshToken: false, // Edge functions run in a stateless environment
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-    }
-  );
-  
-  console.log("Supabase client created successfully");
-  return client;
-}
-
-// Authenticate user with JWT
-export async function authenticateUser(req: Request): Promise<{ id: string, email?: string }> {
-  // Get Auth token from request
-  const authorization = req.headers.get('Authorization') || '';
   
   if (!authorization || !authorization.startsWith('Bearer ')) {
     console.error("Missing or invalid Authorization header");
@@ -65,38 +26,61 @@ export async function authenticateUser(req: Request): Promise<{ id: string, emai
   }
   
   try {
-    // Verify JWT token directly
-    // This simplifies the approach by focusing on basic JWT validation
-    const supabase = getSupabaseClient(req);
+    // Create Supabase client with auth headers
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("Missing Supabase URL or anon key in env variables");
+      throw {
+        status: 500,
+        message: "Server configuration error"
+      };
+    }
+    
+    const supabase = createClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey,
+          },
+        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false,
+        },
+      }
+    );
     
     // Get user from JWT
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (userError) {
-      console.error("Error verifying JWT:", userError);
+    if (userError || !user) {
+      console.error("Error verifying JWT:", userError?.message || "No user found");
       throw {
         status: 401,
-        message: "Invalid JWT token",
-        details: userError.message
-      };
-    }
-    
-    if (!user) {
-      console.error("No user found in token");
-      throw {
-        status: 401,
-        message: "No user found in token"
+        message: "Invalid authentication token"
       };
     }
     
     console.log("Authentication successful for user:", user.id);
     return { id: user.id, email: user.email };
+    
   } catch (error) {
     console.error("Authentication error:", error);
+    
+    // If this is already our custom error, just rethrow it
+    if (error.status && error.message) {
+      throw error;
+    }
+    
     throw {
       status: 401,
-      message: "Authentication failed. Please sign in again.",
-      debug: error.toString()
+      message: "Authentication failed. Please sign in again."
     };
   }
 }

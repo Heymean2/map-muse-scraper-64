@@ -1,27 +1,44 @@
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 // Generate a unique task ID
-export function generateTaskId(): string {
+function generateTaskId() {
   return `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
 // Create a new scraping request record
-export async function createScrapingRequest(
-  supabase: SupabaseClient,
-  userId: string,
-  taskId: string,
-  { keywords, country, states, fields, rating }: { 
-    keywords: string;
-    country: string;
-    states: string[];
-    fields: string[];
-    rating?: string;
-  }
-) {
+export async function createScrapingTask({
+  userId, 
+  keywords, 
+  country, 
+  states, 
+  fields,
+  rating
+}) {
   try {
-    console.log(`Creating scraping request for user ${userId} with task ID ${taskId}`);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase URL or service role key");
+      throw {
+        status: 500,
+        message: "Server configuration error"
+      };
+    }
+    
+    // Create admin client with service role key for direct DB access
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Generate unique task ID
+    const taskId = generateTaskId();
+    console.log(`Creating scraping task with ID ${taskId} for user ${userId}`);
+    
+    // Format fields for storage
+    const formattedStates = Array.isArray(states) ? states.join(',') : states;
+    const formattedFields = Array.isArray(fields) ? fields.join(',') : fields;
+    
+    // Insert new scraping request
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
@@ -29,17 +46,17 @@ export async function createScrapingRequest(
         user_id: userId,
         keywords,
         country,
-        states: Array.isArray(states) ? states.join(',') : states,
-        fields: Array.isArray(fields) ? fields.join(',') : fields,
+        states: formattedStates,
+        fields: formattedFields,
         rating,
         status: 'processing',
         created_at: new Date().toISOString()
       });
 
     if (insertError) {
-      console.error('Error inserting scraping request:', insertError.message);
+      console.error('Error creating scraping task:', insertError.message);
       
-      // Handle plan limit exceeded error specifically
+      // Handle specific errors
       if (insertError.message && insertError.message.includes('plan limit')) {
         throw {
           status: 403,
@@ -49,12 +66,13 @@ export async function createScrapingRequest(
 
       throw {
         status: 500,
-        message: insertError.message
+        message: insertError.message || "Failed to create scraping task"
       };
     }
 
-    console.log(`Scraping task ${taskId} created successfully for user ${userId}`);
-    return { success: true };
+    console.log(`Scraping task ${taskId} created successfully`);
+    return { success: true, taskId };
+    
   } catch (error) {
     console.error('Database error:', error);
     if (error.status) throw error; // Re-throw our custom errors

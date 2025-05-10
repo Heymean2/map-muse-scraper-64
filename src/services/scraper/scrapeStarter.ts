@@ -32,9 +32,6 @@ export async function startScraping({
     }
     
     // Ensure token is fresh before making the request
-    let accessToken = sessionData.session.access_token;
-    
-    console.log("Refreshing token before making edge function call");
     try {
       // Force token refresh to ensure we have the freshest possible token
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
@@ -42,34 +39,23 @@ export async function startScraping({
       if (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         // Continue with current token if refresh fails
-      } else if (refreshResult && refreshResult.session) {
-        console.log("Token refreshed successfully");
-        accessToken = refreshResult.session.access_token;
-        
-        // Wait a moment for token to propagate
-        await new Promise(resolve => setTimeout(resolve, 500));
       }
+      
+      // Wait a moment for token to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (refreshError) {
       console.error("Exception during token refresh:", refreshError);
       // Continue with current token as a fallback
     }
     
-    if (!accessToken) {
-      console.error("No access token available");
-      toast.error("Authentication error. Please sign in again.");
-      return { success: false, error: "No access token available" };
-    }
-    
-    console.log("Calling edge function with access token");
-    
-    const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bHduaXpmZ2dwbGN0ZHR1anN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwMzUwMjYsImV4cCI6MjA1NzYxMTAyNn0.-ajeJzWjufIy4RUkotdMgYWprFuQOJzA7a_aIYuCPA4";
-    
     // Make the edge function call with explicit headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
-      body: { keywords, country, states, fields, rating },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        apikey: apiKey
+      body: { 
+        keywords, 
+        country, 
+        states, 
+        fields, 
+        rating 
       }
     });
     
@@ -80,7 +66,10 @@ export async function startScraping({
     }
     
     console.log("Edge function call successful:", data);
-    return { success: true, task_id: data?.taskId };
+    return { 
+      success: true, 
+      task_id: data?.taskId || data?.task_id 
+    };
   } catch (error: any) {
     console.error("Error starting scraping:", error);
     return { success: false, error: error.message || "Failed to start scraping" };
