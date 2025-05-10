@@ -1,11 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   PayPalButtons,
-  PayPalHostedFieldsProvider
+  PayPalHostedFieldsProvider,
+  usePayPalScriptReducer
 } from "@paypal/react-paypal-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostedFieldsForm } from "./HostedFieldsForm";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PaymentFormProps {
   selectedPlan: any;
@@ -25,6 +28,42 @@ export function PaymentForm({
   onError
 }: PaymentFormProps) {
   const [paymentMethod, setPaymentMethod] = useState<"paypal" | "card">("paypal");
+  const [{ isPending, isResolved, isRejected }, dispatch] = usePayPalScriptReducer();
+
+  // Update the PayPal script with client token when needed for hosted fields
+  useEffect(() => {
+    if (paymentMethod === "card" && clientToken) {
+      dispatch({
+        type: "resetOptions",
+        value: {
+          clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
+          components: "buttons,hosted-fields",
+          currency: "USD",
+          intent: "capture",
+          "data-client-token": clientToken
+        },
+      });
+    }
+  }, [paymentMethod, clientToken, dispatch]);
+
+  if (isPending && paymentMethod === "card") {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading payment form...</p>
+      </div>
+    );
+  }
+
+  if (isRejected && paymentMethod === "card") {
+    return (
+      <Alert variant="destructive" className="mt-6">
+        <AlertDescription>
+          Failed to load payment form. Please try refreshing the page or use PayPal checkout instead.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <Tabs defaultValue="paypal" onValueChange={(v) => setPaymentMethod(v as "paypal" | "card")}>
@@ -57,17 +96,23 @@ export function PaymentForm({
       
       <TabsContent value="card" className="mt-6">
         {selectedPlan ? (
-          <PayPalHostedFieldsProvider
-            createOrder={createOrder}
-          >
-            <HostedFieldsForm 
-              onApprove={onApprove} 
-              onError={onError}
-            />
-          </PayPalHostedFieldsProvider>
+          isResolved && paymentMethod === "card" ? (
+            <PayPalHostedFieldsProvider
+              createOrder={createOrder}
+            >
+              <HostedFieldsForm 
+                onApprove={onApprove} 
+                onError={onError}
+              />
+            </PayPalHostedFieldsProvider>
+          ) : (
+            <div className="text-center py-4">
+              Loading credit card form...
+            </div>
+          )
         ) : (
           <div className="text-center py-4">
-            {!selectedPlan ? "Please select a plan to continue." : "Loading payment form..."}
+            Please select a plan to continue.
           </div>
         )}
       </TabsContent>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,12 +67,12 @@ export function useCheckoutLogic() {
     }
   }, [plansData, selectedPlan]);
 
-  // Set a dummy client token for PayPal Hosted Fields
-  // This is now configured in the PayPalScriptProvider instead
+  // Fetch client token for PayPal Hosted Fields
   useEffect(() => {
-    // For backwards compatibility, we'll still set this value
-    // but we're not using it directly anymore
-    setClientToken(import.meta.env.VITE_PAYPAL_CLIENT_TOKEN || "sandbox_8hxpnkht_kzdtzv2btm4p7s4b");
+    // For sandbox testing, we'll use a hardcoded sandbox token
+    // In production, this should be fetched from your server
+    const token = import.meta.env.VITE_PAYPAL_CLIENT_TOKEN || "sandbox_8hxpnkht_kzdtzv2btm4p7s4b";
+    setClientToken(token);
   }, []);
   
   // Create order for PayPal
