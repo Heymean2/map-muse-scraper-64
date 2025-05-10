@@ -62,7 +62,7 @@ export default function Checkout() {
   const packageSizeParam = searchParams.get("packageSize");
   // Convert packageSize to number explicitly
   const [creditQuantity, setCreditQuantity] = useState<number>(
-    packageSizeParam ? parseInt(packageSizeParam, 10) : 1
+    packageSizeParam ? parseInt(packageSizeParam, 10) || 1 : 1
   );
   
   const creditPrice = planData?.price_per_credit || 0.001;
