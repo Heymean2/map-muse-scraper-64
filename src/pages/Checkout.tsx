@@ -58,8 +58,13 @@ export default function Checkout() {
   // Check if the user is trying to purchase the same plan they already have
   const isSamePlan = userPlan?.planId === planId && planType === 'subscription';
 
-  // Calculate purchase details for credits
-  const [creditQuantity, setCreditQuantity] = useState<number>(1);
+  // Get package size from URL param or default to 1
+  const packageSizeParam = searchParams.get("packageSize");
+  // Convert packageSize to number explicitly
+  const [creditQuantity, setCreditQuantity] = useState<number>(
+    packageSizeParam ? parseInt(packageSizeParam, 10) : 1
+  );
+  
   const creditPrice = planData?.price_per_credit || 0.001;
   const totalCredits = creditQuantity * 1000; // 1000 credits per package
   const totalAmount = planType === 'subscription' 
