@@ -7,9 +7,10 @@ import { toast } from "sonner";
 
 interface HostedFieldsFormProps {
   onApprove: (orderData: any) => void;
+  onError: (err: any) => void;
 }
 
-export function HostedFieldsForm({ onApprove }: HostedFieldsFormProps) {
+export function HostedFieldsForm({ onApprove, onError }: HostedFieldsFormProps) {
   const { cardFields } = usePayPalHostedFields();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,6 +28,7 @@ export function HostedFieldsForm({ onApprove }: HostedFieldsFormProps) {
       onApprove(orderData);
     }).catch(error => {
       console.error("Card payment error:", error);
+      onError(error);
       toast.error(error.message || "Payment failed. Please try again.");
     }).finally(() => {
       setIsSubmitting(false);

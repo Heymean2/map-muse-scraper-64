@@ -59,11 +59,10 @@ export function PaymentForm({
         {selectedPlan ? (
           <PayPalHostedFieldsProvider
             createOrder={createOrder}
-            onApprove={(data) => onApprove(data)}
-            onError={onError}
           >
             <HostedFieldsForm 
-              onApprove={(orderData) => onApprove(orderData)} 
+              onApprove={onApprove} 
+              onError={onError}
             />
           </PayPalHostedFieldsProvider>
         ) : (
