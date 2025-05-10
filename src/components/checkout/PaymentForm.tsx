@@ -59,7 +59,11 @@ export function PaymentForm({
         {selectedPlan && clientToken ? (
           <PayPalHostedFieldsProvider
             createOrder={createOrder}
-            clientToken={clientToken}
+            options={{
+              createOrder,
+              components: "hosted-fields",
+              dataClientToken: clientToken
+            }}
           >
             <HostedFieldsForm 
               onApprove={(orderData) => onApprove(orderData)} 
