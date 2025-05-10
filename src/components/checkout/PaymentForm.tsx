@@ -33,8 +33,15 @@ export function PaymentForm({
   // Update the PayPal script with client token when needed for hosted fields
   useEffect(() => {
     if (paymentMethod === "card" && clientToken) {
+      // Using the correct action type for PayPal script reducer
       dispatch({
-        type: "resetOptions",
+        type: "setLoadingStatus",
+        value: "pending"
+      });
+      
+      // Then set the options
+      dispatch({
+        type: "setOptions",
         value: {
           clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
           components: "buttons,hosted-fields",
