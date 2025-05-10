@@ -3,9 +3,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UserPlanInfo } from "@/services/scraper/types";
-import { CreditCard, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CreditPackageProps {
   pricePerCredit: number;
@@ -13,53 +16,77 @@ interface CreditPackageProps {
 }
 
 export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackageProps) {
-  const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [creditAmount, setCreditAmount] = useState<number>(1000);
   const navigate = useNavigate();
 
-  const packages = [
-    { id: 1, credits: 1000, discount: 0, label: "1,000 Credits" },
-    { id: 5, credits: 5000, discount: 0.05, label: "5,000 Credits - 5% discount" },
-    { id: 10, credits: 10000, discount: 0.10, label: "10,000 Credits - 10% discount" },
-    { id: 25, credits: 25000, discount: 0.15, label: "25,000 Credits - 15% discount" }
-  ];
-
-  const calculatePrice = (credits: number, discount: number) => {
-    return (credits * pricePerCredit * (1 - discount)).toFixed(2);
-  };
-
   const handlePurchase = () => {
-    if (!selectedPackage) {
-      toast.error("Please select a credit package");
+    if (creditAmount < 1000) {
+      toast.error("Minimum purchase is 1,000 credits");
       return;
     }
     
-    // Navigate to checkout page
-    navigate(`/checkout?planId=credits&planType=credits&packageSize=${selectedPackage}`);
+    // Navigate to checkout page with custom amount
+    navigate(`/checkout?planId=credits&planType=credits&creditAmount=${creditAmount}`);
+  };
+  
+  // Handle slider change
+  const handleSliderChange = (value: number[]) => {
+    setCreditAmount(value[0]);
+  };
+  
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value)) {
+      const clampedValue = Math.min(Math.max(value, 1000), 10000000);
+      setCreditAmount(clampedValue);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {packages.map((pkg) => (
-          <Card 
-            key={pkg.id}
-            className={`cursor-pointer transition-colors ${
-              selectedPackage === pkg.id ? 'border-primary bg-primary/5' : ''
-            }`}
-            onClick={() => setSelectedPackage(pkg.id)}
-          >
-            <CardContent className="p-4">
-              <div className="text-center space-y-2">
-                <div className="font-bold">{pkg.label}</div>
-                <div className="text-2xl font-semibold">${calculatePrice(pkg.credits, pkg.discount)}</div>
-                <div className="text-xs text-muted-foreground">
-                  ${(pricePerCredit * (1 - pkg.discount)).toFixed(3)} per credit
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="p-6">
+        <CardContent className="p-0 space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="creditAmount">Credit Amount: {creditAmount.toLocaleString()}</Label>
+            <div className="flex space-x-4 items-center">
+              <span className="text-sm">1,000</span>
+              <Slider 
+                id="creditAmount"
+                value={[creditAmount]}
+                min={1000}
+                max={1000000}
+                step={1000}
+                onValueChange={handleSliderChange}
+                className="flex-1"
+              />
+              <span className="text-sm">1M</span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="customAmount">Custom Amount</Label>
+            <Input
+              id="customAmount"
+              type="number"
+              min={1000}
+              max={10000000}
+              value={creditAmount}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="bg-slate-50 p-4 rounded-md">
+            <p className="font-medium">
+              Total: ${(creditAmount * pricePerCredit).toFixed(2)}
+            </p>
+            <p className="text-sm text-slate-700">
+              ${pricePerCredit.toFixed(3)} per credit × {creditAmount.toLocaleString()} credits
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex items-center justify-between bg-slate-50 p-4 rounded-md">
         <div>
@@ -68,7 +95,6 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
         </div>
         <Button 
           onClick={handlePurchase}
-          disabled={selectedPackage === null}
           className="gap-2"
         >
           <ShoppingCart className="h-4 w-4" />

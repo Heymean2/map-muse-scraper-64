@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,8 +11,15 @@ import { PlanSelection } from "@/components/checkout/PlanSelection";
 import { PlanSummary } from "@/components/checkout/PlanSummary";
 import { PaymentSuccess } from "@/components/checkout/PaymentSuccess";
 import { useCheckoutLogic } from "@/hooks/useCheckoutLogic";
+import { CreditPackageOptions } from "@/components/checkout/CreditPackageOptions";
+import { useLocation } from "react-router-dom";
 
 export default function Checkout() {
+  const location = useLocation();
+  const [creditAmount, setCreditAmount] = useState<number>(1000);
+  const [creditPrice, setCreditPrice] = useState<number>(0.00299);
+  const [planType, setPlanType] = useState<string>("subscription");
+  
   const {
     isProcessing,
     isSuccess,
@@ -27,6 +35,35 @@ export default function Checkout() {
     captureOrder,
     handlePayPalError
   } = useCheckoutLogic();
+
+  // Parse URL parameters on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const planIdParam = params.get("planId");
+    const planTypeParam = params.get("planType");
+    const creditAmountParam = params.get("creditAmount");
+    
+    if (planTypeParam) {
+      setPlanType(planTypeParam);
+    }
+    
+    if (creditAmountParam) {
+      setCreditAmount(parseInt(creditAmountParam));
+    }
+    
+    // If we have plansData and a planId parameter, set the selected plan
+    if (plansData && planIdParam) {
+      const plan = plansData.find(p => String(p.id) === planIdParam);
+      if (plan) {
+        setSelectedPlan(plan);
+        
+        // If it's a credit plan, set the credit price
+        if (plan.billing_period === 'credits') {
+          setCreditPrice(plan.price_per_credit || 0.00299);
+        }
+      }
+    }
+  }, [location, plansData, setSelectedPlan]);
 
   if (currentPlanLoading || plansLoading) {
     return (
@@ -70,7 +107,9 @@ export default function Checkout() {
   return (
     <DashboardLayout>
       <Container className="py-8">
-        <h1 className="text-3xl font-bold mb-8">Upgrade Your Plan</h1>
+        <h1 className="text-3xl font-bold mb-8">
+          {planType === 'credits' ? 'Purchase Credits' : 'Upgrade Your Plan'}
+        </h1>
         
         {isError && (
           <Alert variant="destructive" className="mb-6">
@@ -84,18 +123,32 @@ export default function Checkout() {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Select a Plan</CardTitle>
-                <CardDescription>Choose a plan that fits your needs</CardDescription>
+                <CardTitle>
+                  {planType === 'credits' ? 'Select Credit Amount' : 'Select a Plan'}
+                </CardTitle>
+                <CardDescription>
+                  {planType === 'credits' 
+                    ? 'Choose how many credits you want to purchase' 
+                    : 'Choose a plan that fits your needs'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {plansData && plansData.length > 0 ? (
-                  <PlanSelection 
-                    plans={plansData}
-                    selectedPlan={selectedPlan}
-                    onSelectPlan={setSelectedPlan}
+                {planType === 'credits' ? (
+                  <CreditPackageOptions 
+                    creditPrice={creditPrice}
+                    creditQuantity={creditAmount}
+                    onCreditQuantityChange={setCreditAmount}
                   />
                 ) : (
-                  <p className="text-muted-foreground">No plans available</p>
+                  plansData && plansData.length > 0 ? (
+                    <PlanSelection 
+                      plans={plansData}
+                      selectedPlan={selectedPlan}
+                      onSelectPlan={setSelectedPlan}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground">No plans available</p>
+                  )
                 )}
 
                 <PaymentForm
@@ -110,7 +163,11 @@ export default function Checkout() {
           </div>
           
           <div>
-            <PlanSummary selectedPlan={selectedPlan} />
+            <PlanSummary 
+              selectedPlan={selectedPlan} 
+              customCredits={planType === 'credits' ? creditAmount : undefined}
+              creditPrice={creditPrice}
+            />
           </div>
         </div>
       </Container>

@@ -42,13 +42,17 @@ serve(async (req) => {
     const user = await authenticate(req);
     
     // Parse request body
-    const { orderID, plan } = await req.json();
+    const requestData = await req.json();
+    const { orderID, plan, creditAmount } = requestData;
+    
     if (!orderID) {
       return new Response(
         JSON.stringify({ error: "Order ID is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`Processing order ${orderID} for plan ${plan}${creditAmount ? `, credit amount: ${creditAmount}` : ''}`);
     
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
@@ -86,6 +90,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
     );
     
+    // Check if this is a credit purchase with custom amount
+    const isCreditPurchase = creditAmount !== undefined && creditAmount !== null;
+    
     // Record payment in database
     const { error: paymentError } = await supabaseAdmin
       .from("billing_transactions")
@@ -97,7 +104,11 @@ serve(async (req) => {
         status: paymentStatus === "COMPLETED" ? "completed" : "pending",
         payment_method: "paypal",
         payment_id: captureId,
-        metadata: captureData
+        credits_purchased: isCreditPurchase ? creditAmount : null,
+        metadata: {
+          ...captureData,
+          creditAmount: isCreditPurchase ? creditAmount : null
+        }
       });
     
     if (paymentError) {
@@ -108,8 +119,44 @@ serve(async (req) => {
       );
     }
     
-    // Update user's plan in profiles table
-    if (plan) {
+    // If it's a credit purchase, update the user's credits
+    if (isCreditPurchase) {
+      // Get current user credits
+      const { data: profileData, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("credits")
+        .eq("id", user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+        return new Response(
+          JSON.stringify({ error: "Payment was processed but failed to update user credits" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      const currentCredits = profileData?.credits || 0;
+      const newCredits = currentCredits + creditAmount;
+      
+      // Update user's credits
+      const { error: updateError } = await supabaseAdmin
+        .from("profiles")
+        .update({ credits: newCredits })
+        .eq("id", user.id);
+      
+      if (updateError) {
+        console.error("Error updating user credits:", updateError);
+        return new Response(
+          JSON.stringify({ error: "Payment was processed but failed to update user credits" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      console.log(`Updated user ${user.id} credits from ${currentCredits} to ${newCredits}`);
+    } 
+    // For non-credit purchases (subscription plans), update the user's plan
+    else if (plan) {
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
         .update({ plan_id: plan })
@@ -122,6 +169,8 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      
+      console.log(`Updated user ${user.id} to plan ${plan}`);
     }
     
     return new Response(

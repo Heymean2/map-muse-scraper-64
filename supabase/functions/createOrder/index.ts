@@ -31,7 +31,7 @@ async function getPayPalAccessToken() {
 }
 
 // Function to determine price based on plan
-async function getPlanPrice(planId) {
+async function getPlanPrice(planId, creditAmount = null) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   
@@ -52,6 +52,15 @@ async function getPlanPrice(planId) {
     throw new Error(`Plan not found: ${planId}`);
   }
   
+  // If it's a credit purchase with custom amount
+  if (creditAmount && plans[0].billing_period === 'credits') {
+    return {
+      value: (plans[0].price_per_credit * creditAmount).toString(),
+      name: `${creditAmount.toLocaleString()} Credits`
+    };
+  }
+  
+  // Regular plan purchase
   return {
     value: plans[0].price.toString(),
     name: plans[0].name
@@ -69,7 +78,9 @@ serve(async (req) => {
     const user = await authenticate(req);
     
     // Parse request body
-    const { plan } = await req.json();
+    const requestData = await req.json();
+    const { plan, creditAmount } = requestData;
+    
     if (!plan) {
       return new Response(
         JSON.stringify({ error: "Plan is required" }),
@@ -77,8 +88,9 @@ serve(async (req) => {
       );
     }
     
-    // Get plan price
-    const planDetails = await getPlanPrice(plan);
+    // Get plan price, considering custom credit amount if provided
+    const planDetails = await getPlanPrice(plan, creditAmount);
+    console.log(`Order for plan ${plan}, amount: ${planDetails.value}, name: ${planDetails.name}`);
     
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
@@ -98,7 +110,9 @@ serve(async (req) => {
               currency_code: "USD",
               value: planDetails.value
             },
-            description: `Subscription to ${planDetails.name} Plan`
+            description: creditAmount 
+              ? `Purchase of ${planDetails.name}`
+              : `Subscription to ${planDetails.name} Plan`
           }
         ]
       })
@@ -116,7 +130,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         orderID: paypalOrder.id,
-        plan: plan
+        plan: plan,
+        creditAmount: creditAmount || null
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
