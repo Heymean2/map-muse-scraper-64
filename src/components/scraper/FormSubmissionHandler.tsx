@@ -89,8 +89,8 @@ export default function FormSubmissionHandler({
       // Ensure session is fresh before making the request
       try {
         console.log("Refreshing session before scraping...");
-        const freshSession = await refreshSession();
-        console.log("Session refreshed successfully", !!freshSession);
+        await refreshSession();
+        console.log("Session refreshed successfully");
         
         // Wait for token to be properly saved/propagated
         await new Promise(resolve => setTimeout(resolve, 1000));

@@ -46,13 +46,15 @@ export async function startScraping({
       return { success: false, error: "No session after refresh" };
     }
     
-    console.log("Session refreshed successfully, token available:", !!refreshResult.session.access_token);
+    const accessToken = refreshResult.session.access_token;
+    console.log("Session refreshed successfully, token available:", !!accessToken);
     
     // Wait a moment for token to propagate
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Make the edge function call with explicit auth headers
     const { data, error } = await supabase.functions.invoke('start-scraping', {
+      method: 'POST',
       body: { 
         keywords, 
         country, 
@@ -61,7 +63,7 @@ export async function startScraping({
         rating 
       },
       headers: {
-        Authorization: `Bearer ${refreshResult.session.access_token}`
+        Authorization: `Bearer ${accessToken}`
       }
     });
     

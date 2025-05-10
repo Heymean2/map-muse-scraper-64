@@ -15,6 +15,13 @@ serve(async (req) => {
   try {
     console.log("Edge function start-scraping received request");
     
+    // Log headers for debugging (masking sensitive data)
+    console.log("Request headers:", {
+      authorization: req.headers.has('Authorization') ? 'Present (masked)' : 'Missing',
+      apikey: req.headers.has('apikey') ? 'Present (masked)' : 'Missing',
+      contentType: req.headers.get('Content-Type')
+    });
+    
     // Step 1: Parse request body
     let requestData;
     try {
@@ -27,13 +34,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Log headers for debugging (masking sensitive data)
-    console.log("Request headers:", {
-      authorization: req.headers.has('Authorization') ? 'Present (masked)' : 'Missing',
-      apikey: req.headers.has('apikey') ? 'Present (masked)' : 'Missing',
-      contentType: req.headers.get('Content-Type')
-    });
     
     // Step 2: Authenticate user
     let user;

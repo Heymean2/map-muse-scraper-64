@@ -6,11 +6,12 @@ import { corsHeaders } from "./cors.ts";
 export async function authenticate(req) {
   // Get Auth token from request
   const authorization = req.headers.get('Authorization') || '';
-  const apikey = req.headers.get('apikey') || '';
   
-  console.log("Auth headers received:", { 
-    authorization: authorization ? `${authorization.substring(0, 15)}...` : 'none', 
-    apikey: apikey ? 'present' : 'none' 
+  // Log the headers we're receiving (without exposing sensitive info)
+  console.log("Auth request headers:", {
+    authorization: authorization ? "Present (first 10 chars: " + authorization.substring(0, 10) + "...)" : "Missing",
+    contentType: req.headers.get('Content-Type'),
+    apikey: req.headers.has('apikey') ? "Present" : "Missing"
   });
   
   if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -31,7 +32,7 @@ export async function authenticate(req) {
   }
   
   try {
-    // Create Supabase client with auth headers
+    // Create Supabase client with auth token
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
@@ -45,6 +46,7 @@ export async function authenticate(req) {
     
     console.log("Creating Supabase client with URL:", supabaseUrl);
     
+    // Create client with the JWT token in headers
     const supabase = createClient(
       supabaseUrl,
       supabaseAnonKey,
@@ -52,7 +54,6 @@ export async function authenticate(req) {
         global: {
           headers: {
             Authorization: `Bearer ${token}`,
-            apikey,
           },
         },
         auth: {
@@ -62,19 +63,19 @@ export async function authenticate(req) {
         },
       }
     );
+
+    // Try to get user from JWT token
+    const { data, error } = await supabase.auth.getUser();
     
-    // Try to get user directly from JWT without making additional calls
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error("Error verifying JWT:", userError.message);
+    if (error) {
+      console.error("Error verifying JWT:", error.message);
       throw {
         status: 401,
         message: "Invalid authentication token"
       };
     }
     
-    if (!user) {
+    if (!data.user) {
       console.error("No user found in JWT");
       throw {
         status: 401,
@@ -82,8 +83,8 @@ export async function authenticate(req) {
       };
     }
     
-    console.log("Authentication successful for user:", user.id);
-    return { id: user.id, email: user.email };
+    console.log("Authentication successful for user:", data.user.id);
+    return { id: data.user.id, email: data.user.email };
     
   } catch (error) {
     console.error("Authentication error:", error);
