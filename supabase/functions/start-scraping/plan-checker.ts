@@ -23,7 +23,7 @@ export async function checkPlanAccess(userId, fields) {
     // Check user's plan for access to advanced features
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id')
+      .select('plan_id, credits')
       .eq('id', userId)
       .single();
       
@@ -34,10 +34,15 @@ export async function checkPlanAccess(userId, fields) {
     }
 
     let planFeatures = { reviews: false };
+    let isPaidPlan = false;
+    let isCreditPlan = false;
+    let isSubscriptionPlan = false;
+    let userCredits = profileData?.credits || 0;
+    
     if (profileData?.plan_id) {
       const { data: planData, error: planError } = await supabase
         .from('pricing_plans')
-        .select('features')
+        .select('features, billing_period, name, row_limit')
         .eq('id', profileData.plan_id)
         .single();
       
@@ -48,18 +53,46 @@ export async function checkPlanAccess(userId, fields) {
         planFeatures = typeof planData.features === 'object' ? 
           planData.features : 
           { reviews: false };
+          
+        // Check plan type
+        isPaidPlan = !planData.name.toLowerCase().includes('free');
+        isCreditPlan = planData.billing_period === 'credits';
+        isSubscriptionPlan = planData.billing_period === 'monthly' && isPaidPlan;
+        
+        console.log(`User is on ${planData.name} plan (${planData.billing_period})`);
+        console.log(`isPaid: ${isPaidPlan}, isCredit: ${isCreditPlan}, isSubscription: ${isSubscriptionPlan}`);
       }
     }
 
     // Check if user has access to review data
-    if (fields.includes('reviews') && !planFeatures.reviews) {
+    if (fields.includes('reviews') && !planFeatures.reviews && !isCreditPlan) {
       throw {
         status: 403,
         message: "Your current plan does not allow access to review data. Please upgrade to Pro."
       };
     }
 
-    // Check if user has reached their plan's scraping task limit
+    // For credit-based plans, check if user has enough credits
+    if (isCreditPlan) {
+      console.log(`Credit-based plan detected. User has ${userCredits} credits`);
+      if (userCredits <= 0) {
+        throw {
+          status: 403,
+          message: "You don't have enough credits to perform this operation. Please purchase more credits."
+        };
+      }
+      
+      // For credit plans, the user has access as long as they have credits
+      return { hasAccess: true, planType: 'credits' };
+    }
+
+    // For subscription plans, no need to check row limits
+    if (isSubscriptionPlan) {
+      console.log("Subscription plan detected - user has unlimited access");
+      return { hasAccess: true, planType: 'subscription' };
+    }
+
+    // For free plans, check if user has reached their plan's scraping task limit
     const { data: tasksCount, error: tasksError } = await supabase
       .from('scraping_requests')
       .select('id', { count: 'exact', head: true })
@@ -84,7 +117,7 @@ export async function checkPlanAccess(userId, fields) {
     }
 
     console.log(`User ${userId} has access to the requested features`);
-    return { hasAccess: true };
+    return { hasAccess: true, planType: 'free' };
     
   } catch (error) {
     console.error("Error checking plan access:", error);

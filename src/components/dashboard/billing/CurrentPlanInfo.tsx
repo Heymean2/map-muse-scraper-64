@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, InfinityIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserPlanInfo } from "@/services/scraper/types";
 import { Progress } from "@/components/ui/progress";
@@ -14,13 +14,20 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
   const navigate = useNavigate();
   
   // Check if the user is on a credit-based plan
-  const isCreditBasedPlan = userPlan?.planName?.includes("Credit");
+  const isCreditBasedPlan = userPlan?.billing_period === 'credits';
+  // Check if user is on a subscription plan (not free and not credit-based)
+  const isSubscriptionPlan = userPlan?.billing_period === 'monthly' && !userPlan?.isFreePlan;
   
   return (
     <div className="mt-8 bg-slate-50 p-6 rounded-lg">
       <div className="flex items-center gap-2 mb-4">
         <h3 className="text-lg font-medium">Current Plan</h3>
         {userPlan?.planName && <Badge>{userPlan.planName}</Badge>}
+        {userPlan?.billing_period && (
+          <Badge variant="outline" className={isCreditBasedPlan ? "bg-blue-50" : "bg-green-50"}>
+            {isCreditBasedPlan ? "Pay-Per-Use" : "Subscription"}
+          </Badge>
+        )}
       </div>
       
       {isCreditBasedPlan ? (
@@ -75,7 +82,7 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
             )}
           </p>
           
-          {userPlan?.isFreePlan && userPlan.freeRowsLimit && (
+          {userPlan?.isFreePlan && userPlan.freeRowsLimit ? (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Rows Used:</span>
@@ -86,7 +93,17 @@ export function CurrentPlanInfo({ userPlan }: CurrentPlanInfoProps) {
                 className="h-2"
               />
             </div>
-          )}
+          ) : isSubscriptionPlan ? (
+            <div className="space-y-2">
+              <div className="flex items-center text-sm">
+                <InfinityIcon className="h-4 w-4 mr-1 text-green-500" />
+                <span>Unlimited rows with your subscription</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Rows used so far: {userPlan?.totalRows?.toLocaleString() || 0}
+              </div>
+            </div>
+          ) : null}
           
           <div className="flex items-center">
             <Button 

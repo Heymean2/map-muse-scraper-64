@@ -61,7 +61,7 @@ export function PlanCard({ plan, isActive, onSelect, features, planType = "subsc
           
           {plan.billing_period === "credits" && (
             <div className="text-sm text-muted-foreground mt-1">
-              Pay only for what you use
+              Pay only for what you use ({plan.price_per_credit?.toFixed(3) || "0.001"}/credit)
             </div>
           )}
         </div>

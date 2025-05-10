@@ -57,8 +57,9 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     // Default to Free Plan if no plan found
     const planName = planData?.name || 'Free Plan';
     const freeRowsLimit = planData?.row_limit || DEFAULT_FREE_TIER_LIMIT;
-    const isFreePlan = planName === 'Free Plan';
+    const isFreePlan = planName.toLowerCase().includes('free');
     const isCreditPlan = planData?.billing_period === 'credits';
+    const isSubscriptionPlan = planData?.billing_period === 'monthly' && !isFreePlan;
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
     const credits = profileData?.credits || 0;
     const price_per_credit = planData?.price_per_credit || 0.001;
@@ -70,7 +71,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       features: {
         reviews: !isFreePlan || isCreditPlan,
         analytics: !isFreePlan || isCreditPlan,
-        apiAccess: !isFreePlan && planName === 'Premium Pro'
+        apiAccess: !isFreePlan && planName.toLowerCase().includes('premium')
       },
       isFreePlan,
       totalRows,
@@ -78,7 +79,8 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       isExceeded,
       credits,
       price_per_credit,
-      billing_period: planData?.billing_period
+      billing_period: planData?.billing_period,
+      isUnlimited: isSubscriptionPlan
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
@@ -97,7 +99,8 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       freeRowsLimit: DEFAULT_FREE_TIER_LIMIT,
       isExceeded: false,
       credits: 0,
-      price_per_credit: 0.00299
+      price_per_credit: 0.00299,
+      billing_period: 'monthly'
     };
   }
 }

@@ -5,8 +5,8 @@ export interface PlanFeature {
 }
 
 export function getPlanFeatures(planName: string): PlanFeature[] {
-  // Check for plan type
-  if (planName.includes("Credit")) {
+  // Check for credit-based plan
+  if (planName.toLowerCase().includes("credit")) {
     return [
       { name: "Pay per use (1 credit = 1 row)", included: true },
       { name: "All business data fields", included: true },
@@ -61,4 +61,16 @@ export function getPlanFeatures(planName: string): PlanFeature[] {
     { name: "Priority support", included: true },
     { name: "Data API access", included: false },
   ];
+}
+
+// Helper function to determine if a plan is credit-based
+export function isPlanCreditBased(planName: string | undefined): boolean {
+  if (!planName) return false;
+  return planName.toLowerCase().includes("credit");
+}
+
+// Helper function to determine if a plan is a subscription plan
+export function isPlanSubscription(planName: string | undefined): boolean {
+  if (!planName) return false;
+  return !isPlanCreditBased(planName) && !planName.toLowerCase().includes("free");
 }

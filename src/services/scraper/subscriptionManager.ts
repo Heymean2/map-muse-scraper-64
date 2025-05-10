@@ -19,6 +19,24 @@ export async function subscribeToPlan(planId: string | number) {
       return { success: false, error: "Invalid plan ID" };
     }
     
+    // Get the current plan info to determine if we're changing plan types
+    const currentPlanInfo = await getUserPlanInfo();
+    
+    // Get new plan details
+    const { data: newPlanData, error: newPlanError } = await supabase
+      .from('pricing_plans')
+      .select('billing_period, name')
+      .eq('id', numericPlanId)
+      .single();
+    
+    if (newPlanError) {
+      console.error("Error fetching plan details:", newPlanError);
+      return { success: false, error: "Could not retrieve plan information" };
+    }
+    
+    // Check if we're switching between subscription and credit-based plan
+    const isSwitchingPlanType = currentPlanInfo.billing_period !== newPlanData.billing_period;
+    
     // Update the user's plan in the database
     const { error } = await supabase
       .from('profiles')
@@ -30,7 +48,12 @@ export async function subscribeToPlan(planId: string | number) {
       throw error;
     }
     
-    toast.success("Plan updated successfully");
+    toast.success(`Plan updated to ${newPlanData.name} successfully`);
+    
+    if (isSwitchingPlanType) {
+      toast.info(`You've switched to a ${newPlanData.billing_period === 'credits' ? 'pay-per-use' : 'subscription'} plan`);
+    }
+    
     return { success: true };
   } catch (error: any) {
     console.error("Error subscribing to plan:", error);

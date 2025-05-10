@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,10 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { User, UserCircle, Loader } from "lucide-react";
+import { User, UserCircle, Loader, InfinityIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface UserProfile {
   id: string;
@@ -21,6 +21,8 @@ interface UserProfile {
   plan?: {
     name: string;
     row_limit: number;
+    billing_period: string;
+    price_per_credit?: number;
   };
 }
 
@@ -173,6 +175,11 @@ export default function UserProfileCard() {
     return email.substring(0, 2).toUpperCase();
   };
 
+  // Check if plan is credit-based
+  const isCreditBased = profile.plan?.billing_period === 'credits';
+  // Check if plan is subscription-based (monthly and not free)
+  const isSubscription = profile.plan?.billing_period === 'monthly' && profile.plan.row_limit > 100;
+
   return (
     <Card className="border border-border shadow-sm overflow-hidden animate-fade-in">
       <CardHeader className="bg-gradient-to-r from-indigo-100 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/20 pb-6">
@@ -196,19 +203,42 @@ export default function UserProfileCard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-up">
           <div className="bg-muted/30 rounded-md p-4">
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Current Plan</h3>
-            <p className="text-lg font-semibold">{profile.plan?.name || "Free Plan"}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-lg font-semibold">{profile.plan?.name || "Free Plan"}</p>
+              {profile.plan && (
+                <Badge variant="outline" className={isCreditBased ? "bg-blue-50" : "bg-green-50"}>
+                  {isCreditBased ? "Pay-Per-Use" : "Subscription"}
+                </Badge>
+              )}
+            </div>
           </div>
           
           <div className="bg-muted/30 rounded-md p-4">
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Available Credits</h3>
-            <p className="text-lg font-semibold">{profile.credits || 0}</p>
+            <p className="text-lg font-semibold">
+              {isCreditBased ? (profile.credits || 0) : isSubscription ? "Unlimited" : profile.credits || 0}
+              {isCreditBased && profile.plan?.price_per_credit && (
+                <span className="text-sm font-normal ml-2 text-muted-foreground">
+                  (${profile.plan.price_per_credit.toFixed(3)}/credit)
+                </span>
+              )}
+            </p>
           </div>
           
           <div className="bg-muted/30 rounded-md p-4">
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Data Rows Used</h3>
-            <p className="text-lg font-semibold">
-              {profile.total_rows || 0} / {profile.plan?.row_limit || "∞"}
-            </p>
+            <div className="flex items-center">
+              {isSubscription ? (
+                <>
+                  <p className="text-lg font-semibold mr-2">{profile.total_rows || 0}</p>
+                  <InfinityIcon className="h-4 w-4 text-green-500" />
+                </>
+              ) : (
+                <p className="text-lg font-semibold">
+                  {profile.total_rows || 0} / {profile.plan?.row_limit || "∞"}
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="bg-muted/30 rounded-md p-4">

@@ -49,6 +49,7 @@ export interface UserPlanInfo {
   credits?: number;
   price_per_credit?: number;
   billing_period?: string; // Added for plan type identification
+  isUnlimited?: boolean; // Added to indicate if the plan has unlimited rows
 }
 
 export interface FreeTierLimitInfo {
