@@ -59,7 +59,7 @@ export function PaymentForm({
         {selectedPlan && clientToken ? (
           <PayPalHostedFieldsProvider
             createOrder={createOrder}
-            dataClientToken={clientToken}
+            clientToken={clientToken}
           >
             <HostedFieldsForm 
               onApprove={(orderData) => onApprove(orderData)} 
