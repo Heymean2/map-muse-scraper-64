@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,6 @@ export function useCheckoutLogic() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [clientToken, setClientToken] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   
   const session = supabase.auth.getSession();
@@ -66,14 +64,6 @@ export function useCheckoutLogic() {
       }
     }
   }, [plansData, selectedPlan]);
-
-  // Fetch client token for PayPal Hosted Fields
-  useEffect(() => {
-    // For sandbox testing, we'll use a hardcoded sandbox token
-    // In production, this should be fetched from your server
-    const token = import.meta.env.VITE_PAYPAL_CLIENT_TOKEN || "sandbox_8hxpnkht_kzdtzv2btm4p7s4b";
-    setClientToken(token);
-  }, []);
   
   // Create order for PayPal
   const createOrder = async () => {
@@ -202,7 +192,6 @@ export function useCheckoutLogic() {
     isSuccess,
     isError,
     errorMessage,
-    clientToken,
     selectedPlan,
     plansData,
     currentPlanData,

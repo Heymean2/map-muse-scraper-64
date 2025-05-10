@@ -1,4 +1,3 @@
-
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +16,6 @@ export default function Checkout() {
     isSuccess,
     isError,
     errorMessage,
-    clientToken,
     selectedPlan,
     plansData,
     currentPlanLoading,
@@ -102,7 +100,6 @@ export default function Checkout() {
                 <PaymentForm
                   selectedPlan={selectedPlan}
                   isProcessing={isProcessing}
-                  clientToken={clientToken}
                   createOrder={createOrder}
                   onApprove={(data) => captureOrder(data.orderID)}
                   onError={handlePayPalError}
