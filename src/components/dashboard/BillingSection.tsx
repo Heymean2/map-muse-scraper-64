@@ -12,14 +12,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditPackageManager } from "./billing/CreditPackageManager";
 import { Separator } from "@/components/ui/separator";
+import { Json } from "@/integrations/supabase/types";
 
 interface PlanData {
-  id: string;
+  id: string | number; // Updated to accept both string and number
   name: string;
   price: number;
   billing_period: string;
   is_recommended?: boolean;
   price_per_credit?: number;
+  features?: Json;
 }
 
 export default function BillingSection() {
@@ -52,8 +54,9 @@ export default function BillingSection() {
   const subscriptionPlans = allPlans?.filter(plan => plan.billing_period === 'monthly') || [];
   const creditPlans = allPlans?.filter(plan => plan.billing_period === 'credits') || [];
 
-  const isPlanActive = (planId: string) => {
-    return userPlan?.planId === planId;
+  const isPlanActive = (planId: string | number) => {
+    if (!userPlan?.planId) return false;
+    return String(userPlan.planId) === String(planId);
   };
   
   return (
@@ -90,10 +93,10 @@ export default function BillingSection() {
           <>
             <TabsContent value="subscription" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {subscriptionPlans?.map((plan: PlanData) => (
+                {subscriptionPlans?.map((plan) => (
                   <PlanCard 
                     key={plan.id}
-                    plan={plan}
+                    plan={plan as PlanData}
                     isActive={isPlanActive(plan.id)}
                     onSelect={setSelectedPlanId}
                     features={getPlanFeatures(plan.name)}
@@ -111,7 +114,7 @@ export default function BillingSection() {
             </TabsContent>
             
             <TabsContent value="credits" className="mt-0">
-              {creditPlans?.map((plan: PlanData) => (
+              {creditPlans?.map((plan) => (
                 <div key={plan.id} className="mb-6">
                   <h2 className="text-2xl font-semibold mb-2">
                     {plan.name} - ${plan.price_per_credit?.toFixed(3)} per row

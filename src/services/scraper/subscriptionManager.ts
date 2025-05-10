@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { getUserPlanInfo } from "./userPlanService";
 
 // Subscribe to a plan
-export async function subscribeToPlan(planId: string) {
+export async function subscribeToPlan(planId: string | number) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -13,7 +13,7 @@ export async function subscribeToPlan(planId: string) {
     }
     
     // Convert string planId to number if needed
-    const numericPlanId = parseInt(planId);
+    const numericPlanId = typeof planId === 'string' ? parseInt(planId) : planId;
     
     if (isNaN(numericPlanId)) {
       return { success: false, error: "Invalid plan ID" };

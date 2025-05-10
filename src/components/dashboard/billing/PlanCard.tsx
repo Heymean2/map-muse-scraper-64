@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, InfinityIcon } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface PlanFeature {
   name: string;
@@ -11,7 +12,7 @@ interface PlanFeature {
 
 interface PlanCardProps {
   plan: {
-    id: string;
+    id: string | number; // Updated to accept both string and number
     name: string;
     description?: string;
     price: number;
@@ -87,7 +88,7 @@ export function PlanCard({ plan, isActive, onSelect, features, planType = "subsc
           className="w-full" 
           variant={isActive ? "outline" : "default"}
           disabled={isActive}
-          onClick={() => onSelect(plan.id)}
+          onClick={() => onSelect(String(plan.id))}
         >
           {isActive ? "Current Plan" : "Select Plan"}
         </Button>
