@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Container } from "@/components/ui/container";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -86,7 +85,7 @@ export default function Checkout() {
 
   // PayPal configuration options
   const paypalOptions = {
-    clientId: "test", // Use camelCase format as expected by the PayPalScriptProvider
+    clientId: "test",
     currency: "USD",
     intent: "capture",
     components: "buttons",

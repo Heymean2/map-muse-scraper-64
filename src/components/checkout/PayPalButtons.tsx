@@ -24,7 +24,7 @@ export function PayPalButtons({
   onSuccess,
   onProcessingChange
 }: PayPalButtonsProps) {
-  const [{ isPending, isResolved, isRejected, isScriptError, options }] = usePayPalScriptReducer();
+  const [{ isPending, isResolved, isRejected, options }] = usePayPalScriptReducer();
   
   useEffect(() => {
     onProcessingChange(isPending);
@@ -39,7 +39,7 @@ export function PayPalButtons({
     );
   }
   
-  if (isRejected || isScriptError) {
+  if (isRejected) {
     return (
       <Alert variant="destructive" className="mt-6">
         <AlertDescription>
