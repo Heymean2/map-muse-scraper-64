@@ -1,11 +1,1 @@
-
 project_id = "culwnizfggplctdtujsz"
-
-[functions.getCurrentPlan]
-verify_jwt = true
-
-[functions.createOrder]
-verify_jwt = true
-
-[functions.captureOrder]
-verify_jwt = true
