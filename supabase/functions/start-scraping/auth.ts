@@ -67,6 +67,13 @@ export async function authenticate(req) {
     // Try to get user from JWT token
     const { data, error } = await supabase.auth.getUser();
     
+    // Add the requested detailed logging
+    console.log("Supabase auth.getUser() returned:", {
+      userData: data,
+      authError: error?.message,
+      authErrorFull: error
+    });
+    
     if (error) {
       console.error("Error verifying JWT:", error.message);
       throw {
