@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -152,7 +153,8 @@ export default function Checkout() {
         throw new Error("Not authenticated");
       }
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/getCurrentPlan`, {
+      // Use the direct Supabase URL with project ID
+      const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/getCurrentPlan`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -161,8 +163,8 @@ export default function Checkout() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch current plan");
+        console.error("Failed to fetch current plan:", await response.text());
+        throw new Error("Failed to fetch current plan");
       }
       
       return response.json();
@@ -215,7 +217,8 @@ export default function Checkout() {
         throw new Error("Not authenticated");
       }
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/createOrder`, {
+      // Use the direct Supabase URL with project ID
+      const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/createOrder`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -227,8 +230,8 @@ export default function Checkout() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create order");
+        console.error("Failed to create order:", await response.text());
+        throw new Error("Failed to create order");
       }
       
       const data = await response.json();
@@ -262,7 +265,8 @@ export default function Checkout() {
         throw new Error("Not authenticated");
       }
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/captureOrder`, {
+      // Use the direct Supabase URL with project ID
+      const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/captureOrder`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -275,8 +279,8 @@ export default function Checkout() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to capture payment");
+        console.error("Failed to capture order:", await response.text());
+        throw new Error("Failed to capture payment");
       }
       
       const data = await response.json();
