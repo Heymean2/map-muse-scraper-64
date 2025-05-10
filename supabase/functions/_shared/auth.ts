@@ -52,8 +52,8 @@ export async function authenticate(req) {
       }
     );
 
-    // Try to get user from JWT token
-    const { data, error } = await supabase.auth.getUser();
+    // Try to get user from JWT token - modified to pass the token
+    const { data, error } = await supabase.auth.getUser(token);
     
     if (error) {
       throw {
