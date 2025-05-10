@@ -1,9 +1,10 @@
+
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { PaymentForm } from "@/components/checkout/PaymentForm";
 import { PlanSelection } from "@/components/checkout/PlanSelection";
 import { PlanSummary } from "@/components/checkout/PlanSummary";
