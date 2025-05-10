@@ -33,10 +33,13 @@ export default function Checkout() {
     queryFn: async () => {
       if (!planId) return null;
       
+      // Convert planId to number before using it for database query
+      const planIdNum = parseInt(planId, 10);
+      
       const { data, error } = await supabase
         .from('pricing_plans')
         .select('*')
-        .eq('id', planId)
+        .eq('id', planIdNum)
         .single();
         
       if (error) throw error;
@@ -46,7 +49,7 @@ export default function Checkout() {
   });
   
   // Check if the user is trying to purchase the same plan they already have
-  const isSamePlan = userPlan?.planId === planId && planType === 'subscription';
+  const isSamePlan = userPlan?.planId === (planId ? parseInt(planId, 10) : null) && planType === 'subscription';
 
   // Get package size from URL param or default to 1
   const packageSizeParam = searchParams.get("packageSize");
