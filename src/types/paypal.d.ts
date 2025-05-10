@@ -1,8 +1,8 @@
 
 // Type definitions for PayPal JavaScript SDK
 interface PayPalButtonsComponentOptions {
-  createOrder: (data: any, actions: any) => Promise<string>;
-  onApprove: (data: any, actions: any) => Promise<any>;
+  createOrder: (data: any, actions: PayPalActions) => Promise<string>;
+  onApprove: (data: any, actions: PayPalActions) => Promise<any>;
   onCancel?: (data: any) => void;
   onError?: (err: any) => void;
   style?: {
@@ -16,7 +16,14 @@ interface PayPalButtonsComponentOptions {
 
 interface PayPalActions {
   order: {
-    create: (options: any) => Promise<string>;
+    create: (options: {
+      purchase_units: Array<{
+        amount: {
+          value: string;
+        };
+        description?: string;
+      }>;
+    }) => Promise<string>;
     capture: () => Promise<any>;
   };
 }
