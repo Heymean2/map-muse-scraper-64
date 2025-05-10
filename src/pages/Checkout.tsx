@@ -5,18 +5,15 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  PayPalButtons,
-  PayPalHostedField,
-  PayPalHostedFieldsProvider,
-  usePayPalHostedFields
-} from "@paypal/react-paypal-js";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { HostedFieldsForm } from "@/components/checkout/HostedFieldsForm";
+import { PaymentSuccess } from "@/components/checkout/PaymentSuccess";
+import { PaymentForm } from "@/components/checkout/PaymentForm";
+import { PlanSelection } from "@/components/checkout/PlanSelection";
+import { PlanSummary } from "@/components/checkout/PlanSummary";
 
 interface PlanInfo {
   id: number;
@@ -25,117 +22,8 @@ interface PlanInfo {
   billing_period: string;
 }
 
-// Component for credit card form
-const HostedFieldsForm = ({ onApprove }: { onApprove: (orderData: any) => void }) => {
-  const { cardFields } = usePayPalHostedFields();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const submitHandler = () => {
-    if (!cardFields) {
-      toast.error("Card fields are not ready");
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    cardFields.submit({
-      cardholderName: document.querySelector<HTMLInputElement>("#card-holder-name")?.value,
-    }).then(orderData => {
-      onApprove(orderData);
-    }).catch(error => {
-      console.error("Card payment error:", error);
-      toast.error(error.message || "Payment failed. Please try again.");
-    }).finally(() => {
-      setIsSubmitting(false);
-    });
-  };
-  
-  const isFormInvalid = !cardFields;
-
-  return (
-    <div className="mt-6">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="card-holder-name" className="block text-sm font-medium">
-            Cardholder Name
-          </label>
-          <input
-            id="card-holder-name"
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            type="text"
-            placeholder="Name on card"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Card Number</label>
-          <div className="border rounded-md px-3 py-2">
-            <PayPalHostedField
-              id="card-number"
-              hostedFieldType="number"
-              options={{
-                selector: "#card-number",
-                placeholder: "Card number"
-              }}
-              className="w-full bg-transparent"
-            />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Expiration Date</label>
-            <div className="border rounded-md px-3 py-2">
-              <PayPalHostedField
-                id="expiration-date"
-                hostedFieldType="expirationDate"
-                options={{
-                  selector: "#expiration-date",
-                  placeholder: "MM/YY"
-                }}
-                className="w-full bg-transparent"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Security Code</label>
-            <div className="border rounded-md px-3 py-2">
-              <PayPalHostedField
-                id="cvv"
-                hostedFieldType="cvv"
-                options={{
-                  selector: "#cvv",
-                  placeholder: "123"
-                }}
-                className="w-full bg-transparent"
-              />
-            </div>
-          </div>
-        </div>
-        
-        <Button
-          onClick={submitHandler}
-          disabled={isFormInvalid || isSubmitting}
-          className="w-full"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Pay Now"
-          )}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
 export default function Checkout() {
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState<"paypal" | "card">("paypal");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -320,6 +208,13 @@ export default function Checkout() {
     }
   };
 
+  // Handle PayPal errors
+  const handlePayPalError = (err: any) => {
+    console.error("PayPal error:", err);
+    setIsError(true);
+    setErrorMessage("PayPal payment failed. Please try again.");
+  };
+
   // Handle redirects if not authenticated
   useEffect(() => {
     const checkAuth = async () => {
@@ -365,23 +260,7 @@ export default function Checkout() {
     return (
       <DashboardLayout>
         <Container className="py-8">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="h-6 w-6 text-green-500" />
-                <CardTitle>Payment Successful</CardTitle>
-              </div>
-              <CardDescription>
-                Your plan has been updated successfully.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">You will be redirected to the dashboard shortly.</p>
-              <Button onClick={() => navigate('/dashboard')} className="w-full">
-                Go to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
+          <PaymentSuccess />
         </Container>
       </DashboardLayout>
     );
@@ -409,117 +288,29 @@ export default function Checkout() {
               </CardHeader>
               <CardContent>
                 {plansData && plansData.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    {plansData.map((plan: PlanInfo) => (
-                      <div
-                        key={plan.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPlan?.id === plan.id 
-                            ? 'border-primary bg-primary/5' 
-                            : 'hover:border-primary/50'
-                        }`}
-                        onClick={() => setSelectedPlan(plan)}
-                      >
-                        <h3 className="font-medium">{plan.name}</h3>
-                        <div className="text-2xl font-bold my-2">
-                          ${plan.price}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            /{plan.billing_period}
-                          </span>
-                        </div>
-                        {selectedPlan?.id === plan.id && (
-                          <div className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5 inline-block mt-1">
-                            Selected
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <PlanSelection 
+                    plans={plansData}
+                    selectedPlan={selectedPlan}
+                    onSelectPlan={setSelectedPlan}
+                  />
                 ) : (
                   <p className="text-muted-foreground">No plans available</p>
                 )}
 
-                <Tabs defaultValue="paypal" onValueChange={(v) => setPaymentMethod(v as "paypal" | "card")}>
-                  <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto">
-                    <TabsTrigger value="paypal">PayPal</TabsTrigger>
-                    <TabsTrigger value="card">Credit Card</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="paypal" className="mt-6">
-                    {selectedPlan ? (
-                      <PayPalButtons
-                        style={{
-                          layout: "vertical",
-                          shape: "rect"
-                        }}
-                        disabled={isProcessing}
-                        forceReRender={[selectedPlan.id, selectedPlan.price]}
-                        createOrder={createOrder}
-                        onApprove={(data) => {
-                          return captureOrder(data.orderID);
-                        }}
-                        onError={(err) => {
-                          console.error("PayPal error:", err);
-                          setIsError(true);
-                          setErrorMessage("PayPal payment failed. Please try again.");
-                        }}
-                      />
-                    ) : (
-                      <div className="text-center py-4">
-                        Please select a plan to continue.
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="card" className="mt-6">
-                    {selectedPlan && clientToken ? (
-                      <PayPalHostedFieldsProvider
-                        createOrder={createOrder}
-                        dataClientToken={clientToken} // Add client token here
-                      >
-                        <HostedFieldsForm 
-                          onApprove={(orderData) => captureOrder(orderData.orderID)} 
-                        />
-                      </PayPalHostedFieldsProvider>
-                    ) : (
-                      <div className="text-center py-4">
-                        {!selectedPlan ? "Please select a plan to continue." : "Loading payment form..."}
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                <PaymentForm
+                  selectedPlan={selectedPlan}
+                  isProcessing={isProcessing}
+                  clientToken={clientToken}
+                  createOrder={createOrder}
+                  onApprove={(data) => captureOrder(data.orderID)}
+                  onError={handlePayPalError}
+                />
               </CardContent>
             </Card>
           </div>
           
           <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {selectedPlan ? (
-                  <>
-                    <div className="flex justify-between mb-2">
-                      <span>Plan:</span>
-                      <span className="font-medium">{selectedPlan.name}</span>
-                    </div>
-                    <div className="flex justify-between mb-2">
-                      <span>Billing Period:</span>
-                      <span>{selectedPlan.billing_period}</span>
-                    </div>
-                    <div className="border-t my-4 pt-4">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total:</span>
-                        <span>${selectedPlan.price}</span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">No plan selected</p>
-                )}
-              </CardContent>
-            </Card>
+            <PlanSummary selectedPlan={selectedPlan} />
           </div>
         </div>
       </Container>
