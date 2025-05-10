@@ -23,8 +23,8 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
@@ -54,8 +54,8 @@ export function usePaymentProcessing() {
         throw new Error("Failed to create order");
       }
       
-      const data = await response.json();
-      return data.orderID;
+      const responseData = await response.json();
+      return responseData.orderID;
     } catch (error: any) {
       console.error("Error creating order:", error);
       setIsError(true);
@@ -78,8 +78,8 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
@@ -109,9 +109,9 @@ export function usePaymentProcessing() {
         throw new Error("Failed to capture payment");
       }
       
-      const data = await response.json();
+      const responseData = await response.json();
       
-      if (data.success) {
+      if (responseData.success) {
         setIsSuccess(true);
         toast.success("Payment successful!");
         setTimeout(() => {
