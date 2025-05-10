@@ -140,6 +140,7 @@ export default function Checkout() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [clientToken, setClientToken] = useState<string | null>(null);
   
   const session = supabase.auth.getSession();
 
@@ -197,6 +198,22 @@ export default function Checkout() {
       }
     }
   }, [plansData, selectedPlan]);
+
+  // Fetch client token for PayPal Hosted Fields
+  useEffect(() => {
+    const fetchClientToken = async () => {
+      try {
+        // For demo purposes, we're using a dummy token
+        // In a real application, you would fetch this from your server
+        setClientToken("sandbox_8hxpnkht_kzdtzv2btm4p7s4b");
+      } catch (error) {
+        console.error("Error fetching client token:", error);
+        setErrorMessage("Failed to initialize payment form");
+      }
+    };
+
+    fetchClientToken();
+  }, []);
   
   // Create order for PayPal
   const createOrder = async () => {
@@ -455,9 +472,10 @@ export default function Checkout() {
                   </TabsContent>
                   
                   <TabsContent value="card" className="mt-6">
-                    {selectedPlan ? (
+                    {selectedPlan && clientToken ? (
                       <PayPalHostedFieldsProvider
                         createOrder={createOrder}
+                        dataClientToken={clientToken} // Add client token here
                       >
                         <HostedFieldsForm 
                           onApprove={(orderData) => captureOrder(orderData.orderID)} 
@@ -465,7 +483,7 @@ export default function Checkout() {
                       </PayPalHostedFieldsProvider>
                     ) : (
                       <div className="text-center py-4">
-                        Please select a plan to continue.
+                        {!selectedPlan ? "Please select a plan to continue." : "Loading payment form..."}
                       </div>
                     )}
                   </TabsContent>
