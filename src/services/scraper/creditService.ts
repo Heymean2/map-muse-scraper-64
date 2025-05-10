@@ -19,7 +19,7 @@ export async function purchaseCredits(packageCount: number): Promise<boolean> {
     // Get credit package details
     const { data: packageData, error: packageError } = await supabase
       .from('pricing_plans')
-      .select('credits, price_per_credit')
+      .select('credits, price_per_credit, id')
       .eq('billing_period', 'credits')
       .single();
       
@@ -46,9 +46,6 @@ export async function purchaseCredits(packageCount: number): Promise<boolean> {
     const basePrice = totalCredits * pricePerCredit;
     const finalPrice = basePrice * (1 - discount);
     
-    // In a real application, we would integrate with Stripe here
-    // For now, we'll simulate a successful payment and update the user's credits
-    
     // Update the user's profile with the new credit amount
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -64,6 +61,7 @@ export async function purchaseCredits(packageCount: number): Promise<boolean> {
     const currentCredits = profile?.credits || 0;
     const newCredits = currentCredits + totalCredits;
     
+    // Update user's credits in the database
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ credits: newCredits })
@@ -74,11 +72,9 @@ export async function purchaseCredits(packageCount: number): Promise<boolean> {
       throw updateError;
     }
     
-    toast.success(`Successfully purchased ${totalCredits} credits for $${finalPrice.toFixed(2)}`);
     return true;
   } catch (error) {
     console.error("Error purchasing credits:", error);
-    toast.error("Failed to purchase credits");
     return false;
   }
 }

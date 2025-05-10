@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
-import { subscribeToPlan } from "@/services/scraper";
+import { useNavigate } from "react-router-dom";
 
 interface SubscriptionManagerProps {
   selectedPlanId: string | null;
@@ -18,30 +18,16 @@ export function SubscriptionManager({
   isProcessing, 
   setIsProcessing 
 }: SubscriptionManagerProps) {
-  const handleSubscribe = async () => {
+  const navigate = useNavigate();
+
+  const handleSubscribe = () => {
     if (!selectedPlanId) {
       toast.error("Please select a plan");
       return;
     }
     
-    setIsProcessing(true);
-    
-    try {
-      // In a real implementation, this would connect to Stripe
-      // and handle the subscription process
-      const result = await subscribeToPlan(selectedPlanId);
-      
-      if (result.success) {
-        toast.success("Subscription updated successfully!");
-      } else {
-        toast.error(result.error || "Failed to update subscription");
-      }
-    } catch (error: any) {
-      console.error("Subscription error:", error);
-      toast.error("Failed to process your subscription");
-    } finally {
-      setIsProcessing(false);
-    }
+    // Navigate to checkout page with plan ID
+    navigate(`/checkout?planId=${selectedPlanId}&planType=subscription`);
   };
 
   if (!selectedPlanId || isActivePlan) {

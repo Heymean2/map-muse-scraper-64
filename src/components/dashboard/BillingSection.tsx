@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditPackageManager } from "./billing/CreditPackageManager";
 import { Separator } from "@/components/ui/separator";
+import { TransactionHistory } from "./billing/TransactionHistory";
 import { Json } from "@/integrations/supabase/types";
 
 interface PlanData {
@@ -137,6 +138,10 @@ export default function BillingSection() {
       <Separator className="my-8" />
       
       <CurrentPlanInfo userPlan={userPlan} />
+      
+      <div className="mt-8">
+        <TransactionHistory />
+      </div>
     </Container>
   );
 }

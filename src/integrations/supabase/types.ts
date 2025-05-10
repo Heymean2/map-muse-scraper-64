@@ -9,6 +9,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      billing_transactions: {
+        Row: {
+          amount: number
+          billing_period: string | null
+          credits_purchased: number | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          payment_id: string | null
+          payment_method: string
+          plan_id: number | null
+          status: string
+          transaction_date: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_period?: string | null
+          credits_purchased?: number | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_id?: string | null
+          payment_method: string
+          plan_id?: number | null
+          status: string
+          transaction_date?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_period?: string | null
+          credits_purchased?: number | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_id?: string | null
+          payment_method?: string
+          plan_id?: number | null
+          status?: string
+          transaction_date?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_transactions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_plans: {
         Row: {
           billing_period: string

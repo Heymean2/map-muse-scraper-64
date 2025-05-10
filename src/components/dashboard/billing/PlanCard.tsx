@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, InfinityIcon } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
+import { useNavigate } from "react-router-dom";
 
 interface PlanFeature {
   name: string;
@@ -27,6 +28,15 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ plan, isActive, onSelect, features, planType = "subscription" }: PlanCardProps) {
+  const navigate = useNavigate();
+
+  const handleSelectPlan = () => {
+    if (isActive) return;
+    
+    // Redirect to checkout with plan data
+    navigate(`/checkout?planId=${plan.id}&planType=${planType}`);
+  };
+
   return (
     <Card 
       className={`${isActive ? 'border-primary bg-primary/5' : ''} ${plan.is_recommended ? 'border-accent' : ''} transition-all duration-200`}
@@ -88,7 +98,7 @@ export function PlanCard({ plan, isActive, onSelect, features, planType = "subsc
           className="w-full" 
           variant={isActive ? "outline" : "default"}
           disabled={isActive}
-          onClick={() => onSelect(String(plan.id))}
+          onClick={handleSelectPlan}
         >
           {isActive ? "Current Plan" : "Select Plan"}
         </Button>
