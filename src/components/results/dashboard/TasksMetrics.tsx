@@ -62,18 +62,18 @@ export default function TasksMetrics({
       {metrics.map((metric) => (
         <Card 
           key={metric.title} 
-          className={`relative overflow-hidden transition-all hover:shadow-card-hover border-slate-100 hover:translate-y-[-2px] duration-300`}
+          className={`conversion-card overflow-hidden transition-all hover:shadow-card-hover border-slate-100 hover:translate-y-[-2px] duration-300`}
         >
           <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div className={`p-2 rounded-lg ${metric.bgColor}`}>
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-lg ${metric.bgColor}`}>
                 <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
-              <div className={`text-xs font-medium px-2 py-1 rounded-full ${metric.bgColor} ${metric.color}`}>
+              <div className={`text-xs font-medium px-2.5 py-1 rounded-full ${metric.bgColor} ${metric.color}`}>
                 {metric.title}
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               {isLoading ? (
                 <Skeleton className="h-10 w-20" />
               ) : (

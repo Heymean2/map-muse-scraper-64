@@ -25,7 +25,8 @@ export default function FormContainer() {
   const [selectedRating, setSelectedRating] = useState<string>("");
 
   return (
-    <Card className={`glass-card ${withDelay(animationClasses.fadeIn, 300)}`}>
+    <Card className={`conversion-card shadow-card-hover border-slate-200 ${withDelay(animationClasses.fadeIn, 300)}`}>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-primary/20 via-violet-primary to-violet-light opacity-80"></div>
       <CardContent className="pt-6">
         <FormSubmissionHandler
           searchQuery={searchQuery}

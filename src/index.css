@@ -119,9 +119,9 @@
     transition: all 0.3s ease;
   }
   
-  /* Modern card components */
+  /* Modern card components - improved for higher conversion */
   .map-card {
-    @apply rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply rounded-xl border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-2px];
   }
   
   .map-pin {
@@ -137,17 +137,40 @@
     background-size: 20px 20px;
   }
   
-  /* Modern cards with refined design */
+  /* Modern cards with refined design - improved for better conversions */
   .modern-card {
-    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all;
+    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all duration-300;
+    transform: translateZ(0);
   }
   
   .primary-card {
-    @apply rounded-xl bg-violet-primary/5 border border-violet-primary/20 shadow-sm hover:shadow-card-hover transition-all;
+    @apply rounded-xl bg-violet-primary/5 border border-violet-primary/20 shadow-sm hover:shadow-card-hover transition-all duration-300 hover:border-violet-primary/30;
   }
   
   .accent-card {
-    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all;
+    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all duration-300;
+  }
+  
+  /* Conversion-optimized card */
+  .conversion-card {
+    @apply rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-card-hover transition-all duration-300;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .conversion-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.8s;
+  }
+
+  .conversion-card:hover::after {
+    left: 100%;
   }
   
   /* Refined button styles */
@@ -160,15 +183,17 @@
   }
 }
 
-/* Custom animations */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+/* Card shadow improvements for better visual hierarchy */
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06);
 }
 
-.translate-z-0 {
-  transform: translateZ(0);
+.shadow-card-hover {
+  box-shadow: 0 10px 25px -3px rgba(126, 105, 171, 0.08), 0 4px 12px -4px rgba(126, 105, 171, 0.06);
+}
+
+.shadow-card-active {
+  box-shadow: 0 10px 25px -3px rgba(126, 105, 171, 0.12), 0 4px 12px -4px rgba(126, 105, 171, 0.1);
 }
 
 /* Glass effect - refined for 60-30-10 rule */
@@ -290,6 +315,30 @@
   @apply hover:text-violet-primary transition-colors duration-200;
 }
 
+/* Enhanced card hover effect for better engagement */
 .card-hover {
   @apply hover:shadow-card-hover transition-all duration-300 hover:translate-y-[-2px];
+}
+
+/* Highlight effect for CTA areas */
+.cta-highlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(155, 135, 245, 0) 0%, rgba(155, 135, 245, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.cta-highlight:hover::before {
+  opacity: 1;
 }

@@ -48,16 +48,16 @@ export default function TasksContainer({
   );
 
   return (
-    <Card className="shadow-sm border-slate-200">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 border-b bg-slate-50">
-        <CardTitle>Your Scraping Tasks</CardTitle>
+    <Card className="conversion-card shadow-card border-slate-200 overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 border-b bg-gradient-to-r from-slate-50 to-white">
+        <CardTitle className="text-violet-primary">Your Scraping Tasks</CardTitle>
         <div className="flex gap-2">
           {onRefresh && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleRefresh}
-              className="gap-1"
+              className="gap-1 border-slate-200 hover:border-violet-primary/30 hover:bg-violet-primary/5"
             >
               <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">Refresh</span>
@@ -66,7 +66,7 @@ export default function TasksContainer({
           <Button 
             size="sm" 
             onClick={handleNewTask}
-            className="gap-1"
+            className="gap-1 bg-violet-primary hover:bg-violet-primary/90"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New Task</span>
@@ -80,7 +80,7 @@ export default function TasksContainer({
           <Input 
             type="text" 
             placeholder="Search tasks..." 
-            className="pl-10"
+            className="pl-10 border-slate-200 focus:border-violet-primary focus:ring-violet-primary/10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

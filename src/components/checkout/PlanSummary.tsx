@@ -47,44 +47,44 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
   };
 
   return (
-    <Card className="overflow-hidden border-slate-200 hover:shadow-card-hover transition-all">
-      <CardHeader className="bg-slate-50 border-b border-slate-100">
-        <CardTitle className="flex items-center gap-2">
+    <Card className="conversion-card border-slate-200 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 pb-4">
+        <CardTitle className="flex items-center gap-2 text-violet-primary">
           {isCreditPlan ? (
             <>
-              <CreditCard className="h-5 w-5 text-violet-primary" />
+              <CreditCard className="h-5 w-5" />
               <span>Credit Package</span>
             </>
           ) : (
             <>
-              <CalendarClock className="h-5 w-5 text-violet-primary" />
+              <CalendarClock className="h-5 w-5" />
               <span>{selectedPlan.name}</span>
             </>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="mb-4">
-          <div className="text-2xl font-bold text-violet-primary">${calculateTotal()}</div>
-          <div className="text-sm text-muted-foreground">
+        <div className="mb-6">
+          <div className="text-3xl font-bold text-violet-primary">${calculateTotal()}</div>
+          <div className="text-sm text-muted-foreground mt-1">
             {isCreditPlan
               ? `$${formatPricePerCredit(getPricePerCredit())} per credit × ${customCredits?.toLocaleString() || ""} credits`
               : `Billed ${selectedPlan.billing_period}`}
           </div>
         </div>
 
-        <div className="space-y-2 mt-6">
+        <div className="space-y-3 mt-6">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start">
-              <div className="w-5 h-5 rounded-full bg-google-green/10 flex items-center justify-center mr-2 mt-0.5">
-                <Check className="h-3 w-3 text-google-green" />
+              <div className="w-5 h-5 rounded-full bg-violet-primary/10 flex items-center justify-center mr-2 mt-0.5">
+                <Check className="h-3 w-3 text-violet-primary" />
               </div>
               <span className="text-sm">{feature}</span>
             </div>
           ))}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between border-t p-4 bg-slate-50">
+      <CardFooter className="flex justify-between border-t p-4 bg-gradient-to-r from-slate-50 to-white">
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           {isCreditPlan ? (
             <>
