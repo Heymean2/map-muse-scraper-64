@@ -13,7 +13,7 @@ interface PlanFeature {
 
 interface PlanCardProps {
   plan: {
-    id: string | number; // Updated to accept both string and number
+    id: string | number;
     name: string;
     description?: string;
     price: number;
@@ -33,7 +33,14 @@ export function PlanCard({ plan, isActive, onSelect, features, planType = "subsc
   const handleSelectPlan = () => {
     if (isActive) return;
     
-    // Redirect to checkout with plan data
+    // Check if it's a free plan (price = 0)
+    if (plan.price === 0) {
+      // For free plans, redirect to dashboard
+      navigate('/dashboard');
+      return;
+    }
+    
+    // For paid plans, navigate to checkout with plan ID as query parameter
     navigate(`/checkout?planId=${plan.id}&planType=${planType}`);
   };
 

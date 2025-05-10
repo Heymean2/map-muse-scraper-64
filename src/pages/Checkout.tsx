@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { PaymentForm } from "@/components/checkout/PaymentForm";
-import { PlanSelection } from "@/components/checkout/PlanSelection";
 import { PlanSummary } from "@/components/checkout/PlanSummary";
 import { PaymentSuccess } from "@/components/checkout/PaymentSuccess";
 import { useCheckoutLogic } from "@/hooks/useCheckoutLogic";
 import { CreditPackageOptions } from "@/components/checkout/CreditPackageOptions";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Checkout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [creditAmount, setCreditAmount] = useState<number>(1000);
   const [creditPrice, setCreditPrice] = useState<number>(0.00299);
   const [planType, setPlanType] = useState<string>("subscription");
@@ -62,8 +62,11 @@ export default function Checkout() {
           setCreditPrice(plan.price_per_credit || 0.00299);
         }
       }
+    } else if (plansData && plansData.length > 0 && !planIdParam) {
+      // If no plan selected, redirect back to billing
+      navigate('/dashboard/billing');
     }
-  }, [location, plansData, setSelectedPlan]);
+  }, [location, plansData, setSelectedPlan, navigate]);
 
   if (currentPlanLoading || plansLoading) {
     return (
@@ -104,6 +107,23 @@ export default function Checkout() {
     );
   }
 
+  if (!selectedPlan) {
+    return (
+      <DashboardLayout>
+        <Container className="py-8">
+          <Alert className="mb-6">
+            <AlertDescription>
+              No plan selected. Please select a plan from the billing page.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate('/dashboard/billing')}>
+            Back to Plans
+          </Button>
+        </Container>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <Container className="py-8">
@@ -124,31 +144,26 @@ export default function Checkout() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {planType === 'credits' ? 'Select Credit Amount' : 'Select a Plan'}
+                  {planType === 'credits' ? 'Selected Credit Package' : 'Selected Plan'}
                 </CardTitle>
                 <CardDescription>
-                  {planType === 'credits' 
-                    ? 'Choose how many credits you want to purchase' 
-                    : 'Choose a plan that fits your needs'}
+                  {selectedPlan?.name || "Checkout"}
                 </CardDescription>
+                <Button 
+                  variant="ghost" 
+                  className="mt-2 pl-0" 
+                  onClick={() => navigate('/dashboard/billing')}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to plans
+                </Button>
               </CardHeader>
               <CardContent>
-                {planType === 'credits' ? (
+                {planType === 'credits' && (
                   <CreditPackageOptions 
                     creditPrice={creditPrice}
                     creditQuantity={creditAmount}
                     onCreditQuantityChange={setCreditAmount}
                   />
-                ) : (
-                  plansData && plansData.length > 0 ? (
-                    <PlanSelection 
-                      plans={plansData}
-                      selectedPlan={selectedPlan}
-                      onSelectPlan={setSelectedPlan}
-                    />
-                  ) : (
-                    <p className="text-muted-foreground">No plans available</p>
-                  )
                 )}
 
                 <PaymentForm

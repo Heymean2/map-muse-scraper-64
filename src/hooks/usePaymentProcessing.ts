@@ -10,7 +10,6 @@ export function usePaymentProcessing() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const session = supabase.auth.getSession();
 
   // Create order for PayPal
   const createOrder = async (selectedPlan: any) => {
@@ -24,12 +23,22 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const sessionResponse = await session;
-      const token = sessionResponse.data.session?.access_token;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
       }
+      
+      // Get URL parameters to check if this is a credit purchase with custom amount
+      const urlParams = new URLSearchParams(window.location.search);
+      const creditAmount = urlParams.get('creditAmount');
+      const planType = urlParams.get('planType');
+      
+      // Prepare payload based on whether it's a custom credit amount or regular plan
+      const payload = planType === 'credits' && creditAmount 
+        ? { plan: selectedPlan.id, creditAmount: parseInt(creditAmount) }
+        : { plan: selectedPlan.id };
       
       const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/createOrder`, {
         method: 'POST',
@@ -37,9 +46,7 @@ export function usePaymentProcessing() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          plan: selectedPlan.id
-        })
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
@@ -71,12 +78,22 @@ export function usePaymentProcessing() {
     setErrorMessage(null);
     
     try {
-      const sessionResponse = await session;
-      const token = sessionResponse.data.session?.access_token;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
       
       if (!token) {
         throw new Error("Not authenticated");
       }
+      
+      // Get URL parameters to check if this is a credit purchase with custom amount
+      const urlParams = new URLSearchParams(window.location.search);
+      const creditAmount = urlParams.get('creditAmount');
+      const planType = urlParams.get('planType');
+      
+      // Prepare payload based on whether it's a custom credit amount or regular plan
+      const payload = planType === 'credits' && creditAmount 
+        ? { orderID, plan: selectedPlan.id, creditAmount: parseInt(creditAmount) }
+        : { orderID, plan: selectedPlan.id };
       
       const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/captureOrder`, {
         method: 'POST',
@@ -84,10 +101,7 @@ export function usePaymentProcessing() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          orderID,
-          plan: selectedPlan.id
-        })
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
