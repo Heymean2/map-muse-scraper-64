@@ -90,7 +90,7 @@ export default function ResultsDashboard({
             </BreadcrumbList>
           </Breadcrumb>
           <h1 className="text-2xl font-bold mt-2 flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-google-red" />
+            <MapPin className="h-6 w-6 text-google-blue" />
             Scraping Results
           </h1>
         </div>
@@ -100,7 +100,7 @@ export default function ResultsDashboard({
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="gap-1 border-google-blue/30 text-google-blue hover:bg-google-blue/5 hover:border-google-blue transition-colors"
+            className="gap-1 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             <span className="hidden sm:inline">Refresh</span>
@@ -150,14 +150,14 @@ export default function ResultsDashboard({
             </TabsTrigger>
             <TabsTrigger 
               value="board" 
-              className="flex items-center gap-1 data-[state=active]:bg-google-green data-[state=active]:text-white"
+              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
             >
               <LayoutGrid className="h-4 w-4" />
               <span>Board</span>
             </TabsTrigger>
             <TabsTrigger 
               value="calendar" 
-              className="flex items-center gap-1 data-[state=active]:bg-google-yellow data-[state=active]:text-white"
+              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
             >
               <CalendarDays className="h-4 w-4" />
               <span>Calendar</span>

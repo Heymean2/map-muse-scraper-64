@@ -24,36 +24,36 @@ export default function TasksMetrics({
       value: totalTasks,
       icon: MapPin,
       color: "text-google-blue",
-      bgColor: "bg-google-blue/10",
-      borderColor: "border-google-blue/50",
-      ringClass: "before:ring-google-blue/20"
+      bgColor: "bg-primary-subtle",
+      borderColor: "border-primary-subtle",
+      ringClass: "before:ring-google-blue/10"
     },
     {
       title: "Completed",
       value: completedTasks,
       icon: CheckCircle,
       color: "text-google-green",
-      bgColor: "bg-google-green/10",
-      borderColor: "border-google-green/50",
-      ringClass: "before:ring-google-green/20"
+      bgColor: "bg-secondary-subtle",
+      borderColor: "border-secondary-subtle",
+      ringClass: "before:ring-google-green/10"
     },
     {
       title: "Processing",
       value: processingTasks,
       icon: Clock,
       color: "text-google-yellow",
-      bgColor: "bg-google-yellow/10",
-      borderColor: "border-google-yellow/50",
-      ringClass: "before:ring-google-yellow/20"
+      bgColor: "bg-warning-subtle",
+      borderColor: "border-warning-subtle",
+      ringClass: "before:ring-google-yellow/10"
     },
     {
       title: "Failed",
       value: failedTasks,
       icon: AlertCircle,
       color: "text-google-red",
-      bgColor: "bg-google-red/10",
-      borderColor: "border-google-red/50",
-      ringClass: "before:ring-google-red/20"
+      bgColor: "bg-accent-subtle",
+      borderColor: "border-accent-subtle",
+      ringClass: "before:ring-google-red/10"
     }
   ];
 
@@ -62,19 +62,18 @@ export default function TasksMetrics({
       {metrics.map((metric) => (
         <Card 
           key={metric.title} 
-          className={`relative overflow-hidden transition-all hover:shadow-md border ${metric.borderColor} hover:translate-y-[-2px] duration-300`}
+          className={`relative overflow-hidden transition-all hover:shadow-md border-slate-100 hover:translate-y-[-2px] duration-300`}
         >
-          <div className={`absolute left-0 top-0 h-full w-1 ${metric.bgColor}`}></div>
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                <metric.icon className={`h-6 w-6 ${metric.color}`} />
+                <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
               <div className={`text-xs font-medium px-2 py-1 rounded-full ${metric.bgColor} ${metric.color}`}>
                 {metric.title}
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-4">
               {isLoading ? (
                 <Skeleton className="h-10 w-20" />
               ) : (

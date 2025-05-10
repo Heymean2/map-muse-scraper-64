@@ -55,11 +55,11 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border border-slate-200 hover:border-google-yellow/50 transition-colors shadow-sm hover:shadow-md">
-        <div className="bg-gradient-to-r from-google-yellow/10 to-transparent p-4 border-b border-slate-100">
+      <Card className="overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
+        <div className="bg-slate-50 p-4 border-b border-slate-100">
           <h3 className="text-lg font-medium flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-google-yellow" />
-            Credit Package Customizer
+            <CreditCard className="h-5 w-5 text-google-blue" />
+            <span>Credit Package Customizer</span>
           </h3>
           <p className="text-sm text-muted-foreground">Choose the amount of credits you need</p>
         </div>
@@ -68,7 +68,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="creditAmount" className="text-base font-medium">Credit Amount:</Label>
-              <span className="text-lg font-bold text-google-yellow">{creditAmount.toLocaleString()}</span>
+              <span className="text-lg font-bold text-google-blue">{creditAmount.toLocaleString()}</span>
             </div>
             <div className="flex space-x-4 items-center">
               <span className="text-sm font-medium">1,000</span>
@@ -84,9 +84,9 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
               <span className="text-sm font-medium">1M</span>
             </div>
             
-            <div className="h-8 bg-slate-100/70 rounded-full overflow-hidden relative">
+            <div className="h-8 bg-slate-100 rounded-full overflow-hidden relative">
               <div 
-                className="h-full bg-gradient-to-r from-google-yellow to-google-yellow/60 transition-all duration-500"
+                className="h-full bg-google-blue/40 transition-all duration-500"
                 style={{ width: `${Math.max(5, Math.min(100, (creditAmount / 10000)))}%` }}
               ></div>
             </div>
@@ -101,11 +101,11 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
               max={10000000}
               value={creditAmount}
               onChange={handleInputChange}
-              className="w-full border-slate-300 focus:border-google-yellow focus:ring-google-yellow/20"
+              className="w-full border-slate-200 focus:border-google-blue focus:ring-google-blue/20"
             />
           </div>
           
-          <div className="bg-gradient-to-r from-google-blue/5 to-google-green/5 p-4 rounded-xl">
+          <div className="bg-primary-subtle p-4 rounded-xl">
             <div className="flex items-center justify-between mb-1">
               <p className="font-medium text-gray-600">Price per credit:</p>
               <p className="font-medium text-google-blue">${formattedPricePerCredit}</p>
@@ -118,7 +118,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex items-center justify-between bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-google-green" />
@@ -128,7 +128,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
         </div>
         <Button 
           onClick={handlePurchase}
-          className="bg-google-yellow hover:bg-google-yellow/90 text-white gap-2 px-6 rounded-full hover:shadow-md transition-all"
+          className="bg-google-blue hover:bg-google-blue/90 text-white gap-2 px-6 rounded-lg hover:shadow-md transition-all"
         >
           <ShoppingCart className="h-4 w-4" />
           Purchase Credits

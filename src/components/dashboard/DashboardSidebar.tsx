@@ -80,49 +80,49 @@ export default function DashboardSidebar() {
       icon: LayoutDashboard,
       path: "/dashboard",
       color: "text-google-blue",
-      hoverBg: "hover:bg-google-blue/10",
+      hoverBg: "hover:bg-primary-subtle",
       activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "Results",
       icon: FileText,
       path: "/result",
-      color: "text-google-green",
-      hoverBg: "hover:bg-google-green/10",
-      activeColor: "group-data-[active=true]:text-google-green"
+      color: "text-slate-600",
+      hoverBg: "hover:bg-slate-50",
+      activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "New Scrape",
       icon: Search,
       path: "/dashboard/scrape",
-      color: "text-google-red",
-      hoverBg: "hover:bg-google-red/10",
-      activeColor: "group-data-[active=true]:text-google-red"
+      color: "text-slate-600",
+      hoverBg: "hover:bg-slate-50",
+      activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "Profile",
       icon: UserCircle,
       path: "/profile",
-      color: "text-google-blue",
-      hoverBg: "hover:bg-google-blue/10",
+      color: "text-slate-600",
+      hoverBg: "hover:bg-slate-50",
       activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "Billing",
       icon: CreditCard,
       path: "/dashboard/billing",
-      color: "text-google-yellow",
-      hoverBg: "hover:bg-google-yellow/10",
-      activeColor: "group-data-[active=true]:text-google-yellow",
+      color: "text-slate-600",
+      hoverBg: "hover:bg-slate-50",
+      activeColor: "group-data-[active=true]:text-google-blue",
       onMouseEnter: handleBillingHover,
     },
     {
       title: "Settings",
       icon: Settings,
       path: "/dashboard/settings",
-      color: "text-gray-500",
-      hoverBg: "hover:bg-gray-100",
-      activeColor: "group-data-[active=true]:text-gray-700"
+      color: "text-slate-600",
+      hoverBg: "hover:bg-slate-50",
+      activeColor: "group-data-[active=true]:text-google-blue"
     },
   ];
 
@@ -150,7 +150,7 @@ export default function DashboardSidebar() {
                   className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg}`}
                 >
                   <Link to={item.path} className="transition-colors flex items-center space-x-3">
-                    <item.icon className={`w-5 h-5 ${item.color} ${item.activeColor} transition-all duration-300 group-hover:scale-110`} />
+                    <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-google-blue" : item.color} transition-all duration-300 group-hover:scale-110`} />
                     <span className="group-hover:translate-x-1 transition-transform duration-300">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
@@ -163,9 +163,9 @@ export default function DashboardSidebar() {
       <SidebarFooter className="p-4 mt-auto">
         <div className="space-y-3">
           <div 
-            className="flex items-center space-x-3 p-3 bg-muted/80 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+            className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors"
           >
-            <div className="w-10 h-10 rounded-full bg-google-blue/20 flex items-center justify-center text-google-blue">
+            <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-google-blue">
               <User className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
@@ -179,7 +179,7 @@ export default function DashboardSidebar() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full flex items-center gap-2 justify-center border-red-200 hover:bg-red-50 hover:text-google-red hover:border-red-300 transition-colors"
+            className="w-full flex items-center gap-2 justify-center border-slate-200 hover:bg-slate-50 hover:text-google-red hover:border-red-100 transition-colors"
             onClick={() => signOut()}
           >
             <LogOut className="w-4 h-4" />

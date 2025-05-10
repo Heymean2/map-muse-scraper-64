@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,12 +63,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Google Maps inspired colors
+				// Google Maps inspired colors - using strategic colors
 				google: {
-					blue: '#4285F4',
-					red: '#EA4335',
-					yellow: '#FBBC05',
-					green: '#34A853',
+					blue: '#4285F4',    // Primary brand color (30%)
+					red: '#EA4335',     // Accent color (used sparingly, 10%)
+					yellow: '#FBBC05',  // Accent color (used sparingly, 10%) 
+					green: '#34A853',   // Accent color (used sparingly, 10%)
 				}
 			},
 			borderRadius: {
@@ -120,7 +121,7 @@ export default {
 				'blur-in': 'blur-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
 			},
 			fontFamily: {
-				// Google-inspired font family
+				// Modern, clean font family
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 		}

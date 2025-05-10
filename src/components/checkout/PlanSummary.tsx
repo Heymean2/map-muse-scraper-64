@@ -48,11 +48,11 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
 
   return (
     <Card className="overflow-hidden border-slate-200 hover:shadow-md transition-all">
-      <CardHeader className="bg-gradient-to-r from-google-blue/10 to-transparent border-b border-slate-100">
+      <CardHeader className="bg-slate-50 border-b border-slate-100">
         <CardTitle className="flex items-center gap-2">
           {isCreditPlan ? (
             <>
-              <CreditCard className="h-5 w-5 text-google-yellow" />
+              <CreditCard className="h-5 w-5 text-google-blue" />
               <span>Credit Package</span>
             </>
           ) : (
