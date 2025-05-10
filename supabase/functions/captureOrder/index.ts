@@ -184,7 +184,7 @@ serve(async (req) => {
         actualPricePerCredit = plans[0].price_per_credit;
         console.log(`Using DB price per credit: ${actualPricePerCredit}`);
       } else {
-        // Fallback to hardcoded value
+        // Fallback to hardcoded value - no more precision issues!
         actualPricePerCredit = 0.00299;
         console.log(`Using fallback price per credit: ${actualPricePerCredit}`);
       }

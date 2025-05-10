@@ -67,7 +67,7 @@ async function getPlanPrice(planId, creditAmount = null, pricePerCredit = null) 
       calculatedPricePerCredit = plans[0].price_per_credit;
       console.log(`Using DB price per credit: ${calculatedPricePerCredit}`);
     } else {
-      // Fallback to hardcoded value
+      // Fallback to hardcoded value - now we should never have precision issues
       calculatedPricePerCredit = 0.00299;
       console.log(`Using fallback price per credit: ${calculatedPricePerCredit}`);
     }

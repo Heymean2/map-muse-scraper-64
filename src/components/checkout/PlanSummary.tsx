@@ -40,7 +40,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
     return selectedPlan.price_per_credit || creditPrice || 0.00299;
   };
 
-  // Format price per credit with consistent precision
+  // Format price per credit with proper precision (5 decimal places)
   const formatPricePerCredit = (price: number) => {
     return price.toFixed(5);
   };
