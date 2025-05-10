@@ -6,7 +6,9 @@ import {
   LayoutList, 
   CalendarDays, 
   Plus, 
-  RefreshCw
+  RefreshCw,
+  MapPin,
+  Search
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +27,7 @@ import TasksMetrics from "./dashboard/TasksMetrics";
 import TasksListView from "./views/TasksListView";
 import TasksBoardView from "./views/TasksBoardView";
 import TasksCalendarView from "./views/TasksCalendarView";
+import { Input } from "@/components/ui/input";
 
 interface ResultsDashboardProps {
   tasks: any[];
@@ -78,15 +81,18 @@ export default function ResultsDashboard({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard" className="text-google-blue hover:text-google-blue/80">Dashboard</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Results</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium">Results</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="text-2xl font-bold mt-2">Scraping Results</h1>
+          <h1 className="text-2xl font-bold mt-2 flex items-center gap-2">
+            <MapPin className="h-6 w-6 text-google-red" />
+            Scraping Results
+          </h1>
         </div>
         
         <div className="flex items-center gap-2">
@@ -94,7 +100,7 @@ export default function ResultsDashboard({
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="gap-1"
+            className="gap-1 border-google-blue/30 text-google-blue hover:bg-google-blue/5 hover:border-google-blue transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             <span className="hidden sm:inline">Refresh</span>
@@ -102,12 +108,24 @@ export default function ResultsDashboard({
           
           <Button
             onClick={handleNewTask}
-            className="gap-1"
+            className="gap-1 bg-google-blue hover:bg-google-blue/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New Task</span>
           </Button>
         </div>
+      </div>
+
+      {/* Search Input */}
+      <div className="relative">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <Input 
+          type="text" 
+          placeholder="Search tasks by keyword..." 
+          className="pl-10 border-slate-200 focus:border-google-blue focus:ring-google-blue/20"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       {/* Metrics Cards */}
@@ -122,16 +140,25 @@ export default function ResultsDashboard({
       {/* View Selection Tabs */}
       <div className="flex justify-center">
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full md:w-auto">
-          <TabsList>
-            <TabsTrigger value="list" className="flex items-center gap-1">
+          <TabsList className="bg-slate-100">
+            <TabsTrigger 
+              value="list" 
+              className="flex items-center gap-1 data-[state=active]:bg-google-blue data-[state=active]:text-white"
+            >
               <LayoutList className="h-4 w-4" />
               <span>List</span>
             </TabsTrigger>
-            <TabsTrigger value="board" className="flex items-center gap-1">
+            <TabsTrigger 
+              value="board" 
+              className="flex items-center gap-1 data-[state=active]:bg-google-green data-[state=active]:text-white"
+            >
               <LayoutGrid className="h-4 w-4" />
               <span>Board</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-1">
+            <TabsTrigger 
+              value="calendar" 
+              className="flex items-center gap-1 data-[state=active]:bg-google-yellow data-[state=active]:text-white"
+            >
               <CalendarDays className="h-4 w-4" />
               <span>Calendar</span>
             </TabsTrigger>
@@ -140,7 +167,7 @@ export default function ResultsDashboard({
       </div>
 
       {/* Content Based on View Mode */}
-      <Card className="overflow-hidden border-slate-200">
+      <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-all">
         <CardContent className="p-0">
           {viewMode === 'list' && (
             <TasksListView 

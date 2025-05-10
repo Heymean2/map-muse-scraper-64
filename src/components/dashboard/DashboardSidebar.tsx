@@ -18,7 +18,8 @@ import {
   Settings, 
   LogOut,
   User,
-  LayoutDashboard
+  LayoutDashboard,
+  MapPin
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -78,60 +79,79 @@ export default function DashboardSidebar() {
       title: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
+      color: "text-google-blue",
+      hoverBg: "hover:bg-google-blue/10",
+      activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "Results",
       icon: FileText,
       path: "/result",
+      color: "text-google-green",
+      hoverBg: "hover:bg-google-green/10",
+      activeColor: "group-data-[active=true]:text-google-green"
     },
     {
       title: "New Scrape",
       icon: Search,
       path: "/dashboard/scrape",
+      color: "text-google-red",
+      hoverBg: "hover:bg-google-red/10",
+      activeColor: "group-data-[active=true]:text-google-red"
     },
     {
       title: "Profile",
       icon: UserCircle,
-      path: "/profile", 
+      path: "/profile",
+      color: "text-google-blue",
+      hoverBg: "hover:bg-google-blue/10",
+      activeColor: "group-data-[active=true]:text-google-blue"
     },
     {
       title: "Billing",
       icon: CreditCard,
       path: "/dashboard/billing",
+      color: "text-google-yellow",
+      hoverBg: "hover:bg-google-yellow/10",
+      activeColor: "group-data-[active=true]:text-google-yellow",
       onMouseEnter: handleBillingHover,
     },
     {
       title: "Settings",
       icon: Settings,
       path: "/dashboard/settings",
+      color: "text-gray-500",
+      hoverBg: "hover:bg-gray-100",
+      activeColor: "group-data-[active=true]:text-gray-700"
     },
   ];
 
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-slate-200">
       <SidebarHeader className="p-4 mt-4">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-6 w-6 text-google-red" />
           <Link to="/dashboard" className="text-xl font-semibold">
             MapScraper
           </Link>
         </div>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <SidebarGroup>
           <SidebarMenu>
             {menuItems.map((item) => (
-              <SidebarMenuItem key={item.path}>
+              <SidebarMenuItem key={item.path} className="group">
                 <SidebarMenuButton 
                   asChild 
                   isActive={isActive(item.path)}
                   tooltip={item.title}
                   onMouseEnter={item.onMouseEnter}
-                  className="my-1.5 flex items-center justify-start"
+                  className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg}`}
                 >
                   <Link to={item.path} className="transition-colors flex items-center space-x-3">
-                    <item.icon className="w-5 h-5" />
-                    <span>{item.title}</span>
+                    <item.icon className={`w-5 h-5 ${item.color} ${item.activeColor} transition-all duration-300 group-hover:scale-110`} />
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -143,9 +163,9 @@ export default function DashboardSidebar() {
       <SidebarFooter className="p-4 mt-auto">
         <div className="space-y-3">
           <div 
-            className="flex items-center space-x-2 p-3 bg-muted/80 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+            className="flex items-center space-x-3 p-3 bg-muted/80 rounded-lg cursor-pointer hover:bg-muted transition-colors"
           >
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+            <div className="w-10 h-10 rounded-full bg-google-blue/20 flex items-center justify-center text-google-blue">
               <User className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
@@ -159,7 +179,7 @@ export default function DashboardSidebar() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full flex items-center gap-2 justify-center"
+            className="w-full flex items-center gap-2 justify-center border-red-200 hover:bg-red-50 hover:text-google-red hover:border-red-300 transition-colors"
             onClick={() => signOut()}
           >
             <LogOut className="w-4 h-4" />

@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, CreditCard, CalendarClock } from "lucide-react";
 
 interface PlanSummaryProps {
   selectedPlan: any;
@@ -47,15 +47,25 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-muted/50">
-        <CardTitle>
-          {isCreditPlan ? "Credit Package" : selectedPlan.name}
+    <Card className="overflow-hidden border-slate-200 hover:shadow-md transition-all">
+      <CardHeader className="bg-gradient-to-r from-google-blue/10 to-transparent border-b border-slate-100">
+        <CardTitle className="flex items-center gap-2">
+          {isCreditPlan ? (
+            <>
+              <CreditCard className="h-5 w-5 text-google-yellow" />
+              <span>Credit Package</span>
+            </>
+          ) : (
+            <>
+              <CalendarClock className="h-5 w-5 text-google-blue" />
+              <span>{selectedPlan.name}</span>
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="mb-4">
-          <div className="text-2xl font-bold">${calculateTotal()}</div>
+          <div className="text-2xl font-bold text-google-blue">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
               ? `$${formatPricePerCredit(getPricePerCredit())} per credit × ${customCredits?.toLocaleString() || ""} credits`
@@ -63,20 +73,30 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 mt-6">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start">
-              <Check className="h-4 w-4 text-primary mr-2 mt-1" />
+              <div className="w-5 h-5 rounded-full bg-google-green/10 flex items-center justify-center mr-2 mt-0.5">
+                <Check className="h-3 w-3 text-google-green" />
+              </div>
               <span className="text-sm">{feature}</span>
             </div>
           ))}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between border-t p-4 bg-muted/20">
-        <div className="text-xs text-muted-foreground">
-          {isCreditPlan 
-            ? "Credits never expire" 
-            : "Cancel anytime"}
+      <CardFooter className="flex justify-between border-t p-4 bg-slate-50">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          {isCreditPlan ? (
+            <>
+              <CreditCard className="h-3 w-3" />
+              Credits never expire
+            </>
+          ) : (
+            <>
+              <CalendarClock className="h-3 w-3" />
+              Cancel anytime
+            </>
+          )}
         </div>
       </CardFooter>
     </Card>

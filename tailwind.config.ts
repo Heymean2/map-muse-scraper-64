@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,6 +61,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Google Maps inspired colors
+				google: {
+					blue: '#4285F4',
+					red: '#EA4335',
+					yellow: '#FBBC05',
+					green: '#34A853',
 				}
 			},
 			borderRadius: {
@@ -112,7 +118,11 @@ export default {
 				'slide-down': 'slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
 				'scale-in': 'scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
 				'blur-in': 'blur-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-			}
+			},
+			fontFamily: {
+				// Google-inspired font family
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
