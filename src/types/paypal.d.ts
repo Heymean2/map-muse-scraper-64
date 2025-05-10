@@ -1,44 +1,28 @@
 
 // Type definitions for PayPal JavaScript SDK
-interface PayPalButtonsComponentOptions {
-  createOrder: (data: any, actions: PayPalActions) => Promise<string>;
-  onApprove: (data: any, actions: PayPalActions) => Promise<any>;
-  onCancel?: (data: any) => void;
-  onError?: (err: any) => void;
-  style?: {
-    layout?: string;
-    color?: string;
-    shape?: string;
-    label?: string;
-    height?: number;
-  };
-}
+// These types supplement the @paypal/react-paypal-js package types
 
-interface PayPalActions {
-  order: {
-    create: (options: {
-      purchase_units: Array<{
-        amount: {
-          value: string;
-        };
-        description?: string;
-      }>;
-    }) => Promise<string>;
-    capture: () => Promise<any>;
-  };
-}
+import { PayPalScriptOptions } from '@paypal/react-paypal-js';
 
-interface PayPalNamespace {
-  Buttons: (options: PayPalButtonsComponentOptions) => {
-    render: (container: string | HTMLElement) => void;
-    isEligible?: () => boolean;
-  };
-}
-
+// Extend the window interface for any custom PayPal properties we might need
 declare global {
   interface Window {
-    paypal?: PayPalNamespace;
+    paypal?: any;
   }
 }
 
-export {};
+// Custom types for our application's PayPal integration
+export interface PayPalTransactionDetails {
+  id: string;
+  status: string;
+  payer: {
+    name: {
+      given_name: string;
+      surname: string;
+    };
+    email_address: string;
+  };
+}
+
+// Re-export types from the official package for convenience
+export type { PayPalScriptOptions };

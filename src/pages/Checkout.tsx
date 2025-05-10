@@ -10,8 +10,9 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { PaymentMethods } from "@/components/checkout/PaymentMethods";
 import { CreditPackageOptions } from "@/components/checkout/CreditPackageOptions";
 import { SuccessDialog } from "@/components/checkout/SuccessDialog";
-import { PayPalButton } from "@/components/checkout/PayPalButton";
+import { PayPalButtons } from "@/components/checkout/PayPalButtons";
 import { usePaymentProcessing } from "@/hooks/usePaymentProcessing";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function Checkout() {
   const packageSizeParam = searchParams.get("packageSize");
   // Convert packageSize to number explicitly, ensuring it's a valid number
   const [creditQuantity, setCreditQuantity] = useState<number>(
-    packageSizeParam ? Number(parseInt(packageSizeParam, 10) || 1) : 1
+    packageSizeParam ? Number(parseInt(packageSizeParam)) || 1 : 1
   );
   
   const creditPrice = planData?.price_per_credit || 0.001;
@@ -76,6 +77,13 @@ export default function Checkout() {
     totalCredits,
     totalAmount
   });
+
+  // PayPal configuration options
+  const paypalOptions = {
+    "client-id": "test", // Replace with actual client ID in production
+    currency: "USD",
+    intent: "capture",
+  };
 
   if (!planId) {
     return (
@@ -117,62 +125,64 @@ export default function Checkout() {
 
   return (
     <DashboardLayout>
-      <Container className="py-8">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <PaymentMethods 
-              onPaymentMethodChange={setPaymentMethod}
-              onCreditCardSubmit={handleCreditCardPayment}
-              isProcessing={isProcessing}
-              totalAmount={totalAmount}
-            />
-            
-            {/* PayPal Button Handler */}
-            {paymentMethod === "paypal" && (
-              <PayPalButton 
+      <PayPalScriptProvider options={paypalOptions}>
+        <Container className="py-8">
+          <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <PaymentMethods 
+                onPaymentMethodChange={setPaymentMethod}
+                onCreditCardSubmit={handleCreditCardPayment}
+                isProcessing={isProcessing}
                 totalAmount={totalAmount}
-                planType={planType}
-                planData={planData}
-                creditQuantity={creditQuantity}
-                totalCredits={totalCredits}
-                onSuccess={handlePayPalSuccess}
-                onProcessingChange={setIsProcessing}
               />
-            )}
+              
+              {/* PayPal Button Handler */}
+              {paymentMethod === "paypal" && (
+                <PayPalButtons 
+                  totalAmount={totalAmount}
+                  planType={planType}
+                  planData={planData}
+                  creditQuantity={creditQuantity}
+                  totalCredits={totalCredits}
+                  onSuccess={handlePayPalSuccess}
+                  onProcessingChange={setIsProcessing}
+                />
+              )}
+              
+              {planType === 'credits' && (
+                <CreditPackageOptions 
+                  creditPrice={creditPrice}
+                  creditQuantity={creditQuantity}
+                  onCreditQuantityChange={setCreditQuantity}
+                />
+              )}
+            </div>
             
-            {planType === 'credits' && (
-              <CreditPackageOptions 
-                creditPrice={creditPrice}
-                creditQuantity={creditQuantity}
-                onCreditQuantityChange={setCreditQuantity}
+            <div>
+              <OrderSummary 
+                planData={planData}
+                planLoading={planLoading}
+                planType={planType}
+                totalAmount={totalAmount}
+                totalCredits={totalCredits}
               />
-            )}
+            </div>
           </div>
           
-          <div>
-            <OrderSummary 
-              planData={planData}
-              planLoading={planLoading}
-              planType={planType}
-              totalAmount={totalAmount}
-              totalCredits={totalCredits}
-            />
-          </div>
-        </div>
-        
-        <SuccessDialog 
-          open={paymentSuccess}
-          onOpenChange={(open) => {
-            if (!open) navigate('/dashboard');
-            setPaymentSuccess(open);
-          }}
-          planType={planType}
-          planName={planData?.name}
-          totalCredits={totalCredits}
-        />
-      </Container>
+          <SuccessDialog 
+            open={paymentSuccess}
+            onOpenChange={(open) => {
+              if (!open) navigate('/dashboard');
+              setPaymentSuccess(open);
+            }}
+            planType={planType}
+            planName={planData?.name}
+            totalCredits={totalCredits}
+          />
+        </Container>
+      </PayPalScriptProvider>
     </DashboardLayout>
   );
 }
