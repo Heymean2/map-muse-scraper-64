@@ -12,12 +12,13 @@ import { PaymentSuccess } from "@/components/checkout/PaymentSuccess";
 import { useCheckoutLogic } from "@/hooks/useCheckoutLogic";
 import { CreditPackageOptions } from "@/components/checkout/CreditPackageOptions";
 import { useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [creditAmount, setCreditAmount] = useState<number>(1000);
-  const [creditPrice, setCreditPrice] = useState<number>(0.00299);
+  const [creditPrice, setCreditPrice] = useState<number>(0);
   const [planType, setPlanType] = useState<string>("subscription");
   
   const {
@@ -58,7 +59,9 @@ export default function Checkout() {
         const creditPlan = plansData.find(p => p.billing_period === 'credits');
         if (creditPlan) {
           setSelectedPlan(creditPlan);
-          setCreditPrice(creditPlan.price_per_credit || 0.00299);
+          // Set the price_per_credit from the actual plan data
+          setCreditPrice(creditPlan.price_per_credit || 0);
+          console.log("Credit plan selected:", creditPlan);
         }
       } else {
         // For subscription plans, find by ID
@@ -73,6 +76,36 @@ export default function Checkout() {
     }
   }, [location, plansData, setSelectedPlan, navigate]);
 
+  // Fetch credit plan directly if it's not in the plansData
+  useEffect(() => {
+    if (planType === 'credits' && (!selectedPlan || !selectedPlan.price_per_credit)) {
+      const fetchCreditPlan = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('pricing_plans')
+            .select('*')
+            .eq('billing_period', 'credits')
+            .single();
+
+          if (error) {
+            console.error("Error fetching credit plan:", error);
+            return;
+          }
+
+          if (data) {
+            console.log("Credit plan fetched directly:", data);
+            setSelectedPlan(data);
+            setCreditPrice(data.price_per_credit || 0);
+          }
+        } catch (error) {
+          console.error("Error in credit plan fetch:", error);
+        }
+      };
+
+      fetchCreditPlan();
+    }
+  }, [planType, selectedPlan, setSelectedPlan]);
+
   // Update URL when credit amount changes
   useEffect(() => {
     if (planType === 'credits' && selectedPlan) {
@@ -84,6 +117,16 @@ export default function Checkout() {
       window.history.replaceState({}, '', newUrl);
     }
   }, [creditAmount, planType, selectedPlan, location]);
+
+  // Log the current state for debugging
+  useEffect(() => {
+    console.log("Current state:", {
+      selectedPlan,
+      creditPrice,
+      creditAmount,
+      planType
+    });
+  }, [selectedPlan, creditPrice, creditAmount, planType]);
 
   // Wrapper for createOrder to include creditAmount
   const handleCreateOrder = async () => {
@@ -187,7 +230,7 @@ export default function Checkout() {
               <CardContent>
                 {planType === 'credits' && (
                   <CreditPackageOptions 
-                    creditPrice={creditPrice}
+                    creditPrice={selectedPlan.price_per_credit || creditPrice}
                     creditQuantity={creditAmount}
                     onCreditQuantityChange={setCreditAmount}
                   />
@@ -208,7 +251,7 @@ export default function Checkout() {
             <PlanSummary 
               selectedPlan={selectedPlan} 
               customCredits={planType === 'credits' ? creditAmount : undefined}
-              creditPrice={creditPrice}
+              creditPrice={selectedPlan.price_per_credit || creditPrice}
             />
           </div>
         </div>

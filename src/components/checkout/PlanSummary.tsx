@@ -26,18 +26,18 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
   
   // Calculate the price for credit plans with custom amounts
   const calculateTotal = () => {
-    if (isCreditPlan && customCredits && creditPrice) {
-      return (customCredits * creditPrice).toFixed(2);
+    if (isCreditPlan && customCredits) {
+      // Use the price per credit from the plan if available, otherwise fall back to provided creditPrice
+      const pricePerCredit = selectedPlan.price_per_credit || creditPrice;
+      return (customCredits * pricePerCredit).toFixed(2);
     }
     return selectedPlan.price?.toFixed(2) || "0.00";
   };
 
-  // Determine the title to display based on plan type
-  const getTitle = () => {
-    if (isCreditPlan && customCredits) {
-      return `${customCredits.toLocaleString()} Credits`;
-    }
-    return selectedPlan.name;
+  // Get the actual price per credit to display
+  const getPricePerCredit = () => {
+    // Prioritize the price from the plan object first
+    return selectedPlan.price_per_credit || creditPrice;
   };
 
   return (
@@ -52,7 +52,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
           <div className="text-2xl font-bold">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
-              ? `$${creditPrice?.toFixed(5) || "0.00"} per credit × ${customCredits?.toLocaleString() || ""} credits`
+              ? `$${getPricePerCredit()?.toFixed(5) || "0.00"} per credit × ${customCredits?.toLocaleString() || ""} credits`
               : `Billed ${selectedPlan.billing_period}`}
           </div>
         </div>
