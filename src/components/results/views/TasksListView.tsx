@@ -46,6 +46,7 @@ export default function TasksListView({
             placeholder="Search tasks..."
             className="pl-10"
             disabled
+            value=""
           />
         </div>
         {Array.from({ length: 3 }).map((_, index) => (
