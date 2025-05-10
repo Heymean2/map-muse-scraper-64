@@ -31,7 +31,7 @@ async function getPayPalAccessToken() {
 }
 
 // Function to determine price based on plan
-async function getPlanPrice(planId, creditAmount = null) {
+async function getPlanPrice(planId, creditAmount = null, pricePerCredit = null) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   
@@ -54,9 +54,32 @@ async function getPlanPrice(planId, creditAmount = null) {
   
   // If it's a credit purchase with custom amount
   if (creditAmount && plans[0].billing_period === 'credits') {
+    // Use the provided pricePerCredit if available, otherwise get from DB
+    // If DB price is too small (precision issue), use default value
+    let calculatedPricePerCredit;
+    
+    if (pricePerCredit && pricePerCredit > 0.001) {
+      // Use the price provided in the request
+      calculatedPricePerCredit = pricePerCredit;
+      console.log(`Using provided price per credit: ${calculatedPricePerCredit}`);
+    } else if (plans[0].price_per_credit && plans[0].price_per_credit > 0.001) {
+      // Use DB price if it's valid
+      calculatedPricePerCredit = plans[0].price_per_credit;
+      console.log(`Using DB price per credit: ${calculatedPricePerCredit}`);
+    } else {
+      // Fallback to hardcoded value
+      calculatedPricePerCredit = 0.00299;
+      console.log(`Using fallback price per credit: ${calculatedPricePerCredit}`);
+    }
+    
+    // Calculate total price
+    const totalPrice = (calculatedPricePerCredit * creditAmount).toFixed(2);
+    console.log(`Calculated total price: ${totalPrice} (${calculatedPricePerCredit} × ${creditAmount})`);
+    
     return {
-      value: (plans[0].price_per_credit * creditAmount).toString(),
-      name: `${creditAmount.toLocaleString()} Credits`
+      value: totalPrice,
+      name: `${creditAmount.toLocaleString()} Credits`,
+      pricePerCredit: calculatedPricePerCredit
     };
   }
   
@@ -79,7 +102,7 @@ serve(async (req) => {
     
     // Parse request body
     const requestData = await req.json();
-    const { plan, creditAmount } = requestData;
+    const { plan, creditAmount, pricePerCredit } = requestData;
     
     if (!plan) {
       return new Response(
@@ -89,7 +112,7 @@ serve(async (req) => {
     }
     
     // Get plan price, considering custom credit amount if provided
-    const planDetails = await getPlanPrice(plan, creditAmount);
+    const planDetails = await getPlanPrice(plan, creditAmount, pricePerCredit);
     console.log(`Order for plan ${plan}, amount: ${planDetails.value}, name: ${planDetails.name}`);
     
     // Get PayPal access token
@@ -127,12 +150,19 @@ serve(async (req) => {
       );
     }
     
+    // Add price per credit to response for credit plans
+    const responseData = {
+      orderID: paypalOrder.id,
+      plan: plan,
+      creditAmount: creditAmount || null
+    };
+    
+    if (planDetails.pricePerCredit) {
+      responseData.pricePerCredit = planDetails.pricePerCredit;
+    }
+    
     return new Response(
-      JSON.stringify({ 
-        orderID: paypalOrder.id,
-        plan: plan,
-        creditAmount: creditAmount || null
-      }),
+      JSON.stringify(responseData),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
     

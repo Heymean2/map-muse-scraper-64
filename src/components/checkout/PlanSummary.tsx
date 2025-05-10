@@ -28,7 +28,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
   const calculateTotal = () => {
     if (isCreditPlan && customCredits) {
       // Use the price per credit from the plan if available, otherwise fall back to provided creditPrice
-      const pricePerCredit = selectedPlan.price_per_credit || creditPrice;
+      const pricePerCredit = selectedPlan.price_per_credit || creditPrice || 0.00299;
       return (customCredits * pricePerCredit).toFixed(2);
     }
     return selectedPlan.price?.toFixed(2) || "0.00";
@@ -36,8 +36,13 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
 
   // Get the actual price per credit to display
   const getPricePerCredit = () => {
-    // Prioritize the price from the plan object first
-    return selectedPlan.price_per_credit || creditPrice;
+    // Use the price from the plan object first, then fallback to prop, then hardcoded value
+    return selectedPlan.price_per_credit || creditPrice || 0.00299;
+  };
+
+  // Format price per credit with consistent precision
+  const formatPricePerCredit = (price: number) => {
+    return price.toFixed(5);
   };
 
   return (
@@ -52,7 +57,7 @@ export function PlanSummary({ selectedPlan, customCredits, creditPrice }: PlanSu
           <div className="text-2xl font-bold">${calculateTotal()}</div>
           <div className="text-sm text-muted-foreground">
             {isCreditPlan
-              ? `$${getPricePerCredit()?.toFixed(5) || "0.00"} per credit × ${customCredits?.toLocaleString() || ""} credits`
+              ? `$${formatPricePerCredit(getPricePerCredit())} per credit × ${customCredits?.toLocaleString() || ""} credits`
               : `Billed ${selectedPlan.billing_period}`}
           </div>
         </div>

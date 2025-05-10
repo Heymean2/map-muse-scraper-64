@@ -35,10 +35,22 @@ export function usePaymentProcessing() {
       const creditAmount = urlParams.get('creditAmount');
       const planType = urlParams.get('planType');
       
+      // Ensure the plan has a correct price_per_credit value for credit plans
+      if (planType === 'credits' && (!selectedPlan.price_per_credit || selectedPlan.price_per_credit < 0.001)) {
+        console.log("Setting default price per credit in createOrder");
+        selectedPlan.price_per_credit = 0.00299;
+      }
+      
       // Prepare payload based on whether it's a custom credit amount or regular plan
       const payload = planType === 'credits' && creditAmount 
-        ? { plan: selectedPlan.id, creditAmount: parseInt(creditAmount) }
+        ? { 
+            plan: selectedPlan.id, 
+            creditAmount: parseInt(creditAmount),
+            pricePerCredit: selectedPlan.price_per_credit
+          }
         : { plan: selectedPlan.id };
+      
+      console.log("Creating order with payload:", payload);
       
       const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/createOrder`, {
         method: 'POST',
@@ -90,10 +102,23 @@ export function usePaymentProcessing() {
       const creditAmount = urlParams.get('creditAmount');
       const planType = urlParams.get('planType');
       
+      // Ensure the plan has a correct price_per_credit value for credit plans
+      if (planType === 'credits' && (!selectedPlan.price_per_credit || selectedPlan.price_per_credit < 0.001)) {
+        console.log("Setting default price per credit in captureOrder");
+        selectedPlan.price_per_credit = 0.00299;
+      }
+      
       // Prepare payload based on whether it's a custom credit amount or regular plan
       const payload = planType === 'credits' && creditAmount 
-        ? { orderID, plan: selectedPlan.id, creditAmount: parseInt(creditAmount) }
+        ? { 
+            orderID, 
+            plan: selectedPlan.id, 
+            creditAmount: parseInt(creditAmount),
+            pricePerCredit: selectedPlan.price_per_credit
+          }
         : { orderID, plan: selectedPlan.id };
+      
+      console.log("Capturing order with payload:", payload);
       
       const response = await fetch(`https://culwnizfggplctdtujsz.supabase.co/functions/v1/captureOrder`, {
         method: 'POST',

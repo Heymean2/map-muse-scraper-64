@@ -32,9 +32,22 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
         const creditPlan = plansData.find(p => p.billing_period === 'credits');
         if (creditPlan) {
           setSelectedPlan(creditPlan);
+          
           // Set the price_per_credit from the actual plan data
-          setCreditPrice(creditPlan.price_per_credit || 0);
-          console.log("Credit plan selected:", creditPlan);
+          // If the database has precision issues, use a fallback value
+          let pricePerCredit = creditPlan.price_per_credit;
+          
+          // If the price is 0 or undefined due to precision issues, use the hardcoded value
+          if (!pricePerCredit || pricePerCredit < 0.001) {
+            console.log("Using fallback price per credit: 0.00299");
+            pricePerCredit = 0.00299;
+            
+            // Add the correct price to the plan object so it's available elsewhere
+            creditPlan.price_per_credit = pricePerCredit;
+          }
+          
+          setCreditPrice(pricePerCredit);
+          console.log("Credit plan selected:", creditPlan, "Price per credit:", pricePerCredit);
         }
       } else {
         // For subscription plans, find by ID
@@ -67,8 +80,15 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
 
           if (data) {
             console.log("Credit plan fetched directly:", data);
+            
+            // Fix the price_per_credit if it's not coming correctly from the database
+            if (!data.price_per_credit || data.price_per_credit < 0.001) {
+              console.log("Fixing price per credit to 0.00299");
+              data.price_per_credit = 0.00299;
+            }
+            
             setSelectedPlan(data);
-            setCreditPrice(data.price_per_credit || 0);
+            setCreditPrice(data.price_per_credit || 0.00299);
           }
         } catch (error) {
           console.error("Error in credit plan fetch:", error);

@@ -37,8 +37,16 @@ export function CreditPackageOptions({
   
   // Format price with discount calculation
   const calculatePrice = (credits: number, basePrice: number): number => {
+    // Make sure we have a valid price, use fallback if needed
+    const priceToUse = basePrice > 0.00001 ? basePrice : 0.00299;
     // Apply discount based on volume (optional)
-    return credits * basePrice;
+    return credits * priceToUse;
+  };
+  
+  // Format the price per credit with consistent precision
+  const formatPricePerCredit = (price: number) => {
+    // Always display with 5 decimal places for consistency
+    return (price || 0.00299).toFixed(5);
   };
   
   useEffect(() => {
@@ -90,7 +98,7 @@ export function CreditPackageOptions({
               Total: ${calculatePrice(customAmount, creditPrice).toFixed(2)}
             </p>
             <p className="text-sm text-slate-700">
-              ${creditPrice.toFixed(5)} per credit × {customAmount.toLocaleString()} credits
+              ${formatPricePerCredit(creditPrice)} per credit × {customAmount.toLocaleString()} credits
             </p>
             <p className="text-xs text-slate-500">
               Each credit allows you to extract 1 row of data.

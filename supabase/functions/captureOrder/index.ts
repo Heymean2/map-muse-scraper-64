@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { corsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 
@@ -31,6 +30,65 @@ async function getPayPalAccessToken() {
   return data.access_token;
 }
 
+// Function to update user credits
+async function updateUserCredits(userId, credits, pricePerCredit, planId) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase credentials not configured");
+  }
+  
+  console.log(`Updating user ${userId} with ${credits} credits`);
+  
+  // Update user's credits in profiles table
+  const profileUpdateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userId}`, {
+    method: "PATCH",
+    headers: {
+      "apikey": supabaseServiceKey,
+      "Authorization": `Bearer ${supabaseServiceKey}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify({
+      credits: credits
+    })
+  });
+  
+  if (!profileUpdateResponse.ok) {
+    throw new Error("Failed to update user credits");
+  }
+  
+  // Record the transaction in billing_transactions table
+  const transactionResponse = await fetch(`${supabaseUrl}/rest/v1/billing_transactions`, {
+    method: "POST",
+    headers: {
+      "apikey": supabaseServiceKey,
+      "Authorization": `Bearer ${supabaseServiceKey}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      plan_id: planId,
+      amount: (credits * pricePerCredit).toFixed(2),
+      credits_purchased: credits,
+      status: "completed",
+      payment_method: "paypal",
+      metadata: {
+        price_per_credit: pricePerCredit
+      }
+    })
+  });
+  
+  if (!transactionResponse.ok) {
+    console.error("Failed to record transaction:", await transactionResponse.text());
+    // Don't throw error here, as credits have been updated
+  }
+  
+  return true;
+}
+
 serve(async (req) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
@@ -43,142 +101,146 @@ serve(async (req) => {
     
     // Parse request body
     const requestData = await req.json();
-    const { orderID, plan, creditAmount } = requestData;
+    const { orderID, plan, creditAmount, pricePerCredit } = requestData;
     
-    if (!orderID) {
+    if (!orderID || !plan) {
       return new Response(
-        JSON.stringify({ error: "Order ID is required" }),
+        JSON.stringify({ error: "Order ID and Plan are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    console.log(`Processing order ${orderID} for plan ${plan}${creditAmount ? `, credit amount: ${creditAmount}` : ''}`);
-    
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
     
-    // Capture the PayPal order
-    const captureResponse = await fetch(
-      `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`
-        }
+    // Capture PayPal payment
+    const paypalResponse = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`
       }
-    );
+    });
     
-    const captureData = await captureResponse.json();
-    if (!captureResponse.ok) {
-      console.error("PayPal capture error:", captureData);
+    const paymentResult = await paypalResponse.json();
+    
+    if (!paypalResponse.ok) {
+      console.error("PayPal capture error:", paymentResult);
       return new Response(
-        JSON.stringify({ error: "Failed to capture PayPal order" }),
+        JSON.stringify({ error: "Failed to capture PayPal payment" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Extract payment details
-    const captureId = captureData.purchase_units[0]?.payments?.captures[0]?.id;
-    const amount = captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value || "0.00";
-    const currency = captureData.purchase_units[0]?.payments?.captures[0]?.amount?.currency_code || "USD";
-    const paymentStatus = captureData.status;
+    // Get plan details to determine what to update
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    // Initialize Supabase client with service role key for admin access
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-    );
+    const planResponse = await fetch(`${supabaseUrl}/rest/v1/pricing_plans?id=eq.${plan}`, {
+      headers: {
+        "apikey": supabaseServiceKey,
+        "Authorization": `Bearer ${supabaseServiceKey}`,
+        "Content-Type": "application/json"
+      }
+    });
     
-    // Check if this is a credit purchase with custom amount
-    const isCreditPurchase = creditAmount !== undefined && creditAmount !== null;
+    const plans = await planResponse.json();
     
-    // Record payment in database
-    const { error: paymentError } = await supabaseAdmin
-      .from("billing_transactions")
-      .insert({
-        user_id: user.id,
-        plan_id: plan,
-        amount: parseFloat(amount),
-        currency: currency,
-        status: paymentStatus === "COMPLETED" ? "completed" : "pending",
-        payment_method: "paypal",
-        payment_id: captureId,
-        credits_purchased: isCreditPurchase ? creditAmount : null,
-        metadata: {
-          ...captureData,
-          creditAmount: isCreditPurchase ? creditAmount : null
+    if (!plans || plans.length === 0) {
+      throw new Error("Plan not found");
+    }
+    
+    // Different handling based on plan type
+    if (plans[0].billing_period === "credits" && creditAmount) {
+      // For credit purchases
+      
+      // Get user's current credits
+      const userResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+        headers: {
+          "apikey": supabaseServiceKey,
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json"
         }
       });
-    
-    if (paymentError) {
-      console.error("Database payment recording error:", paymentError);
-      return new Response(
-        JSON.stringify({ error: "Payment was processed but failed to record in database" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    // If it's a credit purchase, update the user's credits
-    if (isCreditPurchase) {
-      // Get current user credits
-      const { data: profileData, error: profileError } = await supabaseAdmin
-        .from("profiles")
-        .select("credits")
-        .eq("id", user.id)
-        .single();
       
-      if (profileError) {
-        console.error("Error fetching user profile:", profileError);
-        return new Response(
-          JSON.stringify({ error: "Payment was processed but failed to update user credits" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const users = await userResponse.json();
+      
+      if (!users || users.length === 0) {
+        throw new Error("User profile not found");
       }
       
-      const currentCredits = profileData?.credits || 0;
+      const currentCredits = users[0].credits || 0;
       const newCredits = currentCredits + creditAmount;
       
+      // Use the appropriate price per credit
+      let actualPricePerCredit;
+      
+      if (pricePerCredit && pricePerCredit > 0.001) {
+        // Use the price provided in the request
+        actualPricePerCredit = pricePerCredit;
+        console.log(`Using provided price per credit: ${actualPricePerCredit}`);
+      } else if (plans[0].price_per_credit && plans[0].price_per_credit > 0.001) {
+        // Use DB price if it's valid
+        actualPricePerCredit = plans[0].price_per_credit;
+        console.log(`Using DB price per credit: ${actualPricePerCredit}`);
+      } else {
+        // Fallback to hardcoded value
+        actualPricePerCredit = 0.00299;
+        console.log(`Using fallback price per credit: ${actualPricePerCredit}`);
+      }
+      
       // Update user's credits
-      const { error: updateError } = await supabaseAdmin
-        .from("profiles")
-        .update({ credits: newCredits })
-        .eq("id", user.id);
+      await updateUserCredits(user.id, newCredits, actualPricePerCredit, plan);
       
-      if (updateError) {
-        console.error("Error updating user credits:", updateError);
-        return new Response(
-          JSON.stringify({ error: "Payment was processed but failed to update user credits" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    } else {
+      // For subscription plans - handle in a separate subscription manager
+      // For now, just record the transaction
+      
+      const transactionResponse = await fetch(`${supabaseUrl}/rest/v1/billing_transactions`, {
+        method: "POST",
+        headers: {
+          "apikey": supabaseServiceKey,
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          plan_id: plan,
+          amount: plans[0].price,
+          status: "completed",
+          payment_method: "paypal",
+          billing_period: plans[0].billing_period
+        })
+      });
+      
+      if (!transactionResponse.ok) {
+        console.error("Failed to record subscription transaction:", await transactionResponse.text());
       }
       
-      console.log(`Updated user ${user.id} credits from ${currentCredits} to ${newCredits}`);
-    } 
-    // For non-credit purchases (subscription plans), update the user's plan
-    else if (plan) {
-      const { error: profileError } = await supabaseAdmin
-        .from("profiles")
-        .update({ plan_id: plan })
-        .eq("id", user.id);
+      // Update user's plan in profiles
+      const profileUpdateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+        method: "PATCH",
+        headers: {
+          "apikey": supabaseServiceKey,
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          plan_id: plan
+        })
+      });
       
-      if (profileError) {
-        console.error("User profile update error:", profileError);
-        return new Response(
-          JSON.stringify({ error: "Payment was processed but failed to update user plan" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (!profileUpdateResponse.ok) {
+        throw new Error("Failed to update user subscription");
       }
-      
-      console.log(`Updated user ${user.id} to plan ${plan}`);
     }
     
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         success: true,
-        captureID: captureId,
-        status: paymentStatus,
-        details: captureData
+        message: "Payment processed successfully"
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
