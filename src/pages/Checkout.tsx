@@ -49,7 +49,10 @@ export default function Checkout() {
   });
   
   // Check if the user is trying to purchase the same plan they already have
-  const isSamePlan = userPlan?.planId === (planId ? parseInt(planId, 10) : null) && planType === 'subscription';
+  // Convert userPlan?.planId to string for comparison with planId string
+  const isSamePlan = userPlan?.planId ? 
+    userPlan.planId.toString() === planId && planType === 'subscription' : 
+    false;
 
   // Get package size from URL param or default to 1
   const packageSizeParam = searchParams.get("packageSize");
@@ -86,6 +89,7 @@ export default function Checkout() {
     clientId: "test", // Replace with actual client ID in production
     currency: "USD",
     intent: "capture",
+    components: "buttons" // Add components option to fix PayPal rendering error
   };
 
   if (!planId) {
