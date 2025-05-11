@@ -21,6 +21,7 @@ export const getStatusColor = (status: string): string => {
  * Returns the appropriate status indicator icon
  */
 export const getStatusIcon = (status: string): ReactNode => {
+  // Using the ReactNode type allows us to return JSX elements from HeaderTitle.tsx
   switch (status) {
     case 'completed':
       return <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5"></span>;
