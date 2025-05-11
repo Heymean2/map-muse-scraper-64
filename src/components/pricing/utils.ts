@@ -15,11 +15,6 @@ export function getFeaturesList(features: any): string[] {
       featuresList.push("Unlimited business listings");
     }
     
-    // Add analytics feature if available
-    if (features.analytics) {
-      featuresList.push("Advanced analytics dashboard");
-    }
-    
     // Add API access feature if available
     if (features.api_access) {
       featuresList.push("API access");
@@ -32,7 +27,7 @@ export function getFeaturesList(features: any): string[] {
     
     // Add default features that all plans have
     featuresList.push(
-      "Export to CSV and Excel",
+      "Export to CSV",
       "Email support"
     );
     

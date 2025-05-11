@@ -59,7 +59,7 @@ export function PlanCard({ plan, index }: PlanCardProps) {
                   <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
                 </div>
                 <span className="ml-3 text-slate-600 group-hover:text-slate-900 transition-colors">
-                  {feature.replace(/and Excel|Excel and |Excel/g, '')}
+                  {feature}
                 </span>
               </div>
             ))}

@@ -46,7 +46,6 @@ export function usePricingPlans() {
       description: "Ideal for growing businesses with more data needs.",
       features: [
         "Unlimited business listings",
-        "Advanced analytics dashboard",
         "All export formats",
         "Priority support",
         "3 user accounts"
@@ -62,7 +61,6 @@ export function usePricingPlans() {
       description: "For larger organizations requiring maximum data and features.",
       features: [
         "Unlimited business listings",
-        "Advanced analytics dashboard",
         "Customer reviews data",
         "Custom integrations",
         "Dedicated account manager",
@@ -95,10 +93,10 @@ export function usePricingPlans() {
   // Use real data if available, otherwise use default plans
   const plans = plansData && plansData.length > 0 
     ? plansData.map(plan => {
-        // Clean up the features to remove Excel references
-        const features = getFeaturesList(plan.features).map(feature => 
-          feature.replace(/and Excel|Excel and |Excel/g, '')
-        );
+        // Clean up the features to remove Excel references and analytics dashboard
+        const features = getFeaturesList(plan.features)
+          .map(feature => feature.replace(/and Excel|Excel and |Excel/g, ''))
+          .filter(feature => !feature.includes("Advanced analytics dashboard"));
 
         return {
           name: plan.name,

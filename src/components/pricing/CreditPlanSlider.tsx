@@ -10,8 +10,8 @@ interface CreditPlanSliderProps {
 }
 
 export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
-  const [creditAmount, setCreditAmount] = useState(1000);
-  const [estimatedCost, setEstimatedCost] = useState(1);
+  const [creditAmount, setCreditAmount] = useState(25000);
+  const [estimatedCost, setEstimatedCost] = useState(49);
   const creditUnitPrice = 0.002; // $0.002 per credit
   
   // Calculate cost whenever credit amount changes
@@ -19,11 +19,11 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
     // If credits <= 500, cost is 0 (free)
     // Otherwise calculate cost only for credits above 500
     const paidCredits = Math.max(0, creditAmount - 500);
-    setEstimatedCost(Number((paidCredits * creditUnitPrice).toFixed(2)));
+    setEstimatedCost(Number((paidCredits * creditUnitPrice).toFixed(1)));
   }, [creditAmount]);
   
   // Slider marker values for better UX
-  const sliderMarkers = [500, 1000, 5000, 10000, 25000, 50000];
+  const sliderMarkers = [500, 5000, 10000, 25000, 50000];
 
   return (
     <div className="mt-20">
@@ -42,21 +42,41 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
             </div>
             
             <div className="space-y-3 mb-6">
-              {creditPlans[0]?.features.map((feature, idx) => (
-                <div key={`credit-plan-feature-${idx}`} className="flex items-start">
-                  <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
-                    <Check className="h-5 w-5" />
-                  </div>
-                  <span className="ml-3 text-slate-600">
-                    {feature.replace("Export to CSV and Excel", "Export to CSV")}
-                  </span>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                  <Check className="h-5 w-5" />
                 </div>
-              ))}
+                <span className="ml-3 text-slate-600">Pay only for what you use</span>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                  <Check className="h-5 w-5" />
+                </div>
+                <span className="ml-3 text-slate-600">$0.002 per business listing</span>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                  <Check className="h-5 w-5" />
+                </div>
+                <span className="ml-3 text-slate-600">500 free credits to start</span>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                  <Check className="h-5 w-5" />
+                </div>
+                <span className="ml-3 text-slate-600">All export formats</span>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                  <Check className="h-5 w-5" />
+                </div>
+                <span className="ml-3 text-slate-600">Standard support</span>
+              </div>
             </div>
 
             <Button 
               variant="default"
-              className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white"
+              className="w-full bg-red-500 hover:bg-red-600 text-white"
             >
               Get 500 Free Credits
             </Button>
@@ -83,19 +103,14 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
                   {sliderMarkers.map(marker => (
                     <div 
                       key={marker} 
-                      className="text-xs text-slate-500 flex flex-col items-center"
+                      className={`text-xs ${marker === 500 ? 'text-green-600 font-bold' : 'text-slate-500'}`}
                       style={{ 
                         position: 'absolute', 
                         left: `${((marker - 500) / (50000 - 500)) * 100}%`, 
                         transform: 'translateX(-50%)' 
                       }}
                     >
-                      <span className="w-1 h-1 bg-slate-300 rounded-full mb-1"></span>
-                      {marker === 500 ? (
-                        <span className="font-bold text-green-600">FREE</span>
-                      ) : (
-                        marker.toLocaleString()
-                      )}
+                      {marker === 500 ? 'FREE' : marker.toLocaleString()}
                     </div>
                   ))}
                 </div>
@@ -116,7 +131,10 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
               </div>
             </div>
             
-            <Button variant="outline" className="w-full">
+            <Button 
+              variant="outline" 
+              className="w-full border-violet-300 hover:border-violet-400 text-violet-700"
+            >
               {creditAmount <= 500 ? "Get Free Credits" : "Buy Credits"}
             </Button>
           </div>
