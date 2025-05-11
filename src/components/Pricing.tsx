@@ -1,27 +1,56 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { Check } from "lucide-react";
+import { Check, SlidersHorizontal } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePlanSelection } from "@/hooks/usePlanSelection";
+import { Slider } from "@/components/ui/slider";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function Pricing() {
   const { plansData, plansLoading } = usePlanSelection();
-  
+  const [creditAmount, setCreditAmount] = useState(1000);
+  const [estimatedCost, setEstimatedCost] = useState(2);
+  const creditUnitPrice = 0.002; // $0.002 per credit
+
+  // Calculate cost whenever credit amount changes
+  useEffect(() => {
+    setEstimatedCost(Number((creditAmount * creditUnitPrice).toFixed(2)));
+  }, [creditAmount]);
+
+  // Slider marker values for better UX
+  const sliderMarkers = [500, 1000, 5000, 10000, 25000, 50000];
+
   // Default plans to use if data is still loading or empty
   const defaultPlans = [
+    {
+      name: "Free",
+      price: 0,
+      description: "Perfect for trying things out and small projects.",
+      features: [
+        "500 free credits to start",
+        "Basic search filters",
+        "Export to CSV",
+        "Email support",
+        "1 user account"
+      ],
+      popular: false,
+      buttonText: "Get Started",
+      buttonVariant: "outline" as const,
+      billing_period: "credits"
+    },
     {
       name: "Basic",
       price: 29,
       description: "Perfect for individuals and small businesses just getting started.",
       features: [
-        "Up to 500 business listings per month",
+        "Up to 25,000 business listings per month",
         "Export to CSV and Excel",
         "Basic search filters",
-        "Email support",
+        "Standard support",
         "1 user account"
       ],
       popular: false,
@@ -30,14 +59,15 @@ export default function Pricing() {
       billing_period: "monthly"
     },
     {
-      name: "Basic Pro",
-      price: 49,
+      name: "Professional",
+      price: 79,
       description: "Ideal for growing businesses with more data needs.",
       features: [
         "Unlimited business listings",
         "Advanced analytics dashboard",
-        "Export to CSV and Excel",
-        "Email support"
+        "All export formats",
+        "Priority support",
+        "3 user accounts"
       ],
       popular: true,
       buttonText: "Start Free Trial",
@@ -45,18 +75,19 @@ export default function Pricing() {
       billing_period: "monthly"
     },
     {
-      name: "Standard Plan",
-      price: 59,
+      name: "Enterprise",
+      price: 199,
       description: "For larger organizations requiring maximum data and features.",
       features: [
         "Unlimited business listings",
         "Advanced analytics dashboard",
         "Customer reviews data",
-        "Export to CSV and Excel",
-        "Email support"
+        "Custom integrations",
+        "Dedicated account manager",
+        "Unlimited user accounts"
       ],
       popular: false,
-      buttonText: "Get Started",
+      buttonText: "Contact Sales",
       buttonVariant: "outline" as const,
       billing_period: "monthly"
     },
@@ -64,13 +95,13 @@ export default function Pricing() {
       name: "Pay as You Go",
       price: 0,
       description: "Perfect for one-time projects or occasional use.",
-      price_per_credit: 0.03,
+      price_per_credit: creditUnitPrice,
       features: [
         "Pay only for what you use",
-        "0.03¢ per business listing",
+        `$${creditUnitPrice.toFixed(3)} per business listing`,
+        "500 free credits to start",
         "All export formats",
-        "Basic search filters",
-        "Email support"
+        "Standard support"
       ],
       popular: false,
       buttonText: "Buy Credits",
@@ -144,8 +175,12 @@ export default function Pricing() {
   const hasCreditPlan = allPlans.some(plan => plan.billing_period === "credits");
   
   if (!hasCreditPlan) {
-    allPlans.push(defaultPlans[3]); // Add the Pay as You Go plan
+    allPlans.push(defaultPlans[4]); // Add the Pay as You Go plan
   }
+
+  // Separate subscription plans from credit-based plans
+  const subscriptionPlans = allPlans.filter(plan => plan.billing_period === "monthly");
+  const creditPlans = allPlans.filter(plan => plan.billing_period === "credits");
 
   return (
     <section id="pricing" className="py-24 bg-slate-50 relative overflow-hidden">
@@ -167,76 +202,212 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {allPlans.map((plan, index) => {
-            // Determine if this is a credit-based plan
-            const isCreditPlan = plan.billing_period === "credits";
-            
-            return (
-              <div 
-                key={plan.name}
-                className={`relative ${withDelay(animationClasses.fadeIn, 300 + (index * 100))}`}
-              >
-                <Card
-                  className={`h-full rounded-xl overflow-hidden transition-all duration-500 transform ${
-                    plan.popular 
-                      ? 'shadow-lg ring-2 ring-accent shadow-accent/10 scale-105 md:scale-105 z-10 hover:shadow-xl hover:shadow-accent/20' 
-                      : 'shadow-soft hover:shadow-md hover:-translate-y-1'
-                  }`}
+        {/* Monthly Subscription Plans */}
+        <div className="mb-16">
+          <h3 className="text-2xl font-semibold text-center mb-10">Monthly Subscription Plans</h3>
+          
+          <div className="hidden md:block">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+              {subscriptionPlans.map((plan, index) => (
+                <div 
+                  key={plan.name}
+                  className={`relative ${withDelay(animationClasses.fadeIn, 300 + (index * 100))}`}
                 >
-                  {plan.popular && (
-                    <div className="bg-red-500 text-white text-center py-2 text-sm font-medium">
-                      Most Popular
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline mb-4">
-                      {isCreditPlan ? (
-                        <>
-                          <span className="text-4xl font-bold">${plan.price_per_credit.toFixed(3)}</span>
-                          <span className="text-slate-500 ml-2">/credit</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-4xl font-bold">${plan.price}</span>
-                          <span className="text-slate-500 ml-2">/month</span>
-                        </>
-                      )}
-                    </div>
-                    
-                    {isCreditPlan && (
-                      <p className="text-xs text-accent mb-4">
-                        Pay only for what you use
-                      </p>
+                  <Card
+                    className={`h-full rounded-xl overflow-hidden transition-all duration-500 transform ${
+                      plan.popular 
+                        ? 'shadow-lg ring-2 ring-accent shadow-accent/10 scale-105 md:scale-105 z-10 hover:shadow-xl hover:shadow-accent/20' 
+                        : 'shadow-soft hover:shadow-md hover:-translate-y-1'
+                    }`}
+                  >
+                    {plan.popular && (
+                      <div className="bg-red-500 text-white text-center py-2 text-sm font-medium">
+                        Most Popular
+                      </div>
                     )}
-                    
-                    <p className="text-slate-600 mb-6">{plan.description}</p>
-                    
-                    <Button 
-                      variant={plan.buttonVariant} 
-                      className={`w-full mb-6 ${plan.popular ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
-                    >
-                      {plan.buttonText}
-                    </Button>
-                    
-                    <div className="space-y-3">
-                      {plan.features.map((feature, idx) => (
-                        <div key={`${plan.name}-feature-${idx}`} className="flex items-start group">
-                          <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
-                            <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                      <div className="flex items-baseline mb-4">
+                        <span className="text-4xl font-bold">${plan.price}</span>
+                        <span className="text-slate-500 ml-2">/month</span>
+                      </div>
+                      
+                      <p className="text-slate-600 mb-6">{plan.description}</p>
+                      
+                      <Button 
+                        variant={plan.buttonVariant} 
+                        className={`w-full mb-6 ${plan.popular ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
+                      >
+                        {plan.buttonText}
+                      </Button>
+                      
+                      <div className="space-y-3">
+                        {plan.features.map((feature, idx) => (
+                          <div key={`${plan.name}-feature-${idx}`} className="flex items-start group">
+                            <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                              <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
+                            </div>
+                            <span className="ml-3 text-slate-600 group-hover:text-slate-900 transition-colors">
+                              {feature}
+                            </span>
                           </div>
-                          <span className="ml-3 text-slate-600 group-hover:text-slate-900 transition-colors">
-                            {feature}
-                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile carousel for subscription plans */}
+          <div className="md:hidden">
+            <Carousel>
+              <CarouselContent>
+                {subscriptionPlans.map((plan, index) => (
+                  <CarouselItem key={`mobile-${plan.name}`} className="w-full">
+                    <div className={`relative ${withDelay(animationClasses.fadeIn, 300 + (index * 100))}`}>
+                      <Card
+                        className={`h-full rounded-xl overflow-hidden transition-all duration-500 ${
+                          plan.popular 
+                            ? 'shadow-lg ring-2 ring-accent shadow-accent/10 z-10' 
+                            : 'shadow-soft'
+                        }`}
+                      >
+                        {plan.popular && (
+                          <div className="bg-red-500 text-white text-center py-2 text-sm font-medium">
+                            Most Popular
+                          </div>
+                        )}
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                          <div className="flex items-baseline mb-4">
+                            <span className="text-4xl font-bold">${plan.price}</span>
+                            <span className="text-slate-500 ml-2">/month</span>
+                          </div>
+                          
+                          <p className="text-slate-600 mb-6">{plan.description}</p>
+                          
+                          <Button 
+                            variant={plan.buttonVariant} 
+                            className={`w-full mb-6 ${plan.popular ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
+                          >
+                            {plan.buttonText}
+                          </Button>
+                          
+                          <div className="space-y-3">
+                            {plan.features.map((feature, idx) => (
+                              <div key={`${plan.name}-mobile-feature-${idx}`} className="flex items-start">
+                                <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                                  <Check className="h-5 w-5" />
+                                </div>
+                                <span className="ml-3 text-slate-600">
+                                  {feature}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex justify-center mt-4 gap-2">
+                <CarouselPrevious className="relative static left-auto translate-y-0" />
+                <CarouselNext className="relative static right-auto translate-y-0" />
+              </div>
+            </Carousel>
+          </div>
+        </div>
+
+        {/* Pay as You Go Credit Plan with Slider */}
+        <div className="mt-20">
+          <h3 className="text-2xl font-semibold text-center mb-6">Pay as You Go</h3>
+          <p className="text-center text-slate-600 mb-10 max-w-2xl mx-auto">
+            Only pay for what you use with our flexible credit system. Start with 500 free credits!
+          </p>
+
+          <div className={`bg-white rounded-xl shadow-soft p-8 mb-8 max-w-4xl mx-auto ${withDelay(animationClasses.fadeIn, 400)}`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div>
+                <div className="mb-8">
+                  <Badge className="mb-2 bg-red-100 hover:bg-red-200 text-red-800 border-0">500 FREE CREDITS</Badge>
+                  <h4 className="text-2xl font-bold mb-2">Pay as You Go Plan</h4>
+                  <p className="text-slate-600">Perfect for occasional use or specific projects. One credit equals one business listing.</p>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  {creditPlans[0]?.features.map((feature, idx) => (
+                    <div key={`credit-plan-feature-${idx}`} className="flex items-start">
+                      <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
+                        <Check className="h-5 w-5" />
+                      </div>
+                      <span className="ml-3 text-slate-600">
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  variant="default"
+                  className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Get 500 Free Credits
+                </Button>
+              </div>
+              
+              <div className="flex flex-col justify-center">
+                <div className="mb-10">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-slate-500">Credits</span>
+                    <span className="text-sm font-medium">{creditAmount.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="mb-8 relative">
+                    <Slider
+                      value={[creditAmount]}
+                      min={500}
+                      max={50000}
+                      step={100}
+                      onValueChange={(value) => setCreditAmount(value[0])}
+                      className="mb-6"
+                    />
+                    
+                    <div className="flex justify-between px-1 mt-2">
+                      {sliderMarkers.map(marker => (
+                        <div 
+                          key={marker} 
+                          className="text-xs text-slate-500 flex flex-col items-center"
+                          style={{ 
+                            position: 'absolute', 
+                            left: `${((marker - 500) / (50000 - 500)) * 100}%`, 
+                            transform: 'translateX(-50%)' 
+                          }}
+                        >
+                          <span className="w-1 h-1 bg-slate-300 rounded-full mb-1"></span>
+                          {marker.toLocaleString()}
                         </div>
                       ))}
                     </div>
                   </div>
-                </Card>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-slate-500">
+                      <SlidersHorizontal className="h-4 w-4 mr-2" />
+                      <span>Estimated cost</span>
+                    </div>
+                    <div className="text-2xl font-bold">${estimatedCost}</div>
+                  </div>
+                </div>
+                
+                <Button variant="outline" className="w-full">
+                  Buy Credits
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          </div>
         </div>
         
         <div className="mt-16 text-center max-w-xl mx-auto">
