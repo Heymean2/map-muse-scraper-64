@@ -26,27 +26,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-// Countries and states data
-const countries = [
-  { id: "us", name: "United States" },
-  { id: "uk", name: "United Kingdom" }
-];
-
-const statesByCountry = {
-  us: [
-    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
-    "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
-    "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
-    "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", 
-    "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", 
-    "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", 
-    "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
-  ],
-  uk: [
-    "England", "Scotland", "Wales", "Northern Ireland"
-  ]
-};
+import { useQuery } from "@tanstack/react-query";
+import { getScraperCountries, getScraperStates } from "@/services/scraper/formOptions";
 
 interface LocationSelectorProps {
   selectedCountry: string;
@@ -65,6 +46,21 @@ export default function LocationSelector({
   const [selectAllStates, setSelectAllStates] = useState(false);
   const [stateSelectOpen, setStateSelectOpen] = useState(false);
   
+  // Fetch countries from Supabase
+  const { data: countries = [], isLoading: isLoadingCountries } = useQuery({
+    queryKey: ['scraperCountries'],
+    queryFn: getScraperCountries,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+  
+  // Fetch states for selected country
+  const { data: states = [], isLoading: isLoadingStates } = useQuery({
+    queryKey: ['scraperStates', selectedCountry],
+    queryFn: () => getScraperStates(selectedCountry),
+    enabled: !!selectedCountry,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+  
   // Handle country change
   const handleCountryChange = (country: string) => {
     setSelectedCountry(country);
@@ -74,32 +70,32 @@ export default function LocationSelector({
   };
   
   // Handle state selection
-  const handleStateSelect = (state: string) => {
-    if (!selectedStates.includes(state)) {
-      setSelectedStates([...selectedStates, state]);
+  const handleStateSelect = (stateName: string) => {
+    if (!selectedStates.includes(stateName)) {
+      setSelectedStates([...selectedStates, stateName]);
     } else {
-      setSelectedStates(selectedStates.filter(s => s !== state));
+      setSelectedStates(selectedStates.filter(s => s !== stateName));
     }
   };
   
   // Toggle select all states
   useEffect(() => {
-    if (selectAllStates && selectedCountry) {
-      setSelectedStates(statesByCountry[selectedCountry as keyof typeof statesByCountry]);
-    } else if (!selectAllStates && selectedStates.length === statesByCountry[selectedCountry as keyof typeof statesByCountry]?.length) {
+    if (selectAllStates && selectedCountry && states.length > 0) {
+      setSelectedStates(states.map(state => state.name));
+    } else if (!selectAllStates && selectedStates.length === states.length && states.length > 0) {
       setSelectedStates([]);
     }
-  }, [selectAllStates, selectedCountry]);
+  }, [selectAllStates, selectedCountry, states]);
   
   // Check if all states are selected to update the toggle
   useEffect(() => {
-    if (selectedCountry && 
-        selectedStates.length === statesByCountry[selectedCountry as keyof typeof statesByCountry]?.length) {
+    if (selectedCountry && states.length > 0 && 
+        selectedStates.length === states.length) {
       setSelectAllStates(true);
-    } else if (selectAllStates && selectedStates.length !== statesByCountry[selectedCountry as keyof typeof statesByCountry]?.length) {
+    } else if (selectAllStates && selectedStates.length !== states.length && states.length > 0) {
       setSelectAllStates(false);
     }
-  }, [selectedStates, selectedCountry]);
+  }, [selectedStates, selectedCountry, states]);
   
   // Validate state selection
   const handleStateClick = () => {
@@ -120,9 +116,10 @@ export default function LocationSelector({
         <Select
           value={selectedCountry}
           onValueChange={handleCountryChange}
+          disabled={isLoadingCountries}
         >
           <SelectTrigger id="country-select" className="w-full">
-            <SelectValue placeholder="Select a country" />
+            <SelectValue placeholder={isLoadingCountries ? "Loading countries..." : "Select a country"} />
           </SelectTrigger>
           <SelectContent>
             {countries.map((country) => (
@@ -137,14 +134,14 @@ export default function LocationSelector({
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm">States</span>
-            {selectedCountry && (
+            {selectedCountry && !isLoadingStates && states.length > 0 && (
               <div className="flex items-center space-x-2">
                 <Label htmlFor="select-all-states" className="text-sm">Select All</Label>
                 <Switch 
                   id="select-all-states" 
                   checked={selectAllStates} 
                   onCheckedChange={setSelectAllStates}
-                  disabled={!selectedCountry}
+                  disabled={!selectedCountry || isLoadingStates}
                 />
               </div>
             )}
@@ -158,10 +155,12 @@ export default function LocationSelector({
                 aria-expanded={stateSelectOpen}
                 className="w-full justify-between h-10"
                 onClick={handleStateClick}
+                disabled={isLoadingStates && !!selectedCountry}
               >
-                {selectedStates.length > 0
-                  ? `${selectedStates.length} state${selectedStates.length > 1 ? 's' : ''} selected`
-                  : "Select states..."}
+                {isLoadingStates && selectedCountry ? "Loading states..." :
+                  selectedStates.length > 0
+                    ? `${selectedStates.length} state${selectedStates.length > 1 ? 's' : ''} selected`
+                    : "Select states..."}
                 <MapPin className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -173,18 +172,18 @@ export default function LocationSelector({
                   <CommandEmpty>No state found.</CommandEmpty>
                   <CommandGroup>
                     <CommandList className="max-h-60 overflow-y-auto">
-                      {selectedCountry && statesByCountry[selectedCountry as keyof typeof statesByCountry].map((state) => (
+                      {states.map((state) => (
                         <CommandItem
-                          key={state}
-                          value={state}
-                          onSelect={() => handleStateSelect(state)}
+                          key={state.id}
+                          value={state.name}
+                          onSelect={() => handleStateSelect(state.name)}
                           className="cursor-pointer"
                         >
-                          {state}
+                          {state.name}
                           <Check
                             className={cn(
                               "ml-auto h-4 w-4",
-                              selectedStates.includes(state)
+                              selectedStates.includes(state.name)
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}

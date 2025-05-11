@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,35 +19,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { getScraperCategories } from "@/services/scraper/formOptions";
+import { useQuery } from "@tanstack/react-query";
 
-// Business categories
-const categories = [
-  "bus stop",
-  "doctor",
-  "dentist",
-  "insurance agency",
-  "atm",
-  "attorney",
-  "real estate agency",
-  "real estate agent",
-  "church",
-  "building",
-  "restaurant",
-  "beauty salon",
-  "auto repair shop",
-  "corporate office",
-  "medical clinic",
-  "family practice physician",
-  "pharmacy",
-  "counselor",
-  "internist",
-  "general contractor",
-  "chiropractor",
-  "non-profit organization",
-  "convenience store",
-  "construction company",
-  "park"
-];
+interface CategoryOption {
+  value: string;
+  label: string;
+}
 
 interface CategorySelectorProps {
   searchQuery: string;
@@ -67,6 +45,13 @@ export default function CategorySelector({
   setUseKeyword,
 }: CategorySelectorProps) {
   const [open, setOpen] = useState(false);
+
+  // Fetch categories from Supabase
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['scraperCategories'],
+    queryFn: getScraperCategories,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
   return (
     <div className="space-y-2">
@@ -102,10 +87,10 @@ export default function CategorySelector({
               role="combobox"
               aria-expanded={open}
               className="w-full justify-between h-10"
+              disabled={isLoading}
             >
-              {selectedCategory
-                ? selectedCategory
-                : "Select a category..."}
+              {isLoading ? "Loading categories..." : 
+                selectedCategory ? selectedCategory : "Select a category..."}
               <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -117,19 +102,19 @@ export default function CategorySelector({
                 <CommandList className="max-h-60 overflow-y-auto">
                   {categories.map((category) => (
                     <CommandItem
-                      key={category}
-                      value={category}
+                      key={category.id}
+                      value={category.value}
                       onSelect={(currentValue) => {
                         setSelectedCategory(currentValue);
                         setOpen(false);
                       }}
                       className="cursor-pointer"
                     >
-                      {category}
+                      {category.label}
                       <Check
                         className={cn(
                           "ml-auto h-4 w-4",
-                          selectedCategory === category
+                          selectedCategory === category.value
                             ? "opacity-100"
                             : "opacity-0"
                         )}

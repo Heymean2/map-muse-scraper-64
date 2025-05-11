@@ -157,6 +157,116 @@ export type Database = {
           },
         ]
       }
+      scraper_categories: {
+        Row: {
+          created_at: string
+          id: number
+          label: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          label: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          label?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      scraper_countries: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      scraper_data_types: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          restricted_to_plans: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          label: string
+          restricted_to_plans?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          restricted_to_plans?: string[] | null
+        }
+        Relationships: []
+      }
+      scraper_ratings: {
+        Row: {
+          created_at: string
+          id: number
+          label: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          label: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          label?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      scraper_states: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: number
+          name: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: number
+          name: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraper_states_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "scraper_countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scraping_requests: {
         Row: {
           country: string

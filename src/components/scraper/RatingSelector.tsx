@@ -2,6 +2,8 @@
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getScraperRatings } from "@/services/scraper/formOptions";
 
 interface RatingSelectorProps {
   selectedRating: string;
@@ -12,15 +14,12 @@ export default function RatingSelector({
   selectedRating,
   setSelectedRating,
 }: RatingSelectorProps) {
-  // Rating options
-  const ratingOptions = [
-    { value: "4.5+", label: "4.5+" },
-    { value: "4+", label: "4+" },
-    { value: "3.5+", label: "3.5+" },
-    { value: "3+", label: "3+" },
-    { value: "2.5+", label: "2.5+" },
-    { value: "2+", label: "2+" },
-  ];
+  // Fetch rating options from Supabase
+  const { data: ratingOptions = [], isLoading } = useQuery({
+    queryKey: ['scraperRatings'],
+    queryFn: getScraperRatings,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
   return (
     <div className="space-y-2">
@@ -33,15 +32,20 @@ export default function RatingSelector({
         value={selectedRating}
         onValueChange={setSelectedRating}
         className="grid grid-cols-3 gap-2"
+        disabled={isLoading}
       >
-        {ratingOptions.map((option) => (
-          <div key={option.value} className="flex items-center space-x-2">
-            <RadioGroupItem value={option.value} id={`rating-${option.value}`} />
-            <Label htmlFor={`rating-${option.value}`} className="cursor-pointer">
-              {option.label}
-            </Label>
-          </div>
-        ))}
+        {isLoading ? (
+          <div className="col-span-3 text-sm text-slate-500">Loading rating options...</div>
+        ) : (
+          ratingOptions.map((option) => (
+            <div key={option.id} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.value} id={`rating-${option.value}`} />
+              <Label htmlFor={`rating-${option.value}`} className="cursor-pointer">
+                {option.label}
+              </Label>
+            </div>
+          ))
+        )}
       </RadioGroup>
     </div>
   );

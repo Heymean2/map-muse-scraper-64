@@ -1,11 +1,25 @@
 
-/**
- * This file re-exports all the services to provide a unified API
- */
+// This file is now just a facade that re-exports from the modular scraper services
+// This maintains backward compatibility while allowing for better code organization
 
-export { startScraping, getUserScrapingTasks, getScrapingResults } from './taskManagement';
-export { getUserPlanInfo, checkUserFreeTierLimit } from './userPlanService';
-export { updateUserRows, updateUserCredits } from './userStatsService';
-export { purchaseCredits } from './creditService';
-export { subscribeToPlan } from './subscriptionManager';
-export { downloadCsvFromUrl } from './files';
+export { 
+  startScraping,
+  getUserScrapingTasks,
+  getScrapingResults,
+  getUserPlanInfo,
+  checkUserFreeTierLimit,
+  updateUserRows,
+  updateUserCredits,
+  purchaseCredits,
+  subscribeToPlan,
+  downloadCsvFromUrl
+} from './scraper/index';
+
+// Export the form options functions
+export {
+  getScraperCategories,
+  getScraperCountries,
+  getScraperStates,
+  getScraperDataTypes,
+  getScraperRatings
+} from './formOptions';

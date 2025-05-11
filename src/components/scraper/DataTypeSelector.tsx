@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
+import { getScraperDataTypes } from "@/services/scraper/formOptions";
 import { LockIcon, InfoIcon, CheckIcon, X, ChevronDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -33,28 +34,21 @@ export default function DataTypeSelector({ selectedDataTypes, setSelectedDataTyp
     enabled: !!user
   });
 
-  // Define data types and their restrictions based on plan
-  const dataTypes = [
-    { id: "name", label: "Business Name", restrictedToPlans: [] },
-    { id: "address", label: "Address", restrictedToPlans: [] },
-    { id: "phone", label: "Phone Number", restrictedToPlans: [] },
-    { id: "website", label: "Website", restrictedToPlans: [] },
-    { id: "category", label: "Category", restrictedToPlans: [] },
-    { id: "city", label: "City", restrictedToPlans: [] },
-    { id: "state", label: "State", restrictedToPlans: [] },
-    { id: "reviews", label: "Reviews", restrictedToPlans: ["pro", "enterprise"] },
-    { id: "hours", label: "Hours", restrictedToPlans: [] },
-    { id: "rating", label: "Rating", restrictedToPlans: [] }
-  ];
+  // Fetch data types from Supabase
+  const { data: dataTypes = [], isLoading } = useQuery({
+    queryKey: ['scraperDataTypes'],
+    queryFn: getScraperDataTypes,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
   
   // Filter available data types based on user's plan
   const availableDataTypes = useMemo(() => {
     const currentPlan = planInfo?.planName?.toLowerCase() || "free";
     return dataTypes.filter(dataType => {
-      if (dataType.restrictedToPlans.length === 0) return true;
-      return dataType.restrictedToPlans.some(plan => currentPlan.includes(plan));
+      if (!dataType.restricted_to_plans || dataType.restricted_to_plans.length === 0) return true;
+      return dataType.restricted_to_plans.some(plan => currentPlan.includes(plan));
     });
-  }, [planInfo?.planName]);
+  }, [dataTypes, planInfo?.planName]);
   
   // Check if a data type is restricted for current user plan
   const isRestricted = (dataTypeId: string) => {
@@ -62,8 +56,9 @@ export default function DataTypeSelector({ selectedDataTypes, setSelectedDataTyp
     if (!dataType) return false;
     
     const currentPlan = planInfo?.planName?.toLowerCase() || "free";
-    return dataType.restrictedToPlans.length > 0 && 
-           !dataType.restrictedToPlans.some(plan => currentPlan.includes(plan));
+    return dataType.restricted_to_plans && 
+           dataType.restricted_to_plans.length > 0 && 
+           !dataType.restricted_to_plans.some(plan => currentPlan.includes(plan));
   };
 
   const toggleDataType = (dataTypeId: string) => {
@@ -98,13 +93,16 @@ export default function DataTypeSelector({ selectedDataTypes, setSelectedDataTyp
             <Button 
               variant="outline" 
               className="w-full justify-between border-dashed"
+              disabled={isLoading}
             >
               <span>
-                {selectedDataTypes.length === 0 ? (
-                  "Select data types..."
-                ) : (
-                  `Selected ${selectedDataTypes.length} data type${selectedDataTypes.length !== 1 ? 's' : ''}`
-                )}
+                {isLoading ? "Loading data types..." :
+                  selectedDataTypes.length === 0 ? (
+                    "Select data types..."
+                  ) : (
+                    `Selected ${selectedDataTypes.length} data type${selectedDataTypes.length !== 1 ? 's' : ''}`
+                  )
+                }
               </span>
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
