@@ -309,6 +309,7 @@ export type Database = {
           id: number
           json_result_url: string | null
           keywords: string
+          metadata: Json | null
           progress: string | null
           rating: string | null
           result_url: string | null
@@ -328,6 +329,7 @@ export type Database = {
           id?: number
           json_result_url?: string | null
           keywords: string
+          metadata?: Json | null
           progress?: string | null
           rating?: string | null
           result_url?: string | null
@@ -347,6 +349,7 @@ export type Database = {
           id?: number
           json_result_url?: string | null
           keywords?: string
+          metadata?: Json | null
           progress?: string | null
           rating?: string | null
           result_url?: string | null
