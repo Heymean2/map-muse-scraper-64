@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import LoadingButton from "./LoadingButton";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CreditCard, InfinityIcon } from "lucide-react";
+import { UserPlanInfo } from "@/services/scraper/types";
 
 interface FormSubmissionHandlerProps {
   searchQuery: string;

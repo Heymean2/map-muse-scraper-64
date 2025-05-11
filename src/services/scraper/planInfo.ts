@@ -2,81 +2,103 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlanInfo } from "./types";
 
-// Get user's plan information
+/**
+ * Get user's current plan information
+ */
 export async function getUserPlanInfo(): Promise<UserPlanInfo> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return defaultFreePlan();
+    // Ensure we have a valid session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error("Authentication required");
     }
+
+    const userId = session.user.id;
     
-    // For this implementation, we will query the profiles and pricing_plans tables
-    const { data: profileData, error: profileError } = await supabase
+    // Get user profile with plan information
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('plan_id, total_rows, credits')
-      .eq('id', user.id)
+      .select('*, pricing_plans(id, name, price, billing_period, features, row_limit, credits, price_per_credit)')
+      .eq('id', userId)
       .single();
     
     if (profileError) {
       console.error("Error fetching user profile:", profileError);
-      return defaultFreePlan();
+      throw new Error("Failed to fetch user profile");
     }
+
+    // Check if user has credits-based plan records
+    const { data: creditTransactions, error: creditError } = await supabase
+      .from('billing_transactions')
+      .select('plan_id, credits_purchased')
+      .eq('user_id', userId)
+      .eq('billing_period', 'credits')
+      .order('transaction_date', { ascending: false })
+      .limit(1);
     
-    const planId = profileData?.plan_id || 1;
-    
-    const { data: planData, error: planError } = await supabase
-      .from('pricing_plans')
-      .select('*')
-      .eq('id', planId)
-      .single();
-    
-    if (planError || !planData) {
-      console.error("Error fetching pricing plan:", planError);
-      return defaultFreePlan();
+    if (creditError) {
+      console.error("Error fetching user credit transactions:", creditError);
     }
+
+    // Extract plan details
+    const planDetails = profile?.pricing_plans;
+    const hasBothPlanTypes = 
+      planDetails?.billing_period === 'monthly' && 
+      creditTransactions && 
+      creditTransactions.length > 0;
     
-    const planName = planData.name || "Free";
-    const isPro = planName.toLowerCase().includes("pro") || planName.toLowerCase().includes("enterprise");
-    
+    // Construct response object
     return {
-      planId: planData.id.toString(),
-      planName: planName,
+      planId: profile?.plan_id,
+      planName: planDetails?.name || 'Free Plan',
+      billing_period: planDetails?.billing_period || 'free',
+      isFreePlan: !profile?.plan_id || profile.plan_id === 1,
       hasAccess: true,
-      features: {
-        reviews: isPro,
-        analytics: isPro,
-        apiAccess: isPro
-      },
-      isFreePlan: planName.toLowerCase().includes("free"),
-      totalRows: profileData?.total_rows || 0,
-      freeRowsLimit: planData.row_limit || 0,
-      isExceeded: false,
-      credits: profileData?.credits || 0,
-      price_per_credit: planData.price_per_credit || 0
+      hasBothPlanTypes,
+      totalRows: profile?.total_rows || 0,
+      freeRowsLimit: planDetails?.row_limit || 100,
+      credits: profile?.credits || 0,
+      price_per_credit: planDetails?.price_per_credit,
+      features: planDetails?.features
     };
   } catch (error) {
-    console.error("Error getting user plan:", error);
-    return defaultFreePlan();
+    console.error("Error checking user plan:", error);
+    return {
+      planId: undefined,
+      planName: 'Free Plan',
+      isFreePlan: true,
+      hasAccess: false,
+      totalRows: 0,
+      freeRowsLimit: 100,
+      credits: 0
+    };
   }
 }
 
-// Helper function to return a default free plan
-export function defaultFreePlan(): UserPlanInfo {
-  return {
-    planId: null,
-    planName: "Free",
-    hasAccess: true,
-    features: {
-      reviews: false,
-      analytics: false,
-      apiAccess: false
-    },
-    isFreePlan: true,
-    totalRows: 0,
-    freeRowsLimit: 100,
-    isExceeded: false,
-    credits: 0,
-    price_per_credit: 0.00299
-  };
+/**
+ * Check if a user has reached their free tier limit
+ */
+export async function checkUserFreeTierLimit(): Promise<{ hasReachedLimit: boolean, rowsUsed: number, rowsLimit: number }> {
+  try {
+    const planInfo = await getUserPlanInfo();
+    
+    // Users with paid plans don't have limits
+    if (!planInfo.isFreePlan) {
+      return {
+        hasReachedLimit: false,
+        rowsUsed: planInfo.totalRows || 0,
+        rowsLimit: Infinity
+      };
+    }
+    
+    // For free tier users, check against limit
+    return {
+      hasReachedLimit: (planInfo.totalRows || 0) >= (planInfo.freeRowsLimit || 100),
+      rowsUsed: planInfo.totalRows || 0,
+      rowsLimit: planInfo.freeRowsLimit || 100
+    };
+  } catch (error) {
+    console.error("Error checking free tier limit:", error);
+    return { hasReachedLimit: false, rowsUsed: 0, rowsLimit: 100 };
+  }
 }

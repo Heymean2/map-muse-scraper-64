@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Container } from "@/components/ui/container";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import { CreditPackageManager } from "./billing/CreditPackageManager";
 import { Separator } from "@/components/ui/separator";
 import { TransactionHistory } from "./billing/TransactionHistory";
 import { Json } from "@/integrations/supabase/types";
+import { UserPlanInfo } from "@/services/scraper/types";
 
 interface PlanData {
   id: string | number; // Updated to accept both string and number

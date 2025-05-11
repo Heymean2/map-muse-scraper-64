@@ -8,6 +8,7 @@ import { getUserPlanInfo } from "@/services/scraper";
 import { getScraperDataTypes } from "@/services/scraper/formOptions";
 import { LockIcon, InfoIcon, CheckIcon, X, ChevronDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserPlanInfo } from "@/services/scraper/types";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

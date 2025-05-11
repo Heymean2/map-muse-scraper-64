@@ -12,5 +12,10 @@ export {
   updateUserCredits,
   purchaseCredits,
   subscribeToPlan,
-  downloadCsvFromUrl
+  downloadCsvFromUrl,
+  getScraperCategories,
+  getScraperCountries,
+  getScraperStates,
+  getScraperDataTypes,
+  getScraperRatings
 } from './scraper/index';

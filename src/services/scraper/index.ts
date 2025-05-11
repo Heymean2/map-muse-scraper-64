@@ -1,25 +1,37 @@
 
-// This file is now just a facade that re-exports from the modular scraper services
-// This maintains backward compatibility while allowing for better code organization
+// This file re-exports all scraper-related functions
 
+// Export core scraper functions from their respective modules
 export { 
   startScraping,
   getUserScrapingTasks,
-  getScrapingResults,
+  getScrapingResults 
+} from './taskManagement';
+
+export {
   getUserPlanInfo,
-  checkUserFreeTierLimit,
+  checkUserFreeTierLimit
+} from './planInfo';
+
+export {
   updateUserRows,
-  updateUserCredits,
+  updateUserCredits
+} from './userStatsService';
+
+export {
   purchaseCredits,
-  subscribeToPlan,
+  subscribeToPlan
+} from './subscriptionManager';
+
+export {
   downloadCsvFromUrl
-} from './scraper/index';
+} from './files';
 
 // Export the form options functions
-export {
+export { 
   getScraperCategories,
   getScraperCountries,
   getScraperStates,
   getScraperDataTypes,
-  getScraperRatings
+  getScraperRatings 
 } from './formOptions';
