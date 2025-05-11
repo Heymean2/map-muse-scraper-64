@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -8,11 +9,12 @@ import {
   UserCircle, 
   Lock,
   Home,
-  ArrowLeft
+  ArrowLeft,
+  Globe
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import Navbar from "@/components/Navbar";
 import PreferencesTab from "@/components/settings/PreferencesTab";
