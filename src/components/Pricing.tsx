@@ -6,64 +6,81 @@ import { withDelay, animationClasses } from "@/lib/animations";
 import { Check, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-const plans = [
-  {
-    name: "Basic",
-    price: 29,
-    yearlyPrice: 290, // Save ~2 months
-    description: "Perfect for individuals and small businesses just getting started.",
-    features: [
-      "Up to 500 business listings per month",
-      "Export to CSV and Excel",
-      "Basic search filters",
-      "Email support",
-      "1 user account"
-    ],
-    popular: false,
-    buttonText: "Get Started",
-    buttonVariant: "outline" as const
-  },
-  {
-    name: "Professional",
-    price: 79,
-    yearlyPrice: 790, // Save ~2 months
-    description: "Ideal for growing businesses with more data needs.",
-    features: [
-      "Up to 2,500 business listings per month",
-      "All export formats",
-      "Advanced filters and sorting",
-      "Priority email support",
-      "5 user accounts",
-      "API access"
-    ],
-    popular: true,
-    buttonText: "Start Free Trial",
-    buttonVariant: "default" as const
-  },
-  {
-    name: "Enterprise",
-    price: 199,
-    yearlyPrice: 1990, // Save ~2 months
-    description: "For large organizations requiring maximum data and features.",
-    features: [
-      "Unlimited business listings",
-      "All export formats",
-      "Premium filters and sorting",
-      "24/7 priority support",
-      "Unlimited user accounts",
-      "Full API access",
-      "Custom integrations",
-      "Dedicated account manager"
-    ],
-    popular: false,
-    buttonText: "Contact Sales",
-    buttonVariant: "outline" as const
-  }
-];
+import { usePlanSelection } from "@/hooks/usePlanSelection";
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const { plansData, plansLoading } = usePlanSelection();
+  
+  // Default plans to use if data is still loading or empty
+  const defaultPlans = [
+    {
+      name: "Basic",
+      price: 29,
+      yearlyPrice: 290, // Save ~2 months
+      description: "Perfect for individuals and small businesses just getting started.",
+      features: [
+        "Up to 500 business listings per month",
+        "Export to CSV and Excel",
+        "Basic search filters",
+        "Email support",
+        "1 user account"
+      ],
+      popular: false,
+      buttonText: "Get Started",
+      buttonVariant: "outline" as const
+    },
+    {
+      name: "Professional",
+      price: 79,
+      yearlyPrice: 790, // Save ~2 months
+      description: "Ideal for growing businesses with more data needs.",
+      features: [
+        "Up to 2,500 business listings per month",
+        "All export formats",
+        "Advanced filters and sorting",
+        "Priority email support",
+        "5 user accounts",
+        "API access"
+      ],
+      popular: true,
+      buttonText: "Start Free Trial",
+      buttonVariant: "default" as const
+    },
+    {
+      name: "Enterprise",
+      price: 199,
+      yearlyPrice: 1990, // Save ~2 months
+      description: "For large organizations requiring maximum data and features.",
+      features: [
+        "Unlimited business listings",
+        "All export formats",
+        "Premium filters and sorting",
+        "24/7 priority support",
+        "Unlimited user accounts",
+        "Full API access",
+        "Custom integrations",
+        "Dedicated account manager"
+      ],
+      popular: false,
+      buttonText: "Contact Sales",
+      buttonVariant: "outline" as const
+    }
+  ];
+
+  // Use real data if available, otherwise use default plans
+  const plans = plansData && plansData.length > 0 
+    ? plansData.map(plan => ({
+        name: plan.name,
+        price: plan.price,
+        yearlyPrice: plan.yearly_price || plan.price * 10, // Default to 10x monthly if yearly not set
+        description: plan.description || `${plan.name} plan for business data extraction`,
+        features: plan.features ? JSON.parse(plan.features) : defaultPlans.find(p => p.name.toLowerCase() === plan.name.toLowerCase())?.features || [],
+        popular: plan.is_popular,
+        buttonText: plan.is_popular ? "Start Free Trial" : plan.price > 100 ? "Contact Sales" : "Get Started",
+        buttonVariant: plan.is_popular ? "default" as const : "outline" as const
+      }))
+    : defaultPlans;
 
   return (
     <section id="pricing" className="py-24 bg-slate-50 relative overflow-hidden">

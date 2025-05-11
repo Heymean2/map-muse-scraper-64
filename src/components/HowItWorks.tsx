@@ -13,7 +13,7 @@ const steps = [
   {
     icon: Database,
     title: "Intelligent Extraction",
-    description: "Our AI-powered engine scrapes Google Maps to collect comprehensive business information matching your criteria.",
+    description: "Our advanced technology collects comprehensive business information matching your criteria.",
     animation: "pulse-purple"
   },
   {
