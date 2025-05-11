@@ -6,7 +6,8 @@ import {
   SidebarGroup, 
   SidebarMenu as Menu, 
   SidebarMenuItem, 
-  SidebarMenuButton 
+  SidebarMenuButton,
+  SidebarMenuBadge
 } from "@/components/ui/sidebar";
 import { SidebarMenuItem as MenuItem } from "./menuItems";
 
@@ -34,6 +35,15 @@ export default function SidebarMenu({ menuItems, isActive }: SidebarMenuProps) {
                   <span className="group-hover:translate-x-1 transition-transform duration-300">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
+              
+              {/* Add badge if it exists */}
+              {item.badge && (
+                <SidebarMenuBadge 
+                  className={`${item.badge.className || ""}`}
+                >
+                  {item.badge.count}
+                </SidebarMenuBadge>
+              )}
             </SidebarMenuItem>
           ))}
         </Menu>
