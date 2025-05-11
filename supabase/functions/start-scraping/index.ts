@@ -30,7 +30,8 @@ serve(async (req) => {
         ...requestData,
         hasBothPlanTypes: requestData.hasBothPlanTypes,
         useCreditPlan: requestData.useCreditPlan,
-        useSubscriptionPlan: requestData.useSubscriptionPlan
+        useSubscriptionPlan: requestData.useSubscriptionPlan,
+        taskId: requestData.taskId // Log the client-provided task ID
       }));
     } catch (e) {
       console.error("Failed to parse request body:", e);
@@ -54,9 +55,17 @@ serve(async (req) => {
     }
     
     // Step 3: Validate request parameters
-    const { keywords, country, states, fields, rating } = requestData;
+    const { taskId, keywords, country, states, fields, rating } = requestData;
     try {
       await validateRequest({ keywords, country, states, fields });
+      
+      // Additionally validate taskId format - it should be a valid UUID string
+      if (!taskId || typeof taskId !== 'string' || !taskId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        throw {
+          status: 400,
+          message: "Invalid task ID format - must be a valid UUID"
+        };
+      }
     } catch (validationError) {
       console.error("Validation error:", validationError);
       return new Response(
@@ -81,10 +90,11 @@ serve(async (req) => {
       );
     }
     
-    // Step 5: Create scraping task with plan information
+    // Step 5: Create scraping task with plan information and client-provided task ID
     try {
       const taskResult = await createScrapingTask({
         userId: user.id,
+        taskId: requestData.taskId, // Pass the client-provided UUID
         keywords, 
         country, 
         states, 

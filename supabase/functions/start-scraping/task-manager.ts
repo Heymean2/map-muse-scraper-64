@@ -1,14 +1,10 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-// Generate a UUID for task ID
-function generateTaskUuid() {
-  return crypto.randomUUID();
-}
-
 // Create a new scraping request record
 export async function createScrapingTask({
   userId, 
+  taskId, // Accept the taskId from the client
   keywords, 
   country, 
   states, 
@@ -32,13 +28,8 @@ export async function createScrapingTask({
     // Create admin client with service role key for direct DB access
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Generate UUID for task ID
-    const taskId = generateTaskUuid();
-    
-    // We no longer need to create a string task_id for backward compatibility
-    // as we're fully migrating to UUIDs
-    
-    console.log(`Creating scraping task with UUID ${taskId} for user ${userId} using plan type: ${planType}`);
+    // Use the client-provided task ID instead of generating one
+    console.log(`Creating scraping task with client-provided UUID ${taskId} for user ${userId} using plan type: ${planType}`);
     
     // Format fields for storage
     const formattedStates = Array.isArray(states) ? states.join(',') : states;
@@ -50,11 +41,11 @@ export async function createScrapingTask({
       hasBothPlanTypes
     };
     
-    // Insert new scraping request with UUID fields
+    // Insert new scraping request with the UUID from the client
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
-        task_id: taskId,
+        task_id: taskId, // Use the client-provided UUID directly
         user_id: userId,
         keywords,
         country,
@@ -86,7 +77,7 @@ export async function createScrapingTask({
     console.log(`Scraping task ${taskId} created successfully using plan type: ${planType}`);
     return { 
       success: true,
-      taskId, // Return the UUID as the primary identifier
+      taskId, // Return the client-provided UUID
       planType 
     };
     
