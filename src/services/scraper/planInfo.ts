@@ -47,6 +47,13 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       creditTransactions && 
       creditTransactions.length > 0;
     
+    // Extract features from JSON or provide defaults
+    const featuresObj = planDetails?.features ? 
+      (typeof planDetails.features === 'string' ? 
+        JSON.parse(planDetails.features) : 
+        planDetails.features) : 
+      {};
+    
     // Construct response object
     return {
       planId: profile?.plan_id,
@@ -59,7 +66,11 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       freeRowsLimit: planDetails?.row_limit || 100,
       credits: profile?.credits || 0,
       price_per_credit: planDetails?.price_per_credit,
-      features: planDetails?.features
+      features: {
+        reviews: featuresObj.reviews || false,
+        analytics: featuresObj.analytics || false,
+        apiAccess: featuresObj.apiAccess || false
+      }
     };
   } catch (error) {
     console.error("Error checking user plan:", error);
@@ -70,7 +81,12 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
       hasAccess: false,
       totalRows: 0,
       freeRowsLimit: 100,
-      credits: 0
+      credits: 0,
+      features: {
+        reviews: false,
+        analytics: false,
+        apiAccess: false
+      }
     };
   }
 }
@@ -92,8 +108,10 @@ export async function checkUserFreeTierLimit(): Promise<{ hasReachedLimit: boole
     }
     
     // For free tier users, check against limit
+    const isExceeded = (planInfo.totalRows || 0) >= (planInfo.freeRowsLimit || 100);
+    
     return {
-      hasReachedLimit: (planInfo.totalRows || 0) >= (planInfo.freeRowsLimit || 100),
+      hasReachedLimit: isExceeded,
       rowsUsed: planInfo.totalRows || 0,
       rowsLimit: planInfo.freeRowsLimit || 100
     };

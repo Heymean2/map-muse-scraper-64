@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ScraperParams, ScraperResponse } from "./types";
+import { ScrapingParams, ScraperResponse } from "./types";
 import { getUserPlanInfo } from "./userPlanService";
 
 /**
@@ -13,7 +13,7 @@ export async function startScraping({
   states,
   fields,
   rating
-}: ScraperParams): Promise<ScraperResponse> {
+}: ScrapingParams): Promise<ScraperResponse> {
   try {
     console.log("Starting scraping with config:", { keywords, country, states, fields, rating });
     

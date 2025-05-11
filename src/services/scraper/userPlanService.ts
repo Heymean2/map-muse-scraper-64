@@ -89,16 +89,20 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
         creditPlanName = creditPlan.name;
       }
     }
+
+    // Extract features or provide default values
+    const featuresData = planData?.features || {};
+    const features = {
+      reviews: !isFreePlan || isCreditPlan || credits > 0,
+      analytics: !isFreePlan || isCreditPlan || credits > 0,
+      apiAccess: !isFreePlan && planName.toLowerCase().includes('premium')
+    };
     
     return {
       planId: profileData?.plan_id?.toString() || null,
       planName,
       hasAccess: true,
-      features: {
-        reviews: !isFreePlan || isCreditPlan || credits > 0,
-        analytics: !isFreePlan || isCreditPlan || credits > 0,
-        apiAccess: !isFreePlan && planName.toLowerCase().includes('premium')
-      },
+      features,
       isFreePlan,
       totalRows,
       freeRowsLimit,
