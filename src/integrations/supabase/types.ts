@@ -106,35 +106,44 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           credits: number | null
+          display_name: string | null
           email: string
           id: string
           is_admin: boolean | null
           notification_settings: Json | null
           plan_id: number | null
+          provider: string | null
           total_rows: number | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           credits?: number | null
+          display_name?: string | null
           email: string
           id: string
           is_admin?: boolean | null
           notification_settings?: Json | null
           plan_id?: number | null
+          provider?: string | null
           total_rows?: number | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           credits?: number | null
+          display_name?: string | null
           email?: string
           id?: string
           is_admin?: boolean | null
           notification_settings?: Json | null
           plan_id?: number | null
+          provider?: string | null
           total_rows?: number | null
           updated_at?: string
         }
