@@ -14,10 +14,11 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
       return [];
     }
     
+    // Query using both old and new fields for compatibility
     const { data, error } = await supabase
       .from('scraping_requests')
       .select('*')
-      .eq('user_id', user.id)
+      .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`)
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -65,12 +66,22 @@ export async function getScrapingResults(
     
     if (taskId) {
       // Get single task details
-      const { data, error } = await supabase
+      // Try first as UUID, then as string if that fails
+      let query = supabase
         .from('scraping_requests')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('task_id', taskId)
-        .single();
+        .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`);
+      
+      // Try to determine if taskId is a UUID or a string
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId);
+      
+      if (isUuid) {
+        query = query.eq('task_id_uuid', taskId);
+      } else {
+        query = query.eq('task_id', taskId);
+      }
+      
+      const { data, error } = await query.single();
         
       if (error) {
         console.error("Error fetching scraping result:", error);
@@ -98,11 +109,11 @@ export async function getScrapingResults(
       
       return result;
     } else {
-      // Get all tasks
+      // Get all tasks for the user
       const { data, error } = await supabase
         .from('scraping_requests')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`)
         .order('created_at', { ascending: false });
         
       if (error) {

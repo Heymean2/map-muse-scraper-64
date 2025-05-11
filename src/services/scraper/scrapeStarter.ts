@@ -124,7 +124,8 @@ export async function startScraping({
     
     return { 
       success: true, 
-      task_id: data?.taskId || data?.task_id 
+      task_id: data?.taskId || data?.task_id,
+      task_uuid: data?.taskUuid // Also return the UUID if available
     };
   } catch (error: any) {
     console.error("Error starting scraping:", error);

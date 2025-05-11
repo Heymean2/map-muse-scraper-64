@@ -26,6 +26,9 @@ export interface UserPlanInfo {
 export interface ScrapingRequest {
   id?: number;
   task_id: string;
+  task_id_uuid?: string;
+  user_id?: string;
+  user_id_uuid?: string;
   keywords: string;
   country: string;
   states: string;
@@ -34,7 +37,6 @@ export interface ScrapingRequest {
   status?: string;
   created_at: string;
   updated_at?: string;
-  user_id?: string;
   result_url?: string;
   json_result_url?: string;
   row_count?: number;
@@ -52,6 +54,7 @@ export interface ScrapingParams {
 export interface ScraperResponse {
   success: boolean;
   task_id?: string;
+  task_uuid?: string;
   error?: string;
 }
 

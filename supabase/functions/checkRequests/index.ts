@@ -28,9 +28,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Get the single most recent processing request
+    // Now query using the UUID fields with fallback to text fields for backward compatibility
     const { data: request, error: queryError } = await supabase
       .from('scraping_requests')
-      .select('id, task_id, user_id')
+      .select('id, task_id, task_id_uuid, user_id, user_id_uuid')
       .eq('status', 'processing')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -47,7 +48,11 @@ serve(async (req) => {
       throw new Error(`Error querying requests: ${queryError.message}`);
     }
     
-    console.log(`Processing request ${request.task_id} for user ${request.user_id}`);
+    // Use UUID values if available, otherwise fall back to text values
+    const taskId = request.task_id_uuid || request.task_id;
+    const userId = request.user_id_uuid || request.user_id;
+    
+    console.log(`Processing request ${taskId} for user ${userId}`);
     
     // POST to backend endpoint
     const backendResponse = await fetch(`${backendBaseUrl}/check_request`, {
@@ -56,8 +61,8 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
-        user_id: request.user_id, 
-        task_id: request.task_id 
+        user_id: userId, 
+        task_id: taskId 
       }),
     });
     
@@ -70,31 +75,31 @@ serve(async (req) => {
         .eq('id', request.id);
       
       if (updateError) {
-        console.error(`Error updating request ${request.task_id}: ${updateError.message}`);
+        console.error(`Error updating request ${taskId}: ${updateError.message}`);
         return new Response(
           JSON.stringify({ success: false, error: updateError.message }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      console.log(`Successfully processed request ${request.task_id}`);
+      console.log(`Successfully processed request ${taskId}`);
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: `Request ${request.task_id} processed successfully`,
-          user_id: request.user_id,
-          task_id: request.task_id
+          message: `Request ${taskId} processed successfully`,
+          user_id: userId,
+          task_id: taskId
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     } else {
       const errorText = await backendResponse.text();
-      console.error(`Backend request failed for ${request.task_id}: ${errorText}`);
+      console.error(`Backend request failed for ${taskId}: ${errorText}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
           error: `Backend returned ${backendResponse.status}: ${errorText}`,
-          task_id: request.task_id
+          task_id: taskId
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );

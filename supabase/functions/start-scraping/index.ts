@@ -94,13 +94,15 @@ serve(async (req) => {
         hasBothPlanTypes: requestData.hasBothPlanTypes || false
       });
       
-      console.log("Task created successfully:", taskResult.taskId);
+      console.log("Task created successfully:", taskResult.taskId, "with UUID:", taskResult.taskUuid);
       
       // Return successful response with task ID
       return new Response(
         JSON.stringify({
           success: true,
-          taskId: taskResult.taskId,
+          taskId: taskResult.taskId, // Return the string taskId for backward compatibility 
+          task_id: taskResult.taskId, // Also include task_id for existing frontend code
+          taskUuid: taskResult.taskUuid, // Also return the UUID
           message: "Scraping task started successfully",
           planType: requestData.planType || 'free',
           hasBothPlanTypes: requestData.hasBothPlanTypes || false

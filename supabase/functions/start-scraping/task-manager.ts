@@ -1,9 +1,9 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-// Generate a unique task ID
-function generateTaskId() {
-  return `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+// Generate a UUID for task ID
+function generateTaskUuid() {
+  return crypto.randomUUID();
 }
 
 // Create a new scraping request record
@@ -32,9 +32,11 @@ export async function createScrapingTask({
     // Create admin client with service role key for direct DB access
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Generate unique task ID
-    const taskId = generateTaskId();
-    console.log(`Creating scraping task with ID ${taskId} for user ${userId} using plan type: ${planType}`);
+    // Generate UUID for task ID
+    const taskUuid = generateTaskUuid();
+    const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`; // Keep for backward compatibility
+    
+    console.log(`Creating scraping task with UUID ${taskUuid} and ID ${taskId} for user ${userId} using plan type: ${planType}`);
     
     // Format fields for storage
     const formattedStates = Array.isArray(states) ? states.join(',') : states;
@@ -46,12 +48,26 @@ export async function createScrapingTask({
       hasBothPlanTypes
     };
     
-    // Insert new scraping request
+    // Parse userId to ensure it's a valid UUID
+    let userUuid;
+    try {
+      userUuid = userId;
+    } catch (error) {
+      console.error('Invalid user UUID:', error);
+      throw {
+        status: 400,
+        message: "Invalid user ID format"
+      };
+    }
+    
+    // Insert new scraping request with both old and new fields
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
-        task_id: taskId,
-        user_id: userId,
+        task_id: taskId, // Keep for backward compatibility
+        task_id_uuid: taskUuid,
+        user_id: userId, // Keep for backward compatibility
+        user_id_uuid: userUuid,
         keywords,
         country,
         states: formattedStates,
@@ -79,8 +95,13 @@ export async function createScrapingTask({
       };
     }
 
-    console.log(`Scraping task ${taskId} created successfully using plan type: ${planType}`);
-    return { success: true, taskId, planType };
+    console.log(`Scraping task ${taskUuid} created successfully using plan type: ${planType}`);
+    return { 
+      success: true, 
+      taskId, // Return old taskId for backward compatibility
+      taskUuid, // Also return the UUID
+      planType 
+    };
     
   } catch (error) {
     console.error('Database error:', error);

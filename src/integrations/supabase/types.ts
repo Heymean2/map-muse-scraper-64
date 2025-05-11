@@ -318,8 +318,10 @@ export type Database = {
           states: string
           status: string | null
           task_id: string
+          task_id_uuid: string | null
           updated_at: string | null
           user_id: string
+          user_id_uuid: string | null
         }
         Insert: {
           country: string
@@ -338,8 +340,10 @@ export type Database = {
           states: string
           status?: string | null
           task_id: string
+          task_id_uuid?: string | null
           updated_at?: string | null
           user_id: string
+          user_id_uuid?: string | null
         }
         Update: {
           country?: string
@@ -358,8 +362,10 @@ export type Database = {
           states?: string
           status?: string | null
           task_id?: string
+          task_id_uuid?: string | null
           updated_at?: string | null
           user_id?: string
+          user_id_uuid?: string | null
         }
         Relationships: []
       }
