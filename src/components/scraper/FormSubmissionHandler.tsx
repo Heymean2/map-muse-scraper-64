@@ -37,12 +37,17 @@ export default function FormSubmissionHandler({
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   
-  // Get user plan information
-  const { data: planInfo } = useQuery({
+  // Get user plan information with refetchOnMount and refetchOnWindowFocus
+  const { data: planInfo, isLoading: planInfoLoading, refetch: refetchPlanInfo } = useQuery({
     queryKey: ['userPlanInfo'],
     queryFn: getUserPlanInfo,
-    enabled: !!session
+    enabled: !!session,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 30000 // 30 seconds
   });
+  
+  console.log("FormSubmissionHandler - planInfo:", planInfo);
   
   // Determine plan types
   const isCreditBasedPlan = planInfo?.billing_period === 'credits';

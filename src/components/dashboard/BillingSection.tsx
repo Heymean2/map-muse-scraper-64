@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
@@ -14,9 +15,11 @@ import { Separator } from "@/components/ui/separator";
 import { TransactionHistory } from "./billing/TransactionHistory";
 import { Json } from "@/integrations/supabase/types";
 import { UserPlanInfo } from "@/services/scraper/types";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface PlanData {
-  id: string | number; // Updated to accept both string and number
+  id: string | number;
   name: string;
   price: number;
   billing_period: string;
@@ -31,10 +34,15 @@ export default function BillingSection() {
   const [activeTab, setActiveTab] = useState<string>("subscription");
   
   // Get user's current plan info
-  const { data: userPlan, isLoading: userPlanLoading } = useQuery({
+  const { data: userPlan, isLoading: userPlanLoading, refetch: refetchUserPlan } = useQuery({
     queryKey: ['userPlanInfo'],
-    queryFn: getUserPlanInfo
+    queryFn: getUserPlanInfo,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 30000 // 30 seconds
   });
+  
+  console.log("BillingSection - userPlan data:", userPlan);
   
   // Get available subscription plans from Supabase
   const { data: allPlans, isLoading: plansLoading } = useQuery({
@@ -51,6 +59,13 @@ export default function BillingSection() {
     }
   });
   
+  // Effect to automatically select active plan
+  useEffect(() => {
+    if (userPlan?.planId && !selectedPlanId) {
+      setSelectedPlanId(String(userPlan.planId));
+    }
+  }, [userPlan, selectedPlanId]);
+  
   // Filter plans by billing period (subscription or credits)
   const subscriptionPlans = allPlans?.filter(plan => plan.billing_period === 'monthly') || [];
   const creditPlans = allPlans?.filter(plan => plan.billing_period === 'credits') || [];
@@ -60,11 +75,29 @@ export default function BillingSection() {
     return String(userPlan.planId) === String(planId);
   };
   
+  // Manual refresh function
+  const handleRefresh = () => {
+    refetchUserPlan();
+  };
+  
   return (
     <Container>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Pricing Plans</h1>
-        <p className="text-muted-foreground">Choose the right plan for your data extraction needs</p>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Pricing Plans</h1>
+          <p className="text-muted-foreground">Choose the right plan for your data extraction needs</p>
+        </div>
+        
+        {/* Manual refresh button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          <span>Refresh</span>
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function usePaymentProcessing() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -139,6 +141,11 @@ export function usePaymentProcessing() {
       if (responseData.success) {
         setIsSuccess(true);
         toast.success("Payment successful!");
+        
+        // Important: Invalidate user plan info cache after successful payment
+        await queryClient.invalidateQueries({ queryKey: ['userPlanInfo'] });
+        console.log("Cache invalidated after successful payment");
+        
         setTimeout(() => {
           navigate('/dashboard');
         }, 3000);
