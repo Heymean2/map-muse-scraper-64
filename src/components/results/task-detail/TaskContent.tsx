@@ -1,11 +1,15 @@
 
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Download, Eye, FileJson } from "lucide-react";
 import SearchInfoCard from "@/components/results/SearchInfoCard";
+import TaskEmptyState from "./TaskEmptyState";
+import TaskInfoCards from "./TaskInfoCards";
+import TaskNoDataState from "./TaskNoDataState";
+import { getSearchInfo } from "./utils/searchInfoUtils";
+import { useNavigate } from "react-router-dom";
 
 interface TaskContentProps {
   taskId: string | null;
@@ -24,6 +28,8 @@ export default function TaskContent({
   isLimited,
   planInfo
 }: TaskContentProps) {
+  const navigate = useNavigate();
+  
   const getExportCsvHandler = () => {
     if (results && results.result_url) {
       return () => window.open(results.result_url, '_blank');
@@ -31,194 +37,86 @@ export default function TaskContent({
     return () => {};
   };
 
-  // New handler for JSON export
+  // Handler for JSON export
   const getExportJsonHandler = () => {
     if (results && results.json_result_url) {
       return () => window.open(results.json_result_url, '_blank');
     }
     return () => {};
   };
-
-  // Get search info from various possible locations in the results object
-  const getSearchInfo = () => {
-    if (results?.search_info) {
-      return results.search_info;
-    }
-    
-    // Try to extract from the results object directly if needed
-    return {
-      keywords: results?.keywords || '',
-      location: results?.location || '',
-      fields: results?.fields || [],
-      data: results?.data || []
-    };
-  };
   
-  const searchInfo = getSearchInfo();
+  // Get search info
+  const searchInfo = getSearchInfo(results);
 
-  // Display the completed success message if no data or task is completed
+  // Loading state
+  if (isLoading) {
+    return (
+      <motion.div 
+        key="loading"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-5xl mx-auto px-4 py-12 flex justify-center"
+      >
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+          <div className="mt-4 text-center text-indigo-600 font-medium">Loading Results</div>
+        </div>
+      </motion.div>
+    );
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <motion.div
+        key="error"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-5xl mx-auto px-4 py-12"
+      >
+        <Card className="p-5 border rounded bg-red-50 text-red-700 flex items-center justify-center flex-col">
+          <AlertCircle className="h-10 w-10 mb-4 text-red-500" />
+          <div className="text-center">
+            <h3 className="text-lg font-medium mb-2">Error Loading Results</h3>
+            <p className="mb-4">We encountered a problem while fetching your task results.</p>
+            <Button 
+              variant="destructive" 
+              onClick={() => navigate('/result')} 
+              className="gap-2"
+            >
+              Try Again
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
+  
+  // Display empty state for completed task with no data
   if (results?.status === "completed" && (!searchInfo?.data || !searchInfo?.data.length)) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <Card className="overflow-hidden border bg-white shadow-sm">
-          <CardContent className="p-8">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col items-center text-center"
-            >
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-              
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Task Completed Successfully</h2>
-              <p className="text-gray-600 max-w-lg mb-8">
-                Your data is ready to be downloaded. No preview is available, but you can download the full files.
-              </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
-                {results.result_url && (
-                  <div className="border rounded-md p-4 bg-white">
-                    <h4 className="font-medium mb-2 flex items-center gap-1.5">CSV Format</h4>
-                    <div className="flex flex-col gap-2">
-                      <Button 
-                        className="gap-2" 
-                        onClick={getExportCsvHandler()}
-                      >
-                        <Download className="h-4 w-4" />
-                        Download CSV
-                      </Button>
-                      
-                      <Button 
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => {
-                          // This is just a placeholder since we can't directly preview from this view
-                          window.open(results.result_url, '_blank');
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        Preview CSV
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {results.json_result_url && (
-                  <div className="border rounded-md p-4 bg-white">
-                    <h4 className="font-medium mb-2 flex items-center gap-1.5">JSON Format</h4>
-                    <div className="flex flex-col gap-2">
-                      <Button 
-                        className="gap-2" 
-                        onClick={getExportJsonHandler()}
-                      >
-                        <Download className="h-4 w-4" />
-                        Download JSON
-                      </Button>
-                      
-                      <Button 
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => {
-                          // This is just a placeholder since we can't directly preview from this view
-                          window.open(results.json_result_url, '_blank');
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        Preview JSON
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </CardContent>
-        </Card>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Search Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {searchInfo?.keywords && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Keywords</span>
-                  <span className="text-sm font-medium">{searchInfo.keywords}</span>
-                </div>
-              )}
-              
-              {searchInfo?.location && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Location</span>
-                  <span className="text-sm font-medium">{searchInfo.location}</span>
-                </div>
-              )}
-              
-              {searchInfo?.fields && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Fields</span>
-                  <span className="text-sm font-medium">
-                    {Array.isArray(searchInfo.fields) 
-                      ? searchInfo.fields.join(", ")
-                      : typeof searchInfo.fields === 'string'
-                        ? searchInfo.fields
-                        : ''}
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Results</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Total Count</span>
-                <span className="text-sm font-medium">{results?.total_count || 0} results</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Available Formats</span>
-                <div className="flex gap-2">
-                  {results?.result_url && (
-                    <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">CSV</Badge>
-                  )}
-                  {results?.json_result_url && (
-                    <Badge variant="outline" className="text-purple-500 border-purple-200 bg-purple-50">JSON</Badge>
-                  )}
-                </div>
-              </div>
-              
-              {results?.updated_at && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Completed At</span>
-                  <span className="text-sm font-medium">
-                    {new Date(results.updated_at).toLocaleString()}
-                  </span>
-                </div>
-              )}
-              
-              {results?.created_at && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Created At</span>
-                  <span className="text-sm font-medium">
-                    {new Date(results.created_at).toLocaleString()}
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <>
+        <TaskEmptyState 
+          results={results} 
+          getExportCsvHandler={getExportCsvHandler} 
+          getExportJsonHandler={getExportJsonHandler} 
+          searchInfo={searchInfo}
+        />
+        <TaskInfoCards searchInfo={searchInfo} results={results} />
+      </>
     );
   }
 
+  // If no task data available
+  if (!taskId || !results) {
+    return <TaskNoDataState />;
+  }
+
+  // Main content with data
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <Card className="overflow-hidden shadow-sm border bg-white">
