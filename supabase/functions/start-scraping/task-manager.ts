@@ -34,9 +34,11 @@ export async function createScrapingTask({
     
     // Generate UUID for task ID
     const taskUuid = generateTaskUuid();
-    const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`; // Keep for backward compatibility
     
-    console.log(`Creating scraping task with UUID ${taskUuid} and ID ${taskId} for user ${userId} using plan type: ${planType}`);
+    // We no longer need to create a string task_id for backward compatibility
+    // as we're fully migrating to UUIDs
+    
+    console.log(`Creating scraping task with UUID ${taskUuid} for user ${userId} using plan type: ${planType}`);
     
     // Format fields for storage
     const formattedStates = Array.isArray(states) ? states.join(',') : states;
@@ -48,26 +50,12 @@ export async function createScrapingTask({
       hasBothPlanTypes
     };
     
-    // Parse userId to ensure it's a valid UUID
-    let userUuid;
-    try {
-      userUuid = userId;
-    } catch (error) {
-      console.error('Invalid user UUID:', error);
-      throw {
-        status: 400,
-        message: "Invalid user ID format"
-      };
-    }
-    
-    // Insert new scraping request with both old and new fields
+    // Insert new scraping request with UUID fields
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
-        task_id: taskId, // Keep for backward compatibility
         task_id_uuid: taskUuid,
-        user_id: userId, // Keep for backward compatibility
-        user_id_uuid: userUuid,
+        user_id_uuid: userId,
         keywords,
         country,
         states: formattedStates,
@@ -97,9 +85,8 @@ export async function createScrapingTask({
 
     console.log(`Scraping task ${taskUuid} created successfully using plan type: ${planType}`);
     return { 
-      success: true, 
-      taskId, // Return old taskId for backward compatibility
-      taskUuid, // Also return the UUID
+      success: true,
+      taskUuid, // Return the UUID as the primary identifier
       planType 
     };
     

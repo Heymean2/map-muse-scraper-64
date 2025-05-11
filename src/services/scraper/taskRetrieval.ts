@@ -14,11 +14,11 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
       return [];
     }
     
-    // Query using both old and new fields for compatibility
+    // Query using UUID fields
     const { data, error } = await supabase
       .from('scraping_requests')
       .select('*')
-      .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`)
+      .eq('user_id_uuid', user.id)
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -66,18 +66,19 @@ export async function getScrapingResults(
     
     if (taskId) {
       // Get single task details
-      // Try first as UUID, then as string if that fails
+      // Try to determine if taskId is a UUID
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId);
+      
       let query = supabase
         .from('scraping_requests')
         .select('*')
-        .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`);
+        .eq('user_id_uuid', user.id);
       
-      // Try to determine if taskId is a UUID or a string
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId);
-      
+      // Use the appropriate column based on whether taskId is a UUID
       if (isUuid) {
         query = query.eq('task_id_uuid', taskId);
       } else {
+        // For backward compatibility
         query = query.eq('task_id', taskId);
       }
       
@@ -113,7 +114,7 @@ export async function getScrapingResults(
       const { data, error } = await supabase
         .from('scraping_requests')
         .select('*')
-        .or(`user_id.eq.${user.id},user_id_uuid.eq.${user.id}`)
+        .eq('user_id_uuid', user.id)
         .order('created_at', { ascending: false });
         
       if (error) {
