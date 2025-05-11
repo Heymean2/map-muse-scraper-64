@@ -16,11 +16,6 @@ export interface SidebarMenuItem {
   hoverBg: string;
   activeColor: string;
   onMouseEnter?: () => void;
-  badge?: {
-    count?: number;
-    variant?: "default" | "secondary" | "destructive" | "outline";
-    className?: string;
-  };
 }
 
 export const createMenuItems = (handleBillingHover: () => void): SidebarMenuItem[] => {
@@ -39,12 +34,7 @@ export const createMenuItems = (handleBillingHover: () => void): SidebarMenuItem
       path: "/dashboard/results",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary",
-      badge: {
-        count: 3,
-        variant: "secondary",
-        className: "bg-violet-primary text-white"
-      }
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "New Scrape",
@@ -52,12 +42,7 @@ export const createMenuItems = (handleBillingHover: () => void): SidebarMenuItem
       path: "/dashboard/scrape",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary",
-      badge: {
-        count: 1,
-        variant: "outline",
-        className: "border-google-yellow text-google-yellow"
-      }
+      activeColor: "group-data-[active=true]:text-violet-primary"
     },
     {
       title: "Profile",
