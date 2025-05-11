@@ -4,7 +4,7 @@ import { corsHeaders } from "./cors.ts";
 import { authenticate } from "./auth.ts";
 import { validateRequest } from "./validation.ts";
 import { checkPlanAccess } from "./plan-checker.ts";
-import { createScrapingTask } from "./task-manager.ts";
+import { updateScrapingTask } from "./task-manager.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -31,7 +31,7 @@ serve(async (req) => {
         hasBothPlanTypes: requestData.hasBothPlanTypes,
         useCreditPlan: requestData.useCreditPlan,
         useSubscriptionPlan: requestData.useSubscriptionPlan,
-        taskId: requestData.taskId // Log the client-provided task ID
+        taskId: requestData.taskId
       }));
     } catch (e) {
       console.error("Failed to parse request body:", e);
@@ -90,11 +90,11 @@ serve(async (req) => {
       );
     }
     
-    // Step 5: Create scraping task with plan information and client-provided task ID
+    // Step 5: Update the existing scraping task with plan information
     try {
-      const taskResult = await createScrapingTask({
+      const taskResult = await updateScrapingTask({
         userId: user.id,
-        taskId: requestData.taskId, // Pass the client-provided UUID
+        taskId: requestData.taskId,
         keywords, 
         country, 
         states, 
@@ -104,23 +104,23 @@ serve(async (req) => {
         hasBothPlanTypes: requestData.hasBothPlanTypes || false
       });
       
-      console.log("Task created successfully with ID:", taskResult.taskId);
+      console.log("Task updated successfully with ID:", taskResult.taskId);
       
       // Return successful response with task ID 
       return new Response(
         JSON.stringify({
           success: true,
-          taskId: taskResult.taskId, // Return the ID as primary identifier
-          message: "Scraping task started successfully",
+          taskId: taskResult.taskId,
+          message: "Scraping task updated successfully",
           planType: requestData.planType || 'free',
           hasBothPlanTypes: requestData.hasBothPlanTypes || false
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (taskError) {
-      console.error("Task creation error:", taskError);
+      console.error("Task update error:", taskError);
       return new Response(
-        JSON.stringify({ success: false, error: taskError.message || "Failed to create task" }),
+        JSON.stringify({ success: false, error: taskError.message || "Failed to update task" }),
         { status: taskError.status || 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

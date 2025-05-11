@@ -59,6 +59,41 @@ export async function startScraping({
       return { success: false, error: "No active session" };
     }
     
+    // Generate a task ID on the client
+    const taskId = crypto.randomUUID();
+    console.log("Generated task ID on client:", taskId);
+    
+    // Get the current user ID from the session
+    const userId = sessionData.session.user.id;
+    console.log("Current user ID:", userId);
+    
+    // Format states and fields for storage
+    const formattedStates = Array.isArray(states) ? states.join(',') : states;
+    const formattedFields = Array.isArray(fields) ? fields.join(',') : fields;
+    
+    // Create initial task record directly in the database
+    const { error: createError } = await supabase
+      .from('scraping_requests')
+      .insert({
+        task_id: taskId,
+        user_id: userId,
+        keywords,
+        country,
+        states: formattedStates,
+        fields: formattedFields,
+        rating,
+        status: 'pending', // Initial status before edge function processes
+        created_at: new Date().toISOString()
+      });
+      
+    if (createError) {
+      console.error("Error creating initial task record:", createError);
+      toast.error("Failed to create scraping task: " + createError.message);
+      return { success: false, error: createError.message };
+    }
+    
+    console.log("Created initial task record with ID:", taskId);
+    
     // Force token refresh to ensure we have the freshest possible token
     const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession();
     
@@ -77,24 +112,20 @@ export async function startScraping({
     const accessToken = refreshResult.session.access_token;
     console.log("Session refreshed successfully, token available:", !!accessToken);
     
-    // Generate a task ID client-side as a UUID string
-    const taskId = crypto.randomUUID();
-    console.log("Generated task ID on client:", taskId);
-    
     // Wait a moment for token to propagate
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Make the edge function call with explicit auth headers
+    // Make the edge function call to update and process the task
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       method: 'POST',
       body: { 
-        taskId,  // Send the client-generated UUID to the edge function
+        taskId,  // Send the client-provided UUID to the edge function
         keywords, 
         country, 
-        states, 
-        fields, 
+        states: formattedStates, 
+        fields: formattedFields, 
         rating,
-        useCreditPlan,  // Pass plan type flags to the edge function
+        useCreditPlan,
         useSubscriptionPlan,
         hasBothPlanTypes: planInfo?.hasBothPlanTypes || false
       },
@@ -105,6 +136,13 @@ export async function startScraping({
     
     if (error) {
       console.error("Error from edge function:", error);
+      
+      // Update the task status to failed since the edge function processing failed
+      await supabase
+        .from('scraping_requests')
+        .update({ status: 'failed', metadata: { error: error.message } })
+        .eq('task_id', taskId);
+        
       toast.error(error.message || "Failed to start scraping");
       return { success: false, error: error.message || "Failed to start scraping" };
     }
@@ -129,7 +167,7 @@ export async function startScraping({
     
     return { 
       success: true, 
-      task_id: taskId // Return the client-generated task ID
+      task_id: taskId
     };
   } catch (error: any) {
     console.error("Error starting scraping:", error);
