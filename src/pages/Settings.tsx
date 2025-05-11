@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProfileSection from "@/components/dashboard/ProfileSection";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link } from "react-router-dom";
 
 export default function Settings() {
   const { user, isLoading } = useAuth();
@@ -290,24 +291,17 @@ export default function Settings() {
                     <div className="animate-fade-in space-y-6">
                       <Card className="border shadow-sm">
                         <CardContent className="pt-6 space-y-4">
-                          <h3 className="text-lg font-medium">Privacy Policy</h3>
+                          <h3 className="text-lg font-medium">Legal Documents</h3>
                           <p className="text-muted-foreground">
                             By using our Google Maps Scraper tool, you agree to our privacy policy and terms of service.
-                            We respect your privacy and are committed to protecting your personal data.
                           </p>
-                          <div className="bg-muted/20 p-4 rounded-md">
-                            <h4 className="font-medium mb-2">Key Points</h4>
-                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
-                              <li>We only collect data that is necessary for the functioning of our service</li>
-                              <li>Your scraped data remains private and is not shared with third parties</li>
-                              <li>You can request deletion of your account and data at any time</li>
-                              <li>We use cookies to improve your experience on our platform</li>
-                              <li>We implement appropriate security measures to protect your data</li>
-                            </ul>
-                          </div>
-                          <div className="flex gap-2 mt-2">
-                            <Button variant="outline" size="sm">View Full Privacy Policy</Button>
-                            <Button variant="outline" size="sm">Terms of Service</Button>
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to="/page/privacy-policy">Privacy Policy</Link>
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to="/page/terms-of-service">Terms of Service</Link>
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -334,39 +328,6 @@ export default function Settings() {
                               <Button variant="destructive" size="sm">Delete Account</Button>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="border shadow-sm">
-                        <CardContent className="pt-6 space-y-4">
-                          <h3 className="text-lg font-medium">Cookie Preferences</h3>
-                          <p className="text-muted-foreground">
-                            Manage how cookies are used when you visit our website.
-                          </p>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <Label htmlFor="essential" className="font-medium">Essential Cookies</Label>
-                                <p className="text-xs text-muted-foreground">Required for the website to function properly</p>
-                              </div>
-                              <input type="checkbox" id="essential" checked disabled className="h-4 w-4" />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <Label htmlFor="analytics" className="font-medium">Analytics Cookies</Label>
-                                <p className="text-xs text-muted-foreground">Help us improve our website by collecting anonymous data</p>
-                              </div>
-                              <input type="checkbox" id="analytics" className="h-4 w-4" defaultChecked />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <Label htmlFor="marketing" className="font-medium">Marketing Cookies</Label>
-                                <p className="text-xs text-muted-foreground">Allow us to provide personalized marketing content</p>
-                              </div>
-                              <input type="checkbox" id="marketing" className="h-4 w-4" />
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm" className="mt-2">Save Cookie Preferences</Button>
                         </CardContent>
                       </Card>
                     </div>

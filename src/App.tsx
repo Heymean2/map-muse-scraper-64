@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,6 +17,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
+import PageView from "./components/pages/PageView";
 
 // Route listener component to save routes
 function RouteListener() {
@@ -49,6 +49,8 @@ function App() {
             <Route path="/results/*" element={<Navigate to="/dashboard/results/*" replace />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
+            {/* Add the page route */}
+            <Route path="/page/:slug" element={<PageView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
