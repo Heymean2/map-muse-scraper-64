@@ -79,7 +79,7 @@ export async function createScrapingTask({
 
       throw {
         status: 500,
-        message: insertError.message || "Failed to create scraping task"
+        message: insertError.message || "Failed to create task"
       };
     }
 
