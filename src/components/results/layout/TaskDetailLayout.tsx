@@ -8,7 +8,7 @@ interface TaskDetailLayoutProps {
 
 export default function TaskDetailLayout({ children }: TaskDetailLayoutProps) {
   return (
-    <BaseLayout hideRail={true}>
+    <BaseLayout hideRail={true} hideSidebar={true}>
       {children}
     </BaseLayout>
   );
