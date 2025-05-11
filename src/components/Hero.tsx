@@ -1,9 +1,103 @@
 
+import { useEffect, useRef } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { withDelay, animationClasses } from "@/lib/animations";
 
 export default function Hero() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // Create animated data points on the map
+    if (dotsRef.current) {
+      const dotPositions = [
+        { x: '20%', y: '30%', delay: 0 },
+        { x: '45%', y: '20%', delay: 1 },
+        { x: '70%', y: '35%', delay: 2 },
+        { x: '30%', y: '60%', delay: 1.5 },
+        { x: '65%', y: '70%', delay: 0.5 },
+        { x: '85%', y: '50%', delay: 2.5 },
+      ];
+      
+      dotPositions.forEach(pos => {
+        const dot = document.createElement('div');
+        dot.className = 'absolute w-3 h-3 bg-accent rounded-full';
+        dot.style.left = pos.x;
+        dot.style.top = pos.y;
+        dot.style.opacity = '0';
+        dot.style.transform = 'scale(0.5)';
+        dot.style.animation = `ping 2s ease-in-out ${pos.delay}s infinite`;
+        
+        const dotPulse = document.createElement('div');
+        dotPulse.className = 'absolute w-3 h-3 bg-accent rounded-full animate-ping opacity-75';
+        dot.appendChild(dotPulse);
+        
+        const dataText = document.createElement('div');
+        dataText.className = 'absolute left-4 top-0 text-xs font-mono bg-white/90 rounded px-2 py-1 shadow-sm';
+        dataText.textContent = 'Extracting data...';
+        dataText.style.opacity = '0';
+        dataText.style.transform = 'translateY(-10px)';
+        dataText.style.transition = 'all 0.3s ease-in-out';
+        dot.appendChild(dataText);
+        
+        // Show data text on hover
+        dot.addEventListener('mouseenter', () => {
+          dataText.style.opacity = '1';
+          dataText.style.transform = 'translateY(0)';
+        });
+        
+        dot.addEventListener('mouseleave', () => {
+          dataText.style.opacity = '0';
+          dataText.style.transform = 'translateY(-10px)';
+        });
+        
+        dotsRef.current?.appendChild(dot);
+        
+        // Animate dot appearance
+        setTimeout(() => {
+          dot.style.opacity = '1';
+          dot.style.transform = 'scale(1)';
+        }, pos.delay * 1000);
+      });
+    }
+    
+    // Add map rotate animation
+    let mapRotation = 0;
+    let lastScrollY = window.scrollY;
+    
+    const animateMap = () => {
+      if (mapRef.current) {
+        // Subtle rotation based on scroll
+        const currentScrollY = window.scrollY;
+        const scrollDiff = currentScrollY - lastScrollY;
+        mapRotation += scrollDiff * 0.01;
+        lastScrollY = currentScrollY;
+        
+        // Constrain rotation
+        mapRotation = Math.max(-5, Math.min(5, mapRotation));
+        
+        // Apply transform with perspective
+        mapRef.current.style.transform = `perspective(1000px) rotateX(${Math.min(10, window.scrollY * 0.05)}deg) rotateY(${mapRotation}deg)`;
+        
+        // Slowly return to neutral position when not scrolling
+        if (Math.abs(scrollDiff) < 0.1) {
+          mapRotation *= 0.95;
+        }
+      }
+      requestAnimationFrame(animateMap);
+    };
+    
+    animateMap();
+    
+    // Cleanup
+    return () => {
+      if (dotsRef.current) {
+        dotsRef.current.innerHTML = '';
+      }
+    };
+  }, []);
+
   return (
     <section id="home" className="pt-32 pb-24 overflow-hidden">
       <Container className="relative">
@@ -27,8 +121,9 @@ export default function Hero() {
           </p>
           
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${withDelay(animationClasses.slideUp, 400)}`}>
-            <Button size="lg" className="min-w-[150px] h-12 text-base">
-              Start Scraping Now
+            <Button size="lg" className="min-w-[150px] h-12 text-base group">
+              <span>Start Scraping Now</span>
+              <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
             </Button>
             <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base">
               Watch Demo
@@ -49,9 +144,9 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Dashboard Preview */}
+        {/* Interactive Dashboard Preview */}
         <div className={`relative mx-auto max-w-5xl ${withDelay(animationClasses.scaleIn, 600)}`}>
-          <div className="aspect-[16/9] rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-200">
+          <div ref={mapRef} className="aspect-[16/9] rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-200 transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
               <div className="w-full h-full bg-white/80 backdrop-blur-sm p-6 rounded-xl overflow-hidden">
                 <div className="h-12 w-full bg-slate-100 rounded-lg mb-6 flex items-center px-4">
@@ -68,8 +163,10 @@ export default function Hero() {
                       ))}
                     </div>
                   </div>
-                  <div className="col-span-2 bg-slate-100 rounded-lg">
-                    <div className="h-full w-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/0,0,1,0,0/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')] bg-cover bg-center rounded-lg"></div>
+                  <div className="col-span-2 bg-slate-100 rounded-lg relative">
+                    <div ref={dotsRef} className="h-full w-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/0,0,1,0,0/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')] bg-cover bg-center rounded-lg relative">
+                      {/* Data points will be added here dynamically */}
+                    </div>
                   </div>
                 </div>
               </div>
