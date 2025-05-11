@@ -177,24 +177,6 @@ export default function PreferencesTab() {
                     <p className="text-xs text-muted-foreground mt-1">Developer-friendly format</p>
                   </div>
                 </div>
-                
-                <div 
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 hover:border-muted-foreground/30 ${exportFormat === "excel" ? "border-primary bg-primary/5" : "border-border"}`}
-                  onClick={() => setExportFormat("excel")}
-                >
-                  <input 
-                    type="radio" 
-                    id="excel" 
-                    value="excel" 
-                    checked={exportFormat === "excel"}
-                    onChange={() => setExportFormat("excel")}
-                    className="h-4 w-4 text-primary cursor-pointer"
-                  />
-                  <div>
-                    <Label htmlFor="excel" className="cursor-pointer font-medium">Excel</Label>
-                    <p className="text-xs text-muted-foreground mt-1">Microsoft Excel format</p>
-                  </div>
-                </div>
               </div>
             </div>
           </CardContent>

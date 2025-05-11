@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -21,6 +20,9 @@ import NotificationsTab from "@/components/settings/NotificationsTab";
 import AccountSettings from "@/components/settings/AccountSettings";
 import SettingsCardsDashboard, { SettingsPageHeader } from "@/components/settings/SettingsCardsDashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import ProfileSection from "@/components/dashboard/ProfileSection";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Settings() {
   const { user, isLoading } = useAuth();
@@ -169,10 +171,106 @@ export default function Settings() {
                       Configure your language preferences and regional settings for date formats, currencies, and more.
                     </p>
                     
-                    <div className="animate-fade-in">
-                      <p className="text-muted-foreground">
-                        Language settings content will be available in the next update.
-                      </p>
+                    <div className="animate-fade-in space-y-6">
+                      <Card className="border shadow-sm">
+                        <CardContent className="pt-6">
+                          <div>
+                            <h3 className="text-lg font-medium mb-4">Language Options</h3>
+                            <div className="grid gap-6 max-w-md">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right col-span-1">
+                                  <Languages className="h-4 w-4 inline mr-1" />
+                                  Interface
+                                </Label>
+                                <div className="col-span-3">
+                                  <Select defaultValue="en">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="en">English (US)</SelectItem>
+                                      <SelectItem value="en-gb">English (UK)</SelectItem>
+                                      <SelectItem value="es">Español</SelectItem>
+                                      <SelectItem value="fr">Français</SelectItem>
+                                      <SelectItem value="de">Deutsch</SelectItem>
+                                      <SelectItem value="zh">中文</SelectItem>
+                                      <SelectItem value="ja">日本語</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right col-span-1">
+                                  <Globe className="h-4 w-4 inline mr-1" />
+                                  Region
+                                </Label>
+                                <div className="col-span-3">
+                                  <Select defaultValue="us">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select region" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="us">United States</SelectItem>
+                                      <SelectItem value="ca">Canada</SelectItem>
+                                      <SelectItem value="uk">United Kingdom</SelectItem>
+                                      <SelectItem value="au">Australia</SelectItem>
+                                      <SelectItem value="eu">Europe</SelectItem>
+                                      <SelectItem value="asia">Asia</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="border shadow-sm">
+                        <CardContent className="pt-6">
+                          <div>
+                            <h3 className="text-lg font-medium mb-4">Date & Time Format</h3>
+                            <div className="grid gap-6 max-w-md">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right col-span-1">
+                                  Date Format
+                                </Label>
+                                <div className="col-span-3">
+                                  <Select defaultValue="mdy">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select format" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="mdy">MM/DD/YYYY</SelectItem>
+                                      <SelectItem value="dmy">DD/MM/YYYY</SelectItem>
+                                      <SelectItem value="ymd">YYYY-MM-DD</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right col-span-1">
+                                  Time Format
+                                </Label>
+                                <div className="col-span-3">
+                                  <Select defaultValue="12h">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select format" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
+                                      <SelectItem value="24h">24-hour</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Button className="mt-4">Save Language Preferences</Button>
                     </div>
                   </Card>
                 } />
@@ -187,10 +285,88 @@ export default function Settings() {
                       Manage your data, downloads, and privacy preferences.
                     </p>
                     
-                    <div className="animate-fade-in">
-                      <p className="text-muted-foreground">
-                        Data privacy settings content will be available in the next update.
-                      </p>
+                    <div className="animate-fade-in space-y-6">
+                      <Card className="border shadow-sm">
+                        <CardContent className="pt-6 space-y-4">
+                          <h3 className="text-lg font-medium">Privacy Policy</h3>
+                          <p className="text-muted-foreground">
+                            By using our Google Maps Scraper tool, you agree to our privacy policy and terms of service.
+                            We respect your privacy and are committed to protecting your personal data.
+                          </p>
+                          <div className="bg-muted/20 p-4 rounded-md">
+                            <h4 className="font-medium mb-2">Key Points</h4>
+                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                              <li>We only collect data that is necessary for the functioning of our service</li>
+                              <li>Your scraped data remains private and is not shared with third parties</li>
+                              <li>You can request deletion of your account and data at any time</li>
+                              <li>We use cookies to improve your experience on our platform</li>
+                              <li>We implement appropriate security measures to protect your data</li>
+                            </ul>
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <Button variant="outline" size="sm">View Full Privacy Policy</Button>
+                            <Button variant="outline" size="sm">Terms of Service</Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="border shadow-sm">
+                        <CardContent className="pt-6 space-y-4">
+                          <h3 className="text-lg font-medium">Data Management</h3>
+                          <p className="text-muted-foreground">
+                            Control how your data is stored and processed on our platform.
+                          </p>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">Download Your Data</h4>
+                                <p className="text-sm text-muted-foreground">Get a copy of all your data and scraping history</p>
+                              </div>
+                              <Button variant="outline" size="sm">Export Data</Button>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">Delete Account</h4>
+                                <p className="text-sm text-muted-foreground">Permanently delete your account and all associated data</p>
+                              </div>
+                              <Button variant="destructive" size="sm">Delete Account</Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="border shadow-sm">
+                        <CardContent className="pt-6 space-y-4">
+                          <h3 className="text-lg font-medium">Cookie Preferences</h3>
+                          <p className="text-muted-foreground">
+                            Manage how cookies are used when you visit our website.
+                          </p>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label htmlFor="essential" className="font-medium">Essential Cookies</Label>
+                                <p className="text-xs text-muted-foreground">Required for the website to function properly</p>
+                              </div>
+                              <input type="checkbox" id="essential" checked disabled className="h-4 w-4" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label htmlFor="analytics" className="font-medium">Analytics Cookies</Label>
+                                <p className="text-xs text-muted-foreground">Help us improve our website by collecting anonymous data</p>
+                              </div>
+                              <input type="checkbox" id="analytics" className="h-4 w-4" defaultChecked />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label htmlFor="marketing" className="font-medium">Marketing Cookies</Label>
+                                <p className="text-xs text-muted-foreground">Allow us to provide personalized marketing content</p>
+                              </div>
+                              <input type="checkbox" id="marketing" className="h-4 w-4" />
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="mt-2">Save Cookie Preferences</Button>
+                        </CardContent>
+                      </Card>
                     </div>
                   </Card>
                 } />
@@ -216,9 +392,7 @@ export default function Settings() {
                     </p>
                     
                     <div className="animate-fade-in">
-                      <p className="text-muted-foreground">
-                        Security settings content will be available in the next update.
-                      </p>
+                      <ProfileSection />
                     </div>
                   </Card>
                 } />
