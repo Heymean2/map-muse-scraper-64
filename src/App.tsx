@@ -15,11 +15,8 @@ import { saveRoute } from "@/services/routeMemory";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
-import Profile from "@/pages/Profile";
-import Results from "@/pages/Results";
 import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
-import Billing from "@/pages/Billing";
 
 // Route listener component to save routes
 function RouteListener() {
@@ -47,6 +44,7 @@ function App() {
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
             <Route path="/result/*" element={<Navigate to="/dashboard/results/*" replace />} />
+            <Route path="/results/*" element={<Navigate to="/dashboard/results/*" replace />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
             <Route path="*" element={<NotFound />} />

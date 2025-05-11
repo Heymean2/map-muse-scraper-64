@@ -1,3 +1,4 @@
+
 import { 
   Sidebar, 
   SidebarContent, 
@@ -64,7 +65,16 @@ export default function DashboardSidebar() {
   }, [billingPreloaded]);
   
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path);
+    // Special case for dashboard home
+    if (path === "/dashboard" && location.pathname === "/dashboard") {
+      return true;
+    }
+    // Special case for "New Scrape"
+    if (path === "/dashboard/scrape" && location.pathname === "/dashboard/scrape") {
+      return true;
+    }
+    // For other routes, check if the pathname starts with path but isn't exactly /dashboard
+    return location.pathname !== "/dashboard" && location.pathname.startsWith(path);
   };
   
   const handleBillingHover = () => {
@@ -146,7 +156,7 @@ export default function DashboardSidebar() {
                   isActive={isActive(item.path)}
                   tooltip={item.title}
                   onMouseEnter={item.onMouseEnter}
-                  className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg}`}
+                  className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg} ${isActive(item.path) ? "bg-primary-subtle/60" : ""}`}
                 >
                   <Link to={item.path} className="transition-colors flex items-center space-x-3">
                     <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-violet-primary" : item.color} transition-all duration-300 group-hover:scale-110`} />
