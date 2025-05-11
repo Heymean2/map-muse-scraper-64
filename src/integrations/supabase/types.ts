@@ -304,13 +304,16 @@ export type Database = {
         Row: {
           country: string
           created_at: string | null
+          current_state: string | null
           fields: string | null
           id: number
           json_result_url: string | null
           keywords: string
+          progress: string | null
           rating: string | null
           result_url: string | null
           row_count: number | null
+          stage: string | null
           states: string
           status: string | null
           task_id: string
@@ -320,13 +323,16 @@ export type Database = {
         Insert: {
           country: string
           created_at?: string | null
+          current_state?: string | null
           fields?: string | null
           id?: number
           json_result_url?: string | null
           keywords: string
+          progress?: string | null
           rating?: string | null
           result_url?: string | null
           row_count?: number | null
+          stage?: string | null
           states: string
           status?: string | null
           task_id: string
@@ -336,13 +342,16 @@ export type Database = {
         Update: {
           country?: string
           created_at?: string | null
+          current_state?: string | null
           fields?: string | null
           id?: number
           json_result_url?: string | null
           keywords?: string
+          progress?: string | null
           rating?: string | null
           result_url?: string | null
           row_count?: number | null
+          stage?: string | null
           states?: string
           status?: string | null
           task_id?: string
