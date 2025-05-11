@@ -14,6 +14,7 @@ import { saveRoute } from "@/services/routeMemory";
 
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
+import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import Checkout from "@/pages/Checkout";
@@ -41,6 +42,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
             <Route path="/result/*" element={<Navigate to="/dashboard/results/*" replace />} />

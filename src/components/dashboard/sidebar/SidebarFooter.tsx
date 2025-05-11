@@ -6,9 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarFooter as Footer } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPlanInfo } from "@/services/scraper";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function SidebarFooter() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, userDetails } = useAuth();
   
   const { data: planInfo } = useQuery({
     queryKey: ['userPlanInfo', user?.id],
@@ -16,6 +17,11 @@ export default function SidebarFooter() {
     enabled: !!user,
     staleTime: 60000 // Cache for 1 minute
   });
+
+  // Get user initials for avatar fallback
+  const getInitials = (email: string | undefined) => {
+    return email ? email.substring(0, 2).toUpperCase() : "US";
+  };
   
   return (
     <Footer className="p-4 mt-auto">
@@ -23,14 +29,32 @@ export default function SidebarFooter() {
         <div 
           className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors"
         >
-          <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-violet-primary">
-            <User className="w-5 h-5" />
+          <div className="flex-shrink-0">
+            {userDetails?.avatarUrl ? (
+              <Avatar className="h-10 w-10 border border-slate-200">
+                <AvatarImage src={userDetails.avatarUrl} alt={user?.email || "User"} />
+                <AvatarFallback className="bg-primary-subtle text-violet-primary">
+                  {getInitials(user?.email)}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-violet-primary">
+                <User className="w-5 h-5" />
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             <span className="font-medium text-sm truncate max-w-[140px]">
-              {user?.email || "User"}
+              {userDetails?.displayName || user?.email || "User"}
             </span>
-            <span className="text-xs text-muted-foreground">{planInfo?.planName || "Free Plan"}</span>
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              {planInfo?.planName || "Free Plan"}
+              {userDetails?.provider === 'google' && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                  Google
+                </span>
+              )}
+            </span>
           </div>
         </div>
         <Separator />

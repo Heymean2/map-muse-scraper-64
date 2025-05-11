@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,8 @@ import { withDelay, animationClasses } from "@/lib/animations";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getLastRoute } from "@/services/routeMemory";
+import { Separator } from "@/components/ui/separator";
+import { Google } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -21,6 +24,10 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Parse URL params to determine active tab
+  const searchParams = new URLSearchParams(location.search);
+  const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
 
   // Check auth status on page load
   useEffect(() => {
@@ -104,12 +111,34 @@ export default function Auth() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (error) throw error;
+      
+      // The redirect happens automatically, no need to navigate
+    } catch (error: any) {
+      setError(error.message || "An error occurred with Google sign in");
+      toast.error(error.message || "Google sign in failed");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow flex items-center justify-center py-16 px-4">
         <Container className={`max-w-md w-full ${withDelay(animationClasses.fadeIn, 100)}`}>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -156,6 +185,28 @@ export default function Auth() {
                     
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Processing..." : "Sign In"}
+                    </Button>
+
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <Separator className="w-full" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-background px-2 text-xs text-muted-foreground">
+                          OR CONTINUE WITH
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={handleGoogleSignIn}
+                      disabled={loading}
+                    >
+                      <Google className="h-4 w-4" />
+                      Google
                     </Button>
                   </form>
                 </CardContent>
@@ -206,6 +257,28 @@ export default function Auth() {
                     
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Processing..." : "Create Account"}
+                    </Button>
+
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <Separator className="w-full" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-background px-2 text-xs text-muted-foreground">
+                          OR CONTINUE WITH
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={handleGoogleSignIn}
+                      disabled={loading}
+                    >
+                      <Google className="h-4 w-4" />
+                      Google
                     </Button>
                   </form>
                 </CardContent>
