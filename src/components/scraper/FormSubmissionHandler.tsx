@@ -143,8 +143,8 @@ export default function FormSubmissionHandler({
       
       if (result.success) {
         toast.success("Scraping started successfully");
-        // Redirect to results page with task UUID
-        navigate(`/result${result.task_uuid ? `?task_id=${result.task_uuid}` : ''}`);
+        // Redirect to results page with task ID
+        navigate(`/result${result.task_id ? `?task_id=${result.task_id}` : ''}`);
       } else {
         toast.error(result.error || "Failed to start scraping");
         setFormError(result.error || "Failed to start scraping");

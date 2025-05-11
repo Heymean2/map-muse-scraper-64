@@ -33,12 +33,12 @@ export async function createScrapingTask({
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Generate UUID for task ID
-    const taskUuid = generateTaskUuid();
+    const taskId = generateTaskUuid();
     
     // We no longer need to create a string task_id for backward compatibility
     // as we're fully migrating to UUIDs
     
-    console.log(`Creating scraping task with UUID ${taskUuid} for user ${userId} using plan type: ${planType}`);
+    console.log(`Creating scraping task with UUID ${taskId} for user ${userId} using plan type: ${planType}`);
     
     // Format fields for storage
     const formattedStates = Array.isArray(states) ? states.join(',') : states;
@@ -54,8 +54,8 @@ export async function createScrapingTask({
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
-        task_id_uuid: taskUuid,
-        user_id_uuid: userId,
+        task_id: taskId,
+        user_id: userId,
         keywords,
         country,
         states: formattedStates,
@@ -83,10 +83,10 @@ export async function createScrapingTask({
       };
     }
 
-    console.log(`Scraping task ${taskUuid} created successfully using plan type: ${planType}`);
+    console.log(`Scraping task ${taskId} created successfully using plan type: ${planType}`);
     return { 
       success: true,
-      taskUuid, // Return the UUID as the primary identifier
+      taskId, // Return the UUID as the primary identifier
       planType 
     };
     
