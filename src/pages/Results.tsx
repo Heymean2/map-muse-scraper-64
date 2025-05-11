@@ -27,7 +27,7 @@ export default function Results() {
   // Handle task selection
   const handleTaskSelect = (taskId: string) => {
     setSelectedTaskId(taskId);
-    navigate(`/result/scrape/${taskId}`);
+    navigate(`/dashboard/results/scrape/${taskId}`);
   };
   
   // Extract tasks array safely
@@ -52,7 +52,7 @@ export default function Results() {
         } 
       />
       <Route path="/scrape/:taskId" element={<TaskDetail />} />
-      <Route path="*" element={<Navigate to="/result" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard/results" replace />} />
     </Routes>
   );
 }

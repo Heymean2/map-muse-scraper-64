@@ -17,7 +17,7 @@ export default function HeaderNavigation({ onRefresh }: HeaderNavigationProps) {
         className="hover:bg-white/30 gap-1"
         asChild
       >
-        <Link to="/result">
+        <Link to="/dashboard/results">
           <ArrowLeft className="h-4 w-4" />
           Back to results
         </Link>

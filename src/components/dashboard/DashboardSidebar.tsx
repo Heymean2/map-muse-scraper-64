@@ -1,4 +1,3 @@
-
 import { 
   Sidebar, 
   SidebarContent, 
@@ -86,7 +85,7 @@ export default function DashboardSidebar() {
     {
       title: "Results",
       icon: FileText,
-      path: "/result",
+      path: "/dashboard/results",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
       activeColor: "group-data-[active=true]:text-violet-primary"
@@ -102,7 +101,7 @@ export default function DashboardSidebar() {
     {
       title: "Profile",
       icon: UserCircle,
-      path: "/profile",
+      path: "/dashboard/profile",
       color: "text-slate-600",
       hoverBg: "hover:bg-slate-50",
       activeColor: "group-data-[active=true]:text-violet-primary"

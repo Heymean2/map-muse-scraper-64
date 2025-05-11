@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ScraperForm from "@/components/ScraperForm";
@@ -21,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Settings from "@/pages/Settings";
 import Billing from "@/pages/Billing";
+import Profile from "@/pages/Profile";
+import Results from "@/pages/Results";
 
 function DashboardHome() {
   const navigate = useNavigate();
@@ -190,7 +191,7 @@ function DashboardHome() {
             <Button 
               variant="outline" 
               className="w-full justify-start group hover:border-google-green hover:bg-google-green/5"
-              onClick={() => navigate('/result')}
+              onClick={() => navigate('/dashboard/results')}
             >
               <FileText className="mr-2 h-4 w-4 text-google-green group-hover:scale-110 transition-transform" />
               View Results
@@ -281,6 +282,8 @@ export default function Dashboard() {
         <Route path="/scrape" element={<ScraperForm />} />
         <Route path="/settings/*" element={<Settings />} />
         <Route path="/billing" element={<Billing />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/results/*" element={<Results />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>

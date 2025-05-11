@@ -45,8 +45,8 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/result/*" element={<Results />} />
+            <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
+            <Route path="/result/*" element={<Navigate to="/dashboard/results/*" replace />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
             <Route path="*" element={<NotFound />} />
