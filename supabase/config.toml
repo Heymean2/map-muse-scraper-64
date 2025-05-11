@@ -1,5 +1,1 @@
-
 project_id = "culwnizfggplctdtujsz"
-
-[auth.redirect]
-allow_list = ["http://localhost:3000/auth/callback", "http://localhost:5173/auth/callback", "https://lovable.app/auth/callback"]
