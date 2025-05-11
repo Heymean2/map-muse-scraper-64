@@ -13,9 +13,10 @@ import { saveRoute, getLastRoute, isAuthRoute } from "@/services/routeMemory";
 
 interface BaseLayoutProps {
   children: ReactNode;
+  hideRail?: boolean;
 }
 
-export default function BaseLayout({ children }: BaseLayoutProps) {
+export default function BaseLayout({ children, hideRail = false }: BaseLayoutProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -46,7 +47,7 @@ export default function BaseLayout({ children }: BaseLayoutProps) {
           <SidebarProvider>
             <div className="flex min-h-[calc(100vh-5rem)] w-full">
               <DashboardSidebar />
-              <SidebarRail />
+              {!hideRail && <SidebarRail />}
               <SidebarInset className="p-4 md:p-6 w-full">
                 {children}
               </SidebarInset>

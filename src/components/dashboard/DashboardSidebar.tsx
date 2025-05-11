@@ -65,16 +65,31 @@ export default function DashboardSidebar() {
   }, [billingPreloaded]);
   
   const isActive = (path: string) => {
-    // Special case for dashboard home
-    if (path === "/dashboard" && location.pathname === "/dashboard") {
+    const currentPath = location.pathname;
+    
+    // Special case for dashboard home - exact match only
+    if (path === "/dashboard" && currentPath === "/dashboard") {
       return true;
     }
-    // Special case for "New Scrape"
-    if (path === "/dashboard/scrape" && location.pathname === "/dashboard/scrape") {
+    
+    // For other specific routes, require exact path match
+    if (path === "/dashboard/scrape" && currentPath === "/dashboard/scrape") {
       return true;
     }
-    // For other routes, check if the pathname starts with path but isn't exactly /dashboard
-    return location.pathname !== "/dashboard" && location.pathname.startsWith(path);
+    
+    // For section routes like /dashboard/results, /dashboard/profile, etc.
+    // Check if the current path starts with this path but is not the dashboard root
+    if (path !== "/dashboard" && currentPath.startsWith(path)) {
+      // Get the next segment after the path (if any)
+      const remainingPath = currentPath.slice(path.length);
+      
+      // If there's no remaining path or it starts with a slash, it's in this section
+      if (remainingPath === "" || remainingPath.startsWith("/")) {
+        return true;
+      }
+    }
+    
+    return false;
   };
   
   const handleBillingHover = () => {
