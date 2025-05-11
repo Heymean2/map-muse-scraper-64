@@ -68,17 +68,60 @@ export default function Pricing() {
     }
   ];
 
+  // Helper function to safely transform features from the database
+  const getFeaturesList = (features: any): string[] => {
+    if (!features) return [];
+    
+    // If features is already an array, return it
+    if (Array.isArray(features)) return features;
+    
+    // If features is an object, transform it to an array of strings
+    if (typeof features === 'object') {
+      const featuresList = [];
+      
+      // Add row limit feature if available
+      if (features.unlimited_rows) {
+        featuresList.push("Unlimited business listings");
+      }
+      
+      // Add analytics feature if available
+      if (features.analytics) {
+        featuresList.push("Advanced analytics dashboard");
+      }
+      
+      // Add API access feature if available
+      if (features.api_access) {
+        featuresList.push("API access");
+      }
+      
+      // Add reviews data feature if available
+      if (features.reviews_data) {
+        featuresList.push("Customer reviews data");
+      }
+      
+      // Add default features that all plans have
+      featuresList.push(
+        "Export to CSV and Excel",
+        "Email support"
+      );
+      
+      return featuresList;
+    }
+    
+    return [];
+  };
+
   // Use real data if available, otherwise use default plans
   const plans = plansData && plansData.length > 0 
     ? plansData.map(plan => ({
         name: plan.name,
         price: plan.price,
-        yearlyPrice: plan.yearly_price || plan.price * 10, // Default to 10x monthly if yearly not set
-        description: plan.description || `${plan.name} plan for business data extraction`,
-        features: plan.features ? JSON.parse(plan.features) : defaultPlans.find(p => p.name.toLowerCase() === plan.name.toLowerCase())?.features || [],
-        popular: plan.is_popular,
-        buttonText: plan.is_popular ? "Start Free Trial" : plan.price > 100 ? "Contact Sales" : "Get Started",
-        buttonVariant: plan.is_popular ? "default" as const : "outline" as const
+        yearlyPrice: plan.price * 10, // Default to 10x monthly for yearly price
+        description: `${plan.name} plan for business data extraction`,
+        features: getFeaturesList(plan.features),
+        popular: plan.is_recommended,
+        buttonText: plan.is_recommended ? "Start Free Trial" : plan.price > 100 ? "Contact Sales" : "Get Started",
+        buttonVariant: plan.is_recommended ? "default" as const : "outline" as const
       }))
     : defaultPlans;
 
@@ -166,8 +209,8 @@ export default function Pricing() {
                     </Button>
                     
                     <div className="space-y-3">
-                      {plan.features.map((feature) => (
-                        <div key={feature} className="flex items-start group">
+                      {plan.features.map((feature, idx) => (
+                        <div key={`${plan.name}-feature-${idx}`} className="flex items-start group">
                           <div className="flex-shrink-0 h-5 w-5 text-accent mt-0.5">
                             <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
                           </div>
