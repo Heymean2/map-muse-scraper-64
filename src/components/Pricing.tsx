@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePlanSelection } from "@/hooks/usePlanSelection";
@@ -30,16 +30,14 @@ export default function Pricing() {
       billing_period: "monthly"
     },
     {
-      name: "Professional",
-      price: 79,
+      name: "Basic Pro",
+      price: 49,
       description: "Ideal for growing businesses with more data needs.",
       features: [
-        "Up to 2,500 business listings per month",
-        "All export formats",
-        "Advanced filters and sorting",
-        "Priority email support",
-        "5 user accounts",
-        "API access"
+        "Unlimited business listings",
+        "Advanced analytics dashboard",
+        "Export to CSV and Excel",
+        "Email support"
       ],
       popular: true,
       buttonText: "Start Free Trial",
@@ -47,21 +45,18 @@ export default function Pricing() {
       billing_period: "monthly"
     },
     {
-      name: "Enterprise",
-      price: 199,
-      description: "For large organizations requiring maximum data and features.",
+      name: "Standard Plan",
+      price: 59,
+      description: "For larger organizations requiring maximum data and features.",
       features: [
         "Unlimited business listings",
-        "All export formats",
-        "Premium filters and sorting",
-        "24/7 priority support",
-        "Unlimited user accounts",
-        "Full API access",
-        "Custom integrations",
-        "Dedicated account manager"
+        "Advanced analytics dashboard",
+        "Customer reviews data",
+        "Export to CSV and Excel",
+        "Email support"
       ],
       popular: false,
-      buttonText: "Contact Sales",
+      buttonText: "Get Started",
       buttonVariant: "outline" as const,
       billing_period: "monthly"
     },
@@ -144,6 +139,14 @@ export default function Pricing() {
       }))
     : defaultPlans;
 
+  // Make sure credit plan is included
+  const allPlans = [...plans];
+  const hasCreditPlan = allPlans.some(plan => plan.billing_period === "credits");
+  
+  if (!hasCreditPlan) {
+    allPlans.push(defaultPlans[3]); // Add the Pay as You Go plan
+  }
+
   return (
     <section id="pricing" className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Decorative elements */}
@@ -164,8 +167,11 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12">
-          {plans.map((plan, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+          {allPlans.map((plan, index) => {
+            // Determine if this is a credit-based plan
+            const isCreditPlan = plan.billing_period === "credits";
+            
             return (
               <div 
                 key={plan.name}
@@ -179,14 +185,14 @@ export default function Pricing() {
                   }`}
                 >
                   {plan.popular && (
-                    <div className="bg-accent text-white text-center py-2 text-sm font-medium">
+                    <div className="bg-red-500 text-white text-center py-2 text-sm font-medium">
                       Most Popular
                     </div>
                   )}
                   <div className="p-6">
                     <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                     <div className="flex items-baseline mb-4">
-                      {plan.billing_period === "credits" ? (
+                      {isCreditPlan ? (
                         <>
                           <span className="text-4xl font-bold">${plan.price_per_credit.toFixed(3)}</span>
                           <span className="text-slate-500 ml-2">/credit</span>
@@ -199,7 +205,7 @@ export default function Pricing() {
                       )}
                     </div>
                     
-                    {plan.billing_period === "credits" && (
+                    {isCreditPlan && (
                       <p className="text-xs text-accent mb-4">
                         Pay only for what you use
                       </p>
@@ -209,7 +215,7 @@ export default function Pricing() {
                     
                     <Button 
                       variant={plan.buttonVariant} 
-                      className={`w-full mb-6 ${plan.popular ? 'bg-accent hover:bg-accent/90' : ''}`}
+                      className={`w-full mb-6 ${plan.popular ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
                     >
                       {plan.buttonText}
                     </Button>
@@ -217,7 +223,7 @@ export default function Pricing() {
                     <div className="space-y-3">
                       {plan.features.map((feature, idx) => (
                         <div key={`${plan.name}-feature-${idx}`} className="flex items-start group">
-                          <div className="flex-shrink-0 h-5 w-5 text-accent mt-0.5">
+                          <div className="flex-shrink-0 h-5 w-5 text-red-500 mt-0.5">
                             <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
                           </div>
                           <span className="ml-3 text-slate-600 group-hover:text-slate-900 transition-colors">
@@ -239,7 +245,6 @@ export default function Pricing() {
           </p>
           <Button variant="outline" className="group">
             Contact Sales
-            <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
           </Button>
         </div>
         
