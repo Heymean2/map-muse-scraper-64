@@ -18,7 +18,7 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
     const { data, error } = await supabase
       .from('scraping_requests')
       .select('*')
-      .eq('user_id_uuid', user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -66,27 +66,20 @@ export async function getScrapingResults(
     
     if (taskId) {
       // Get single task details
-      // Try to determine if taskId is a UUID
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId);
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from('scraping_requests')
         .select('*')
-        .eq('user_id_uuid', user.id);
-      
-      // Use the appropriate column based on whether taskId is a UUID
-      if (isUuid) {
-        query = query.eq('task_id_uuid', taskId);
-      } else {
-        // For backward compatibility
-        query = query.eq('task_id', taskId);
-      }
-      
-      const { data, error } = await query.single();
+        .eq('user_id', user.id)
+        .eq('task_id', taskId)
+        .maybeSingle();
         
       if (error) {
         console.error("Error fetching scraping result:", error);
         throw error;
+      }
+      
+      if (!data) {
+        return null;
       }
       
       // Ensure created_at exists
@@ -114,7 +107,7 @@ export async function getScrapingResults(
       const { data, error } = await supabase
         .from('scraping_requests')
         .select('*')
-        .eq('user_id_uuid', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
         
       if (error) {
