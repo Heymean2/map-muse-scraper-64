@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { withDelay, animationClasses } from "@/lib/animations";
 
 export default function Hero() {
@@ -121,13 +122,17 @@ export default function Hero() {
           </p>
           
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${withDelay(animationClasses.slideUp, 400)}`}>
-            <Button size="lg" className="min-w-[150px] h-12 text-base group">
-              <span>Start Scraping Now</span>
-              <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
-            </Button>
-            <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base">
-              Watch Demo
-            </Button>
+            <Link to="/auth?tab=signup">
+              <Button size="lg" className="min-w-[150px] h-12 text-base group">
+                <span>Start Scraping Now</span>
+                <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
+            </Link>
+            <Link to="#how-it-works">
+              <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base">
+                Watch Demo
+              </Button>
+            </Link>
           </div>
 
           <div className={`mt-12 flex items-center justify-center gap-6 ${withDelay(animationClasses.fadeIn, 500)}`}>
