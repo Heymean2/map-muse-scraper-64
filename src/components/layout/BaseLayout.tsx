@@ -14,9 +14,10 @@ import { saveRoute, getLastRoute, isAuthRoute } from "@/services/routeMemory";
 interface BaseLayoutProps {
   children: ReactNode;
   hideRail?: boolean;
+  hideSidebar?: boolean;
 }
 
-export default function BaseLayout({ children, hideRail = false }: BaseLayoutProps) {
+export default function BaseLayout({ children, hideRail = false, hideSidebar = false }: BaseLayoutProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -46,9 +47,9 @@ export default function BaseLayout({ children, hideRail = false }: BaseLayoutPro
         <div className="flex-grow pt-20">
           <SidebarProvider>
             <div className="flex min-h-[calc(100vh-5rem)] w-full">
-              <DashboardSidebar />
-              {!hideRail && <SidebarRail />}
-              <SidebarInset className="p-4 md:p-6 w-full">
+              {!hideSidebar && <DashboardSidebar />}
+              {!hideRail && !hideSidebar && <SidebarRail />}
+              <SidebarInset className={`p-4 md:p-6 w-full ${hideSidebar ? 'ml-0' : ''}`}>
                 {children}
               </SidebarInset>
             </div>

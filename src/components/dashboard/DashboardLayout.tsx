@@ -5,11 +5,12 @@ import BaseLayout from "@/components/layout/BaseLayout";
 interface DashboardLayoutProps {
   children: ReactNode;
   hideRail?: boolean;
+  hideSidebar?: boolean;
 }
 
-export default function DashboardLayout({ children, hideRail }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, hideRail, hideSidebar }: DashboardLayoutProps) {
   return (
-    <BaseLayout hideRail={hideRail}>
+    <BaseLayout hideRail={hideRail} hideSidebar={hideSidebar}>
       {children}
     </BaseLayout>
   );

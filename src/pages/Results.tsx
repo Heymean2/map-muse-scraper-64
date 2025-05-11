@@ -38,7 +38,7 @@ export default function Results() {
       <Route 
         path="/" 
         element={
-          <DashboardLayout hideRail={true}>
+          <DashboardLayout hideRail={true} hideSidebar={true}>
             <ResultsDashboard 
               tasks={tasks} 
               isLoading={isLoading} 
