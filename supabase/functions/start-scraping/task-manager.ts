@@ -1,10 +1,10 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-// Update an existing scraping request record
-export async function updateScrapingTask({
+// Create a new scraping request record
+export async function createScrapingTask({
   userId, 
-  taskId, 
+  taskId, // Accept the taskId from the client
   keywords, 
   country, 
   states, 
@@ -28,7 +28,12 @@ export async function updateScrapingTask({
     // Create admin client with service role key for direct DB access
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    console.log(`Updating scraping task ${taskId} for user ${userId} using plan type: ${planType}`);
+    // Use the client-provided task ID instead of generating one
+    console.log(`Creating scraping task with client-provided UUID ${taskId} for user ${userId} using plan type: ${planType}`);
+    
+    // Format fields for storage
+    const formattedStates = Array.isArray(states) ? states.join(',') : states;
+    const formattedFields = Array.isArray(fields) ? fields.join(',') : fields;
     
     // Add plan type metadata for the task
     const taskMetadata = {
@@ -36,24 +41,27 @@ export async function updateScrapingTask({
       hasBothPlanTypes
     };
     
-    // Update the existing scraping request
-    const { data, error: updateError } = await supabase
+    // Insert new scraping request with the UUID from the client
+    const { error: insertError } = await supabase
       .from('scraping_requests')
-      .update({
+      .insert({
+        task_id: taskId, // Use the client-provided UUID directly
+        user_id: userId,
+        keywords,
+        country,
+        states: formattedStates,
+        fields: formattedFields,
+        rating,
         status: 'processing',
         metadata: taskMetadata,
-        updated_at: new Date().toISOString()
-      })
-      .eq('task_id', taskId)
-      .eq('user_id', userId)
-      .select('*')
-      .single();
+        created_at: new Date().toISOString()
+      });
 
-    if (updateError) {
-      console.error('Error updating scraping task:', updateError.message);
+    if (insertError) {
+      console.error('Error creating scraping task:', insertError.message);
       
       // Handle specific errors
-      if (updateError.message && updateError.message.includes('plan limit')) {
+      if (insertError.message && insertError.message.includes('plan limit')) {
         throw {
           status: 403,
           message: "You have reached your plan's limit for scraping tasks. Please upgrade your plan."
@@ -62,21 +70,14 @@ export async function updateScrapingTask({
 
       throw {
         status: 500,
-        message: updateError.message || "Failed to update task"
+        message: insertError.message || "Failed to create task"
       };
     }
 
-    if (!data) {
-      throw {
-        status: 404,
-        message: "Task not found. It may have been deleted or you don't have access to it."
-      };
-    }
-
-    console.log(`Scraping task ${taskId} updated successfully using plan type: ${planType}`);
+    console.log(`Scraping task ${taskId} created successfully using plan type: ${planType}`);
     return { 
       success: true,
-      taskId,
+      taskId, // Return the client-provided UUID
       planType 
     };
     
