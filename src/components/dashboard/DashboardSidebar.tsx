@@ -1,32 +1,11 @@
 
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarGroup
-} from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  FileText, 
-  Search, 
-  UserCircle, 
-  CreditCard, 
-  Settings, 
-  LogOut,
-  User,
-  LayoutDashboard,
-  MapPin
-} from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
-import { getUserPlanInfo } from "@/services/scraper";
+import { Sidebar } from "@/components/ui/sidebar";
+import SidebarHeader from "./sidebar/SidebarHeader";
+import SidebarMenu from "./sidebar/SidebarMenu";
+import SidebarFooter from "./sidebar/SidebarFooter";
+import useActivePath from "./sidebar/useActivePath";
+import { createMenuItems } from "./sidebar/menuItems";
 
 // Preload billing components with a robust approach
 const preloadBillingComponents = () => {
@@ -36,16 +15,18 @@ const preloadBillingComponents = () => {
 };
 
 export default function DashboardSidebar() {
-  const location = useLocation();
-  const { user, signOut } = useAuth();
   const [billingPreloaded, setBillingPreloaded] = useState(false);
+  const { isActive } = useActivePath();
   
-  const { data: planInfo } = useQuery({
-    queryKey: ['userPlanInfo', user?.id],
-    queryFn: getUserPlanInfo,
-    enabled: !!user,
-    staleTime: 60000 // Cache for 1 minute
-  });
+  // Handle billing hover preloading
+  const handleBillingHover = () => {
+    if (!billingPreloaded) {
+      preloadBillingComponents().then(() => setBillingPreloaded(true));
+    }
+  };
+  
+  // Create menu items with the billing hover handler
+  const menuItems = createMenuItems(handleBillingHover);
   
   // Preload billing components when dashboard loads
   useEffect(() => {
@@ -63,154 +44,12 @@ export default function DashboardSidebar() {
       }
     }
   }, [billingPreloaded]);
-  
-  const isActive = (path: string) => {
-    const currentPath = location.pathname;
-    
-    // Special case for dashboard home - exact match only
-    if (path === "/dashboard" && currentPath === "/dashboard") {
-      return true;
-    }
-    
-    // For other specific routes, require exact path match
-    if (path === "/dashboard/scrape" && currentPath === "/dashboard/scrape") {
-      return true;
-    }
-    
-    // For section routes like /dashboard/results, /dashboard/profile, etc.
-    // Check if the current path starts with this path but is not the dashboard root
-    if (path !== "/dashboard" && currentPath.startsWith(path)) {
-      // Get the next segment after the path (if any)
-      const remainingPath = currentPath.slice(path.length);
-      
-      // If there's no remaining path or it starts with a slash, it's in this section
-      if (remainingPath === "" || remainingPath.startsWith("/")) {
-        return true;
-      }
-    }
-    
-    return false;
-  };
-  
-  const handleBillingHover = () => {
-    if (!billingPreloaded) {
-      preloadBillingComponents().then(() => setBillingPreloaded(true));
-    }
-  };
-  
-  const menuItems = [
-    {
-      title: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/dashboard",
-      color: "text-violet-primary",
-      hoverBg: "hover:bg-primary-subtle",
-      activeColor: "group-data-[active=true]:text-violet-primary"
-    },
-    {
-      title: "Results",
-      icon: FileText,
-      path: "/dashboard/results",
-      color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary"
-    },
-    {
-      title: "New Scrape",
-      icon: Search,
-      path: "/dashboard/scrape",
-      color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary"
-    },
-    {
-      title: "Profile",
-      icon: UserCircle,
-      path: "/dashboard/profile",
-      color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary"
-    },
-    {
-      title: "Billing",
-      icon: CreditCard,
-      path: "/dashboard/billing",
-      color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50",
-      activeColor: "group-data-[active=true]:text-violet-primary",
-      onMouseEnter: handleBillingHover,
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      path: "/dashboard/settings",
-      color: "text-slate-600",
-      hoverBg: "hover:bg-slate-50", 
-      activeColor: "group-data-[active=true]:text-violet-primary"
-    },
-  ];
 
   return (
     <Sidebar className="border-r border-slate-200">
-      <SidebarHeader className="p-4 mt-4">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-6 w-6 text-violet-primary" />
-          <Link to="/dashboard" className="text-xl font-semibold">
-            MapScraper
-          </Link>
-        </div>
-      </SidebarHeader>
-      
-      <SidebarContent className="px-2">
-        <SidebarGroup>
-          <SidebarMenu>
-            {menuItems.map((item) => (
-              <SidebarMenuItem key={item.path} className="group">
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={isActive(item.path)}
-                  tooltip={item.title}
-                  onMouseEnter={item.onMouseEnter}
-                  className={`my-1.5 flex items-center justify-start transition-all duration-300 ${item.hoverBg} ${isActive(item.path) ? "bg-primary-subtle/60" : ""}`}
-                >
-                  <Link to={item.path} className="transition-colors flex items-center space-x-3">
-                    <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-violet-primary" : item.color} transition-all duration-300 group-hover:scale-110`} />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarFooter className="p-4 mt-auto">
-        <div className="space-y-3">
-          <div 
-            className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-primary-subtle flex items-center justify-center text-violet-primary">
-              <User className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-medium text-sm truncate max-w-[140px]">
-                {user?.email || "User"}
-              </span>
-              <span className="text-xs text-muted-foreground">{planInfo?.planName || "Free Plan"}</span>
-            </div>
-          </div>
-          <Separator />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full flex items-center gap-2 justify-center border-slate-200 hover:bg-slate-50 hover:text-google-red hover:border-red-100 transition-colors"
-            onClick={() => signOut()}
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Log Out</span>
-          </Button>
-        </div>
-      </SidebarFooter>
+      <SidebarHeader />
+      <SidebarMenu menuItems={menuItems} isActive={isActive} />
+      <SidebarFooter />
     </Sidebar>
   );
 }
