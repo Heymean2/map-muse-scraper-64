@@ -30,7 +30,7 @@ export function usePricingPlans() {
       description: "Perfect for individuals and small businesses just getting started.",
       features: [
         "Up to 25,000 business listings per month",
-        "Export to CSV and Excel",
+        "Export to CSV",
         "Basic search filters",
         "Standard support",
         "1 user account"
@@ -94,19 +94,26 @@ export function usePricingPlans() {
 
   // Use real data if available, otherwise use default plans
   const plans = plansData && plansData.length > 0 
-    ? plansData.map(plan => ({
-        name: plan.name,
-        price: plan.price,
-        description: `${plan.name} plan for business data extraction`,
-        features: getFeaturesList(plan.features),
-        popular: plan.is_recommended,
-        buttonText: plan.is_recommended ? "Start Free Trial" : 
-                  plan.billing_period === "credits" ? "Buy Credits" :
-                  plan.price > 100 ? "Contact Sales" : "Get Started",
-        buttonVariant: plan.is_recommended ? "default" as const : "outline" as const,
-        billing_period: plan.billing_period || "monthly",
-        price_per_credit: plan.price_per_credit || 0
-      }))
+    ? plansData.map(plan => {
+        // Clean up the features to remove Excel references
+        const features = getFeaturesList(plan.features).map(feature => 
+          feature.replace(/and Excel|Excel and |Excel/g, '')
+        );
+
+        return {
+          name: plan.name,
+          price: plan.price,
+          description: `${plan.name} plan for business data extraction`,
+          features: features,
+          popular: plan.is_recommended,
+          buttonText: plan.is_recommended ? "Start Free Trial" : 
+                    plan.billing_period === "credits" ? "Buy Credits" :
+                    plan.price > 100 ? "Contact Sales" : "Get Started",
+          buttonVariant: plan.is_recommended ? "default" as const : "outline" as const,
+          billing_period: plan.billing_period || "monthly",
+          price_per_credit: plan.price_per_credit || 0
+        };
+      })
     : defaultPlans;
 
   // Make sure credit plan is included

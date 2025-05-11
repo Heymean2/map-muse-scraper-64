@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SlidersHorizontal, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -12,12 +11,15 @@ interface CreditPlanSliderProps {
 
 export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
   const [creditAmount, setCreditAmount] = useState(1000);
-  const [estimatedCost, setEstimatedCost] = useState(2);
+  const [estimatedCost, setEstimatedCost] = useState(1);
   const creditUnitPrice = 0.002; // $0.002 per credit
   
   // Calculate cost whenever credit amount changes
   useEffect(() => {
-    setEstimatedCost(Number((creditAmount * creditUnitPrice).toFixed(2)));
+    // If credits <= 500, cost is 0 (free)
+    // Otherwise calculate cost only for credits above 500
+    const paidCredits = Math.max(0, creditAmount - 500);
+    setEstimatedCost(Number((paidCredits * creditUnitPrice).toFixed(2)));
   }, [creditAmount]);
   
   // Slider marker values for better UX
@@ -46,7 +48,7 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
                     <Check className="h-5 w-5" />
                   </div>
                   <span className="ml-3 text-slate-600">
-                    {feature}
+                    {feature.replace("Export to CSV and Excel", "Export to CSV")}
                   </span>
                 </div>
               ))}
@@ -89,7 +91,11 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
                       }}
                     >
                       <span className="w-1 h-1 bg-slate-300 rounded-full mb-1"></span>
-                      {marker.toLocaleString()}
+                      {marker === 500 ? (
+                        <span className="font-bold text-green-600">FREE</span>
+                      ) : (
+                        marker.toLocaleString()
+                      )}
                     </div>
                   ))}
                 </div>
@@ -100,12 +106,18 @@ export function CreditPlanSlider({ creditPlans }: CreditPlanSliderProps) {
                   <SlidersHorizontal className="h-4 w-4 mr-2" />
                   <span>Estimated cost</span>
                 </div>
-                <div className="text-2xl font-bold">${estimatedCost}</div>
+                <div className="text-2xl font-bold">
+                  {estimatedCost === 0 ? (
+                    <span className="text-green-600">FREE</span>
+                  ) : (
+                    `$${estimatedCost}`
+                  )}
+                </div>
               </div>
             </div>
             
             <Button variant="outline" className="w-full">
-              Buy Credits
+              {creditAmount <= 500 ? "Get Free Credits" : "Buy Credits"}
             </Button>
           </div>
         </div>

@@ -8,7 +8,7 @@ export function PricingHeader() {
         Simple, Transparent Pricing
       </h2>
       <p className={`text-lg text-slate-600 ${withDelay(animationClasses.slideUp, 200)}`}>
-        Choose the plan that's right for your business. All plans include a 14-day free trial.
+        Sign up and sign in for 500 free credits.
       </p>
     </div>
   );
