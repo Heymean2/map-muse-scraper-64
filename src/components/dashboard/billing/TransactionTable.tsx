@@ -16,12 +16,12 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="whitespace-nowrap">Date</TableHead>
+            <TableHead className="w-[120px]">Date</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead className="text-right whitespace-nowrap">Amount</TableHead>
-            <TableHead className="whitespace-nowrap">Status</TableHead>
-            <TableHead className="text-right font-medium whitespace-nowrap">Credit Balance</TableHead>
-            <TableHead className="text-center w-28">Actions</TableHead>
+            <TableHead className="text-right w-[120px]">Amount</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="text-right w-[140px]">Credit Balance</TableHead>
+            <TableHead className="text-center w-[150px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -47,7 +47,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                   transaction.running_balance : 
                   '-'}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center">
                 <TransactionActions transaction={transaction} />
               </TableCell>
             </TableRow>

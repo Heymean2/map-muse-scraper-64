@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { FileText, Receipt, Loader2 } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { generateInvoice } from "@/services/paypal/generateInvoice";
 import { toast } from "sonner";
@@ -39,17 +39,16 @@ export function InvoiceButton({ transactionId }: InvoiceButtonProps) {
     <Button 
       variant="ghost" 
       size="sm"
-      className="flex items-center gap-1 text-xs whitespace-nowrap"
       onClick={handleInvoice}
       disabled={isLoading}
-      title="Generate invoice PDF"
+      className="flex items-center gap-1 p-0 h-auto"
     >
       {isLoading ? (
-        <Loader2 className="h-3 w-3 animate-spin" />
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <FileText className="h-3 w-3" />
+        <FileText className="h-5 w-5" />
       )}
-      <span>Invoice</span>
+      <span className="ml-1">Invoice</span>
     </Button>
   );
 }
