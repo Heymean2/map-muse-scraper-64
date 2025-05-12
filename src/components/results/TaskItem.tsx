@@ -12,7 +12,7 @@ export default function TaskItem({ task, onSelect }: TaskItemProps) {
   return (
     <div 
       className="border rounded-lg p-4 cursor-pointer hover:bg-slate-50 transition-colors"
-      onClick={() => onSelect(task.task_id)}
+      onClick={() => task.task_id && onSelect(task.task_id)}
     >
       <div className="flex justify-between items-start">
         <div>

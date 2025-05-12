@@ -25,7 +25,7 @@ export interface UserPlanInfo {
 
 export interface ScrapingRequest {
   id?: number;
-  task_id?: string;
+  task_id?: string; // Represented as string but is a UUID in the database
   user_id?: string;
   keywords: string;
   country: string;
@@ -51,7 +51,7 @@ export interface ScrapingParams {
 
 export interface ScraperResponse {
   success: boolean;
-  task_id?: string;
+  task_id?: string; // Represented as string but is a UUID in the database
   error?: string;
 }
 

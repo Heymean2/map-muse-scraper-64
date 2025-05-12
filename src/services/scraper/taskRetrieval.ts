@@ -26,10 +26,11 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
       throw error;
     }
     
-    // Ensure created_at is present for all records
+    // Ensure created_at is present for all records and convert UUID to string
     return (data || []).map(item => ({
       ...item,
-      created_at: item.created_at || new Date().toISOString()
+      created_at: item.created_at || new Date().toISOString(),
+      task_id: item.task_id ? item.task_id.toString() : undefined
     }));
   } catch (error: any) {
     console.error("Error getting user scraping tasks:", error);
@@ -82,10 +83,11 @@ export async function getScrapingResults(
         return null;
       }
       
-      // Ensure created_at exists
+      // Ensure created_at exists and convert UUID to string
       const taskWithDefaults = {
         ...data,
-        created_at: data.created_at || new Date().toISOString()
+        created_at: data.created_at || new Date().toISOString(),
+        task_id: data.task_id ? data.task_id.toString() : undefined
       };
       
       // Create search_info object
@@ -115,10 +117,11 @@ export async function getScrapingResults(
         throw error;
       }
       
-      // Ensure created_at exists for all records
+      // Ensure created_at exists for all records and convert UUID to string
       const tasksWithDefaults = (data || []).map(item => ({
         ...item,
-        created_at: item.created_at || new Date().toISOString()
+        created_at: item.created_at || new Date().toISOString(),
+        task_id: item.task_id ? item.task_id.toString() : undefined
       }));
       
       return { tasks: tasksWithDefaults } as ScrapingResultMultiple;

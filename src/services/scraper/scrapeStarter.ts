@@ -124,7 +124,7 @@ export async function startScraping({
     
     return { 
       success: true, 
-      task_id: data.taskId // Use the server-generated taskId returned from the edge function
+      task_id: data.taskId // Now properly receiving a UUID as a string
     };
   } catch (error: any) {
     console.error("Error starting scraping:", error);
