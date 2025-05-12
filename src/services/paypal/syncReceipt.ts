@@ -15,9 +15,9 @@ export async function syncReceipt(transactionId: string): Promise<string | null>
       return null;
     }
     
-    // Call our receipt edge function with ID as query parameter
+    // Call our receipt edge function with ID in the body
     const response = await supabase.functions.invoke('getReceipt', {
-      queryParams: { id: transactionId }
+      body: { id: transactionId }
     });
     
     if (response.error) {

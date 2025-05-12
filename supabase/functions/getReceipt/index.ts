@@ -20,11 +20,10 @@ Deno.serve(async (req) => {
     const user = await authenticate(req);
     console.log("User authenticated:", user.id);
 
-    // Get the transaction ID from the URL
-    const url = new URL(req.url);
-    const transactionId = url.searchParams.get('id');
+    // Get the transaction ID from the request body
+    const { id: transactionId } = await req.json();
     
-    console.log("Transaction ID from query:", transactionId);
+    console.log("Transaction ID from body:", transactionId);
     
     if (!transactionId) {
       console.error("Missing transaction ID");
@@ -152,15 +151,7 @@ Deno.serve(async (req) => {
       const contentType = receiptResponse.headers.get('Content-Type') || 'application/pdf';
       console.log("Receipt content type:", contentType);
       
-      // Store the receipt in Supabase Storage
-      const fileName = `${user.id}/${transactionId}_receipt.${contentType.includes('pdf') ? 'pdf' : 'txt'}`;
-      console.log("Saving to storage as:", fileName);
-      
-      // Convert blob to arrayBuffer for upload
-      const arrayBuffer = await receiptContent.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      // Check if the storage bucket exists, if not create it
+      // Check if the storage bucket exists, create if it doesn't
       const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
       
@@ -177,6 +168,14 @@ Deno.serve(async (req) => {
           });
         }
       }
+      
+      // Store the receipt in Supabase Storage
+      const fileName = `${user.id}/${transactionId}_receipt.${contentType.includes('pdf') ? 'pdf' : 'txt'}`;
+      console.log("Saving to storage as:", fileName);
+      
+      // Convert blob to arrayBuffer for upload
+      const arrayBuffer = await receiptContent.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
       
       const { data: uploadData, error: uploadError } = await supabase
         .storage
