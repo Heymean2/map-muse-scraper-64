@@ -74,6 +74,21 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
     return () => setIsProcessing(false);
   }, []);
 
+  // Calculate the percentage for the progress bar
+  const calculateProgressWidth = () => {
+    // Calculate percentage - logarithmic scale for better visualization
+    // Min: 1,000, Max: 1,000,000 (dynamic range)
+    const minCredits = 1000;
+    const maxCredits = 1000000;
+    const range = maxCredits - minCredits;
+    
+    // Calculate percentage with more visible movement at lower values
+    const percentage = Math.log(creditAmount - minCredits + 1) / Math.log(range) * 100;
+    
+    // Ensure we have at least 5% filled and max 100%
+    return `${Math.max(5, Math.min(100, percentage))}%`;
+  };
+
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
@@ -108,7 +123,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
             <div className="h-8 bg-slate-100 rounded-full overflow-hidden relative">
               <div 
                 className="h-full bg-google-blue/40 transition-all duration-500"
-                style={{ width: `${Math.max(5, Math.min(100, (creditAmount / 10000)))}%` }}
+                style={{ width: calculateProgressWidth() }}
               ></div>
             </div>
           </div>
