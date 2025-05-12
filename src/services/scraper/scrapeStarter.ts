@@ -122,6 +122,33 @@ export async function startScraping({
       }
     }
     
+    // ADDED: Send the task to the backend for processing by calling checkRequests
+    if (data && data.taskId) {
+      try {
+        console.log("Sending task to backend for processing:", data.taskId);
+        const { error: checkError } = await supabase.functions.invoke('checkRequests', {
+          method: 'POST',
+          body: { 
+            taskId: data.taskId
+          },
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        
+        if (checkError) {
+          console.error("Error sending task to backend:", checkError);
+          // We don't want to fail the whole operation if this fails
+          // Just log it and continue
+        } else {
+          console.log("Successfully sent task to backend for processing");
+        }
+      } catch (checkErr) {
+        console.error("Exception sending task to backend:", checkErr);
+        // Again, we don't fail the whole operation if this fails
+      }
+    }
+    
     return { 
       success: true, 
       task_id: data.taskId // Now properly receiving a UUID as a string

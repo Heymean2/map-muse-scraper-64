@@ -43,6 +43,9 @@ export default function ScraperForm() {
         <p className={`text-lg text-slate-600 dark:text-slate-400 ${withDelay(animationClasses.slideUp, 200)}`}>
           Our intuitive interface makes it easy to extract the data you need from Google Maps.
         </p>
+        <p className={`text-sm text-slate-500 dark:text-slate-500 mt-2 ${withDelay(animationClasses.slideUp, 300)}`}>
+          When you start a scraping task, it's automatically sent to our backend for processing.
+        </p>
       </div>
 
       <div className="flex justify-center">
