@@ -77,10 +77,6 @@ export async function startScraping({
     const accessToken = refreshResult.session.access_token;
     console.log("Session refreshed successfully, token available:", !!accessToken);
     
-    // Generate a task ID client-side as a UUID string
-    const taskId = crypto.randomUUID();
-    console.log("Generated task ID on client:", taskId);
-    
     // Wait a moment for token to propagate
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -88,7 +84,6 @@ export async function startScraping({
     const { data, error } = await supabase.functions.invoke('start-scraping', {
       method: 'POST',
       body: { 
-        taskId,  // Send the client-generated UUID to the edge function
         keywords, 
         country, 
         states, 
@@ -129,7 +124,7 @@ export async function startScraping({
     
     return { 
       success: true, 
-      task_id: taskId // Return the client-generated task ID
+      task_id: data.taskId // Use the server-generated taskId returned from the edge function
     };
   } catch (error: any) {
     console.error("Error starting scraping:", error);

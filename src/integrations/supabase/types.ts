@@ -337,7 +337,7 @@ export type Database = {
           stage?: string | null
           states: string
           status?: string | null
-          task_id?: string
+          task_id: string
           updated_at?: string | null
           user_id: string
         }
