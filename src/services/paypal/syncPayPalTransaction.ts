@@ -224,7 +224,7 @@ async function updateTransactionInDatabase(
           payment_id: orderId,
           receipt_url: details.receiptUrl,
           metadata: {
-            ...existingTransaction.metadata,
+            ...(existingTransaction.metadata || {}),
             payer_email: details.payerEmail,
             synced_at: new Date().toISOString()
           }
