@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,6 +7,7 @@ import { Download, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { toast } from "sonner";
+import { TransactionReceipt } from "./TransactionReceipt";
 
 interface Transaction {
   id: string;
@@ -19,6 +19,8 @@ interface Transaction {
   credits_purchased?: number;
   billing_period?: string;
   running_balance?: number;
+  payment_id?: string;
+  receipt_url?: string;
 }
 
 export function TransactionHistory() {
@@ -110,7 +112,9 @@ export function TransactionHistory() {
           plan_name: transaction.pricing_plans?.name || 'Credit Purchase',
           credits_purchased: transaction.credits_purchased,
           billing_period: transaction.billing_period,
-          running_balance: runningBalance
+          running_balance: runningBalance,
+          payment_id: transaction.payment_id,
+          receipt_url: transaction.receipt_url
         };
         
         return transObj;
@@ -270,7 +274,7 @@ Credit Balance After Transaction: ${transaction.running_balance}
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right font-medium">Credit Balance</TableHead>
-                  <TableHead className="text-center">Receipt</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -306,10 +310,14 @@ Credit Balance After Transaction: ${transaction.running_balance}
                         transaction.running_balance : 
                         '-'}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center flex items-center justify-center space-x-2">
                       <Button variant="ghost" size="sm" onClick={() => generateReceipt(transaction)}>
                         <Download className="h-4 w-4" />
                       </Button>
+                      <TransactionReceipt 
+                        receiptUrl={transaction.receipt_url} 
+                        transactionId={transaction.id} 
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
