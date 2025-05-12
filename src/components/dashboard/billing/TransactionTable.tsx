@@ -5,7 +5,6 @@ import { TransactionDescription } from "./TransactionDescription";
 import { TransactionStatus } from "./TransactionStatus";
 import { TransactionActions } from "./TransactionActions";
 import { Transaction } from "./types/transaction";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -13,8 +12,8 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions }: TransactionTableProps) {
   return (
-    <ScrollArea className="w-full" style={{ maxHeight: "600px" }}>
-      <div className="w-full min-w-max">
+    <div className="w-full">
+      <div className="w-full min-w-[700px]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -61,6 +60,6 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
           </TableBody>
         </Table>
       </div>
-    </ScrollArea>
+    </div>
   );
 }

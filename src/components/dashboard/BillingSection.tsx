@@ -17,7 +17,6 @@ import { Json } from "@/integrations/supabase/types";
 import { UserPlanInfo } from "@/services/scraper/types";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PlanData {
   id: string | number;
@@ -91,7 +90,7 @@ export default function BillingSection() {
   };
   
   return (
-    <Container className="max-w-screen-xl">
+    <Container className="max-w-screen-xl px-2 sm:px-4 md:px-6">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Pricing Plans</h1>
@@ -110,7 +109,7 @@ export default function BillingSection() {
         </Button>
       </div>
       
-      <ScrollArea className="w-full">
+      <div className="w-full overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="subscription">Monthly Subscription</TabsTrigger>
@@ -178,7 +177,7 @@ export default function BillingSection() {
             </>
           )}
         </Tabs>
-      </ScrollArea>
+      </div>
       
       <Separator className="my-8" />
       
