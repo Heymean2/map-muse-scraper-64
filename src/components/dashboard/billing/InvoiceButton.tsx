@@ -41,14 +41,14 @@ export function InvoiceButton({ transactionId }: InvoiceButtonProps) {
       size="sm"
       onClick={handleInvoice}
       disabled={isLoading}
-      className="flex items-center gap-1 p-0 h-auto"
+      className="flex items-center gap-1 px-3"
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <FileText className="h-5 w-5" />
+        <FileText className="h-4 w-4" />
       )}
-      <span className="ml-1">Invoice</span>
+      <span>Invoice</span>
     </Button>
   );
 }

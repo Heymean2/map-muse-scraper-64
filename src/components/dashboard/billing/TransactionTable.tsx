@@ -21,7 +21,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
             <TableHead className="text-right w-[120px]">Amount</TableHead>
             <TableHead className="w-[120px]">Status</TableHead>
             <TableHead className="text-right w-[140px]">Credit Balance</TableHead>
-            <TableHead className="text-center w-[150px]">Actions</TableHead>
+            <TableHead className="text-center w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
