@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UserPlanInfo } from "@/services/scraper/types";
@@ -17,6 +17,7 @@ interface CreditPackageProps {
 
 export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackageProps) {
   const [creditAmount, setCreditAmount] = useState<number>(1000);
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
   // Format price with proper precision
@@ -31,8 +32,19 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
       return;
     }
     
-    // Navigate to checkout page with custom amount
-    navigate(`/checkout?planId=credits&planType=credits&creditAmount=${creditAmount}`);
+    // Show processing state
+    setIsProcessing(true);
+    toast.info("Preparing checkout...");
+    
+    try {
+      // Navigate to checkout page with custom amount and track analytics
+      console.log(`Redirecting to checkout with ${creditAmount} credits at ${pricePerCredit} per credit`);
+      navigate(`/checkout?planId=credits&planType=credits&creditAmount=${creditAmount}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      toast.error("Failed to proceed to checkout");
+      setIsProcessing(false);
+    }
   };
   
   // Handle slider change
@@ -52,6 +64,11 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
   // Calculate total price
   const totalPrice = (creditAmount * pricePerCredit).toFixed(2);
   const formattedPricePerCredit = formatPricePerCredit(pricePerCredit);
+
+  // Reset processing state when navigating back
+  useEffect(() => {
+    return () => setIsProcessing(false);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -128,10 +145,20 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
         </div>
         <Button 
           onClick={handlePurchase}
+          disabled={isProcessing}
           className="bg-google-blue hover:bg-google-blue/90 text-white gap-2 px-6 rounded-lg hover:shadow-md transition-all"
         >
-          <ShoppingCart className="h-4 w-4" />
-          Purchase Credits
+          {isProcessing ? (
+            <>
+              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></span>
+              Processing...
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              Purchase Credits
+            </>
+          )}
         </Button>
       </div>
     </div>

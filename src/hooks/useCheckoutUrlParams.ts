@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: any) => void) {
   const location = useLocation();
@@ -22,7 +23,14 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
     }
     
     if (creditAmountParam) {
-      setCreditAmount(parseInt(creditAmountParam));
+      const parsedAmount = parseInt(creditAmountParam);
+      if (!isNaN(parsedAmount) && parsedAmount >= 1000) {
+        setCreditAmount(parsedAmount);
+      } else {
+        // If invalid credit amount, set default
+        setCreditAmount(1000);
+        toast.error("Invalid credit amount. Using minimum of 1,000 credits.");
+      }
     }
     
     // If we have plansData and a planId parameter, set the selected plan
@@ -48,12 +56,18 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
           
           setCreditPrice(pricePerCredit);
           console.log("Credit plan selected:", creditPlan, "Price per credit:", pricePerCredit);
+        } else {
+          console.error("Credit plan not found in available plans");
+          toast.error("Credit plan not found. Please try again.");
         }
       } else {
         // For subscription plans, find by ID
         const plan = plansData.find(p => String(p.id) === planIdParam);
         if (plan) {
           setSelectedPlan(plan);
+        } else {
+          console.error("Subscription plan not found with ID:", planIdParam);
+          toast.error("Selected plan not found. Please try again.");
         }
       }
     } else if (plansData && plansData.length > 0 && !planIdParam) {
@@ -75,6 +89,7 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
 
           if (error) {
             console.error("Error fetching credit plan:", error);
+            toast.error("Failed to load credit plan. Please try again.");
             return;
           }
 
@@ -92,6 +107,7 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
           }
         } catch (error) {
           console.error("Error in credit plan fetch:", error);
+          toast.error("Failed to load credit plan information.");
         }
       };
 
@@ -101,7 +117,7 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
 
   // Update URL when credit amount changes
   useEffect(() => {
-    if (planType === 'credits') {
+    if (planType === 'credits' && location.search.includes('creditAmount=')) {
       const params = new URLSearchParams(location.search);
       params.set('creditAmount', creditAmount.toString());
       
