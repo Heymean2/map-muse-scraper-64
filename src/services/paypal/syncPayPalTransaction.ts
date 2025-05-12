@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -214,7 +215,15 @@ async function updateTransactionInDatabase(
     
     if (existingTransaction) {
       // Update existing transaction
-      const existingMetadata = existingTransaction.metadata || {};
+      // Ensure metadata is an object before spreading
+      let existingMetadata = {};
+      
+      // Check if metadata exists and is an object
+      if (existingTransaction.metadata && 
+          typeof existingTransaction.metadata === 'object' && 
+          existingTransaction.metadata !== null) {
+        existingMetadata = existingTransaction.metadata;
+      }
       
       const { data, error } = await supabase
         .from('billing_transactions')
