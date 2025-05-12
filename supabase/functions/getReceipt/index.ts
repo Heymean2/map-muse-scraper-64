@@ -147,9 +147,23 @@ Deno.serve(async (req) => {
       }
       
       // Get receipt content
-      const receiptContent = await receiptResponse.blob();
+      let receiptContent;
       const contentType = receiptResponse.headers.get('Content-Type') || 'application/pdf';
       console.log("Receipt content type:", contentType);
+      
+      // For JSON content, convert it to a formatted text file
+      let fileExtension;
+      if (contentType.includes('json')) {
+        // Get the JSON data
+        const jsonData = await receiptResponse.json();
+        // Convert to pretty-printed text for storage
+        receiptContent = new TextEncoder().encode(JSON.stringify(jsonData, null, 2));
+        fileExtension = 'txt'; // Store as text file instead of json
+      } else {
+        // For non-JSON content, get as blob
+        receiptContent = new Uint8Array(await receiptResponse.arrayBuffer());
+        fileExtension = contentType.includes('pdf') ? 'pdf' : 'txt';
+      }
       
       // Ensure storage bucket exists (improved error handling for existing bucket)
       try {
@@ -185,59 +199,63 @@ Deno.serve(async (req) => {
       }
       
       // Store the receipt in Supabase Storage
-      const fileName = `${user.id}/${transactionId}_receipt.${contentType.includes('pdf') ? 'pdf' : 'txt'}`;
+      const fileName = `${user.id}/${transactionId}_receipt.${fileExtension}`;
       console.log("Saving to storage as:", fileName);
       
-      // Convert blob to arrayBuffer for upload
-      const arrayBuffer = await receiptContent.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      const { data: uploadData, error: uploadError } = await supabase
-        .storage
-        .from(STORAGE_BUCKET)
-        .upload(fileName, uint8Array, {
-          contentType,
-          upsert: true
-        });
-      
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        return new Response(JSON.stringify({ error: "Failed to store receipt" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-      }
-      
-      console.log("File uploaded successfully");
-      
-      // Update the transaction with the file path
-      const { error: updateError } = await supabase
-        .from('billing_transactions')
-        .update({ receipt_file_path: fileName })
-        .eq('id', transactionId);
+      try {
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
+          .from(STORAGE_BUCKET)
+          .upload(fileName, receiptContent, {
+            contentType: 'text/plain', // Always use text/plain content type
+            upsert: true
+          });
         
-      if (updateError) {
-        console.error("Error updating transaction:", updateError);
-      }
-      
-      // Generate a signed URL for the uploaded file
-      const { data: signedUrl, error: signedUrlError } = await supabase
-        .storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(fileName, 60); // 60 second expiry
-      
-      if (signedUrlError) {
-        console.error("Error creating signed URL:", signedUrlError);
-        return new Response(JSON.stringify({ error: "Failed to generate receipt URL" }), {
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          return new Response(JSON.stringify({ error: "Failed to store receipt" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+        
+        console.log("File uploaded successfully");
+        
+        // Update the transaction with the file path
+        const { error: updateError } = await supabase
+          .from('billing_transactions')
+          .update({ receipt_file_path: fileName })
+          .eq('id', transactionId);
+          
+        if (updateError) {
+          console.error("Error updating transaction:", updateError);
+        }
+        
+        // Generate a signed URL for the uploaded file
+        const { data: signedUrl, error: signedUrlError } = await supabase
+          .storage
+          .from(STORAGE_BUCKET)
+          .createSignedUrl(fileName, 60); // 60 second expiry
+        
+        if (signedUrlError) {
+          console.error("Error creating signed URL:", signedUrlError);
+          return new Response(JSON.stringify({ error: "Failed to generate receipt URL" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+        
+        console.log("Returning signed URL for downloaded receipt");
+        return new Response(JSON.stringify({ url: signedUrl.signedUrl }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      } catch (error) {
+        console.error("File upload error:", error);
+        return new Response(JSON.stringify({ error: "Failed to store receipt", details: error.message }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
-      
-      console.log("Returning signed URL for downloaded receipt");
-      return new Response(JSON.stringify({ url: signedUrl.signedUrl }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
     }
     
     // No receipt available
