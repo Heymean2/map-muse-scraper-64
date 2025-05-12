@@ -82,7 +82,7 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
       // Format the transactions and calculate running balance
       // Start with 0 and build up the balance chronologically
       let runningBalance = 0;
-      const formattedTransactions = data.map((transaction: any) => {
+      const formattedTransactions: Transaction[] = data.map((transaction: any) => {
         // Only add credits to the balance if the transaction is completed
         if (transaction.credits_purchased && transaction.status === 'completed') {
           runningBalance += transaction.credits_purchased;
@@ -90,6 +90,8 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
         
         return {
           id: transaction.id,
+          user_id: transaction.user_id,
+          plan_id: transaction.plan_id,
           amount: transaction.amount,
           payment_method: transaction.payment_method,
           status: transaction.status,
@@ -99,7 +101,10 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
           billing_period: transaction.billing_period,
           running_balance: runningBalance,
           payment_id: transaction.payment_id,
-          receipt_url: transaction.receipt_url
+          receipt_url: transaction.receipt_url,
+          currency: transaction.currency || 'USD',
+          receipt_file_path: transaction.receipt_file_path,
+          invoice_file_path: transaction.invoice_file_path
         };
       });
       
