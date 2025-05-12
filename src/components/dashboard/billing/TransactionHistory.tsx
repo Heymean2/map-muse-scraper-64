@@ -16,11 +16,13 @@ interface Transaction {
   plan_name?: string;
   credits_purchased?: number;
   billing_period?: string;
+  running_balance?: number;
 }
 
 export function TransactionHistory() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentCredits, setCurrentCredits] = useState(0);
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -29,6 +31,17 @@ export function TransactionHistory() {
       
       if (!user) {
         return;
+      }
+      
+      // Get user's current credits first
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileData) {
+        setCurrentCredits(profileData.credits || 0);
       }
       
       const { data, error } = await supabase
@@ -45,17 +58,29 @@ export function TransactionHistory() {
         return;
       }
       
-      // Format the transactions
-      const formattedTransactions = data.map((transaction: any) => ({
-        id: transaction.id,
-        amount: transaction.amount,
-        payment_method: transaction.payment_method,
-        status: transaction.status,
-        transaction_date: transaction.transaction_date,
-        plan_name: transaction.pricing_plans?.name || 'Credit Purchase',
-        credits_purchased: transaction.credits_purchased,
-        billing_period: transaction.billing_period
-      }));
+      // Format the transactions and calculate running balance
+      let runningBalance = currentCredits;
+      const formattedTransactions = data.map((transaction: any) => {
+        const transObj = {
+          id: transaction.id,
+          amount: transaction.amount,
+          payment_method: transaction.payment_method,
+          status: transaction.status,
+          transaction_date: transaction.transaction_date,
+          plan_name: transaction.pricing_plans?.name || 'Credit Purchase',
+          credits_purchased: transaction.credits_purchased,
+          billing_period: transaction.billing_period,
+          running_balance: runningBalance
+        };
+        
+        // Adjust running balance by subtracting the credits purchased
+        // for the next transaction (moving backwards in time)
+        if (transaction.credits_purchased && transaction.status === 'completed') {
+          runningBalance -= transaction.credits_purchased;
+        }
+        
+        return transObj;
+      });
       
       setTransactions(formattedTransactions);
     } catch (error) {
@@ -69,7 +94,7 @@ export function TransactionHistory() {
     fetchTransactions();
   }, []);
 
-  // Function to generate a simple receipt for a transaction
+  // Function to generate a receipt for a transaction - now with running credit balance
   const generateReceipt = (transaction: Transaction) => {
     const receiptContent = `
 Receipt
@@ -82,6 +107,7 @@ Status: ${transaction.status}
 ${transaction.credits_purchased ? `Credits Purchased: ${transaction.credits_purchased}` : ''}
 ${transaction.plan_name ? `Plan: ${transaction.plan_name}` : ''}
 ${transaction.billing_period ? `Billing Period: ${transaction.billing_period}` : ''}
+${transaction.running_balance !== undefined ? `Credit Balance After Transaction: ${transaction.running_balance}` : ''}
     `.trim();
     
     const blob = new Blob([receiptContent], { type: 'text/plain' });
@@ -116,6 +142,7 @@ ${transaction.billing_period ? `Billing Period: ${transaction.billing_period}` :
                 <TableHead>Description</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Credit Balance</TableHead>
                 <TableHead>Receipt</TableHead>
               </TableRow>
             </TableHeader>
@@ -138,6 +165,9 @@ ${transaction.billing_period ? `Billing Period: ${transaction.billing_period}` :
                       {transaction.status === 'completed' ? 'Completed' : 
                        transaction.status === 'pending' ? 'Pending' : 'Failed'}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    {transaction.running_balance !== undefined ? transaction.running_balance : '-'}
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => generateReceipt(transaction)}>

@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Palette, 
-  Bell, 
-  Languages, 
   Database, 
   UserCircle, 
   Lock,
@@ -67,6 +65,7 @@ export function SettingsPageHeader({ title, showBackButton = false }: SettingsPa
 }
 
 export default function SettingsCardsDashboard() {
+  // Removed Language and Notifications categories
   const categories = [
     {
       icon: UserCircle,
@@ -83,25 +82,11 @@ export default function SettingsCardsDashboard() {
       iconColor: "bg-purple-50 text-purple-600"
     },
     {
-      icon: Bell,
-      title: "Notifications",
-      description: "Configure how and when you receive notifications",
-      to: "/dashboard/settings/notifications",
-      iconColor: "bg-yellow-50 text-yellow-600"
-    },
-    {
       icon: Lock,
       title: "Security",
       description: "Update your password and security settings",
       to: "/dashboard/settings/security",
       iconColor: "bg-red-50 text-red-600"
-    },
-    {
-      icon: Languages,
-      title: "Language & Region",
-      description: "Set your preferred language and regional settings",
-      to: "/dashboard/settings/language",
-      iconColor: "bg-green-50 text-green-600"
     },
     {
       icon: Database,
@@ -114,7 +99,7 @@ export default function SettingsCardsDashboard() {
 
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {categories.map((category) => (
           <SettingsCategory 
             key={category.title}

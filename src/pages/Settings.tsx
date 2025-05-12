@@ -6,15 +6,13 @@ import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Import our new component files
+// Import our component files
 import SettingsHeader from "@/components/settings/SettingsHeader";
 import SettingsNavigation from "@/components/settings/SettingsNavigation";
 import SettingsCardsDashboard from "@/components/settings/SettingsCardsDashboard";
 import PreferencesTab from "@/components/settings/PreferencesTab";
-import NotificationsTab from "@/components/settings/NotificationsTab";
 import AccountSettings from "@/components/settings/AccountSettings";
 import SecurityTab from "@/components/settings/SecurityTab";
-import LanguageTab from "@/components/settings/LanguageTab";
 import DataPrivacyTab from "@/components/settings/DataPrivacyTab";
 
 export default function Settings() {
@@ -47,14 +45,6 @@ export default function Settings() {
                 
                 <Route path="appearance" element={
                   <PreferencesTab />
-                } />
-                
-                <Route path="notifications" element={
-                  <NotificationsTab />
-                } />
-                
-                <Route path="language" element={
-                  <LanguageTab />
                 } />
                 
                 <Route path="data" element={

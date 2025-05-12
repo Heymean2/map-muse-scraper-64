@@ -4,8 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Palette, 
-  Bell, 
-  Languages, 
   Database, 
   UserCircle, 
   Lock,
@@ -34,7 +32,7 @@ export default function SettingsNavigation() {
     return activePath === path;
   };
   
-  // Navigation items
+  // Navigation items - removed Language and Notifications
   const navigationItems: NavigationItem[] = [
     {
       icon: Home,
@@ -55,22 +53,10 @@ export default function SettingsNavigation() {
       iconColor: "bg-purple-50 text-purple-600"
     },
     {
-      icon: Bell,
-      title: "Notifications",
-      path: "/dashboard/settings/notifications",
-      iconColor: "bg-yellow-50 text-yellow-600"
-    },
-    {
       icon: Lock,
       title: "Security",
       path: "/dashboard/settings/security",
       iconColor: "bg-red-50 text-red-600"
-    },
-    {
-      icon: Languages,
-      title: "Language",
-      path: "/dashboard/settings/language",
-      iconColor: "bg-green-50 text-green-600"
     },
     {
       icon: Database,
