@@ -20,6 +20,7 @@ export type Database = {
           payment_id: string | null
           payment_method: string
           plan_id: number | null
+          receipt_file_path: string | null
           receipt_url: string | null
           status: string
           transaction_date: string | null
@@ -35,6 +36,7 @@ export type Database = {
           payment_id?: string | null
           payment_method: string
           plan_id?: number | null
+          receipt_file_path?: string | null
           receipt_url?: string | null
           status: string
           transaction_date?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string
           plan_id?: number | null
+          receipt_file_path?: string | null
           receipt_url?: string | null
           status?: string
           transaction_date?: string | null

@@ -1,6 +1,9 @@
 
-import { ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { syncReceipt } from "@/services/paypal/syncReceipt";
+import { toast } from "sonner";
 
 interface TransactionReceiptProps {
   receiptUrl?: string | null;
@@ -8,6 +11,28 @@ interface TransactionReceiptProps {
 }
 
 export function TransactionReceipt({ receiptUrl, transactionId }: TransactionReceiptProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Handle receipt download or view
+  const handleReceipt = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Try to sync and get the receipt
+      const receiptUrl = await syncReceipt(transactionId);
+      
+      if (receiptUrl) {
+        // Open the receipt in a new tab
+        window.open(receiptUrl, '_blank');
+      }
+    } catch (error) {
+      console.error("Error handling receipt:", error);
+      toast.error("Failed to retrieve receipt");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   if (!receiptUrl) {
     return null;
   }
@@ -17,10 +42,15 @@ export function TransactionReceipt({ receiptUrl, transactionId }: TransactionRec
       variant="ghost" 
       size="sm"
       className="flex items-center gap-1 text-xs"
-      onClick={() => window.open(receiptUrl, '_blank')}
-      title="View receipt on PayPal"
+      onClick={handleReceipt}
+      disabled={isLoading}
+      title="Download transaction receipt"
     >
-      <ExternalLink className="h-3 w-3" />
+      {isLoading ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <FileDown className="h-3 w-3" />
+      )}
       <span>Receipt</span>
     </Button>
   );
