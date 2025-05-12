@@ -12,46 +12,48 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions }: TransactionTableProps) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right font-medium">Credit Balance</TableHead>
-          <TableHead className="text-center">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {transactions.map((transaction) => (
-          <TableRow key={transaction.id}>
-            <TableCell className="whitespace-nowrap">
-              {format(new Date(transaction.transaction_date), 'MMM d, yyyy')}
-            </TableCell>
-            <TableCell>
-              <TransactionDescription 
-                credits_purchased={transaction.credits_purchased}
-                plan_name={transaction.plan_name}
-              />
-            </TableCell>
-            <TableCell className="text-right font-medium">
-              ${transaction.amount.toFixed(2)}
-            </TableCell>
-            <TableCell>
-              <TransactionStatus status={transaction.status} />
-            </TableCell>
-            <TableCell className="text-right font-medium">
-              {transaction.running_balance !== undefined ? 
-                transaction.running_balance : 
-                '-'}
-            </TableCell>
-            <TableCell className="text-center">
-              <TransactionActions transaction={transaction} />
-            </TableCell>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="whitespace-nowrap">Date</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Amount</TableHead>
+            <TableHead className="whitespace-nowrap">Status</TableHead>
+            <TableHead className="text-right font-medium whitespace-nowrap">Credit Balance</TableHead>
+            <TableHead className="text-center w-28">Actions</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((transaction) => (
+            <TableRow key={transaction.id}>
+              <TableCell className="whitespace-nowrap">
+                {format(new Date(transaction.transaction_date), 'MMM d, yyyy')}
+              </TableCell>
+              <TableCell className="max-w-[200px]">
+                <TransactionDescription 
+                  credits_purchased={transaction.credits_purchased}
+                  plan_name={transaction.plan_name}
+                />
+              </TableCell>
+              <TableCell className="text-right font-medium whitespace-nowrap">
+                ${transaction.amount.toFixed(2)}
+              </TableCell>
+              <TableCell>
+                <TransactionStatus status={transaction.status} />
+              </TableCell>
+              <TableCell className="text-right font-medium whitespace-nowrap">
+                {transaction.running_balance !== undefined ? 
+                  transaction.running_balance : 
+                  '-'}
+              </TableCell>
+              <TableCell>
+                <TransactionActions transaction={transaction} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

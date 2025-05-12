@@ -12,13 +12,14 @@ interface TransactionActionsProps {
 
 export function TransactionActions({ transaction }: TransactionActionsProps) {
   return (
-    <div className="flex items-center justify-center space-x-2">
+    <div className="flex items-center justify-center gap-1 flex-wrap">
       <Button 
         variant="ghost" 
         size="sm" 
         onClick={() => downloadReceipt(transaction)}
+        className="text-xs"
       >
-        <Download className="h-4 w-4" />
+        <Download className="h-3 w-3" />
       </Button>
       
       <TransactionReceipt 
