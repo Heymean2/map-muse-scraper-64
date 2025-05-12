@@ -17,5 +17,7 @@ export {
   getScraperCountries,
   getScraperStates,
   getScraperDataTypes,
-  getScraperRatings
+  getScraperRatings,
+  sendTaskToBackend
 } from './scraper/index';
+
