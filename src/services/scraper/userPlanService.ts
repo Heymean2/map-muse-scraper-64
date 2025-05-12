@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlanInfo } from "./types";
 import { DEFAULT_FREE_TIER_LIMIT } from "./config";
@@ -72,7 +71,7 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
     const isSubscriptionPlan = planData?.billing_period === 'monthly' && !isFreePlan;
     const isExceeded = isFreePlan && totalRows > freeRowsLimit;
     const credits = profileData?.credits || 0;
-    const price_per_credit = planData?.price_per_credit || 0.001;
+    const price_per_credit = planData?.price_per_credit || 0.00299; // Ensure we have a default value
     
     // Check if user has both a subscription plan and credits
     const hasBothPlanTypes = isSubscriptionPlan && credits > 0;
