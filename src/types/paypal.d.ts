@@ -24,6 +24,24 @@ export interface PayPalTransactionDetails {
   };
 }
 
+// Transaction structure returned from PayPal API
+export interface PayPalTransaction {
+  id: string;
+  status: string;
+  amount: {
+    value: string;
+    currency_code: string;
+  };
+  payer: {
+    email_address: string;
+  };
+  links: Array<{
+    href: string;
+    rel: string;
+    method: string;
+  }>;
+}
+
 // Extending the PayPalScriptOptions to match our usage
 export interface PayPalScriptOptions extends ReactPayPalScriptOptions {
   clientId: string;
