@@ -36,7 +36,7 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
           pricing_plans (name)
         `)
         .eq('user_id', user.id)
-        .order('transaction_date', { ascending: true }); // Chronological order (oldest first)
+        .order('transaction_date', { ascending: false }); // Newest first
       
       if (error) {
         console.error('Error fetching transactions:', error);
@@ -51,20 +51,13 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
           transactions: [], 
           totalPages: 1, 
           isLoading: false,
-          currentCredits: 0 // If no transactions, set credits to 0
+          currentCredits: 0
         }));
         return;
       }
       
-      // Format the transactions and calculate running balance
-      // Start with 0 and build up the balance chronologically based on credits_purchased
-      let runningBalance = 0;
+      // Format the transactions
       const formattedTransactions: Transaction[] = data.map((transaction: any) => {
-        // Only add credits to the balance if the transaction is completed
-        if (transaction.credits_purchased && transaction.status === 'completed') {
-          runningBalance += transaction.credits_purchased;
-        }
-        
         return {
           id: transaction.id,
           user_id: transaction.user_id,
@@ -76,7 +69,6 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
           plan_name: transaction.pricing_plans?.name || 'Credit Purchase',
           credits_purchased: transaction.credits_purchased || 0,
           billing_period: transaction.billing_period,
-          running_balance: runningBalance,
           payment_id: transaction.payment_id,
           receipt_url: transaction.receipt_url,
           currency: transaction.currency || 'USD',
@@ -85,19 +77,16 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
         };
       });
       
-      // Reverse to display newest first in the UI
-      const reversedTransactions = [...formattedTransactions].reverse();
-      
-      // Get the current total credits from the last transaction's running balance
-      const totalAvailableCredits = formattedTransactions.length > 0 
-        ? formattedTransactions[formattedTransactions.length - 1].running_balance || 0
-        : 0;
+      // Get the current total credits by summing up all completed credit purchase transactions
+      const totalAvailableCredits = formattedTransactions
+        .filter(t => t.status === 'completed' && t.credits_purchased)
+        .reduce((sum, transaction) => sum + (transaction.credits_purchased || 0), 0);
       
       setState(prev => ({
         ...prev,
-        transactions: reversedTransactions,
+        transactions: formattedTransactions,
         currentCredits: totalAvailableCredits,
-        totalPages: Math.max(1, Math.ceil(reversedTransactions.length / transactionsPerPage)),
+        totalPages: Math.max(1, Math.ceil(formattedTransactions.length / transactionsPerPage)),
         isLoading: false,
         hasRetried: false
       }));

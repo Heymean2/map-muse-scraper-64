@@ -12,7 +12,7 @@ export function TransactionDescription({ credits_purchased, plan_name }: Transac
       <div className="flex items-center">
         <CreditCard className="h-4 w-4 mr-1 text-google-blue" />
         <span className="font-medium text-google-blue">
-          {credits_purchased.toLocaleString()} Credits Purchase
+          {credits_purchased.toLocaleString()} Credits
         </span>
         <ArrowUp className="h-4 w-4 ml-1 text-green-600" />
       </div>

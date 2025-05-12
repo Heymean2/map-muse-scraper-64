@@ -43,9 +43,9 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                 <TransactionStatus status={transaction.status} />
               </TableCell>
               <TableCell className="text-right font-medium whitespace-nowrap">
-                {transaction.running_balance !== undefined ? (
+                {transaction.credits_purchased !== undefined && transaction.credits_purchased !== null ? (
                   <span className="font-bold text-google-blue">
-                    {transaction.running_balance.toLocaleString()}
+                    {transaction.credits_purchased.toLocaleString()}
                   </span>
                 ) : (
                   '-'

@@ -1,5 +1,4 @@
 
-import { Card } from "@/components/ui/card";
 import { ArrowUpCircle } from "lucide-react";
 
 interface CreditBalanceDisplayProps {
