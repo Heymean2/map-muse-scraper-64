@@ -3,7 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import pdfMake from "https://esm.sh/pdfmake@0.2.7";
 import { TDocumentDefinitions } from "https://esm.sh/pdfmake@0.2.7";
 
 // Set up storage bucket name constants
@@ -122,106 +121,6 @@ serve(async (req) => {
     // Generate a unique invoice number
     const invoiceNumber = `INV-${transactionId.substring(0, 8).toUpperCase()}`;
 
-    // Create PDF definition
-    const docDefinition: TDocumentDefinitions = {
-      content: [
-        { text: 'INVOICE', style: 'header' },
-        { text: invoiceNumber, style: 'invoiceNumber' },
-        { text: `Date: ${formattedDate}`, style: 'date' },
-        
-        { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1 }] },
-        
-        { text: 'Billed To:', style: 'subheader', margin: [0, 20, 0, 5] },
-        { text: userProfile.display_name || userProfile.email, style: 'customerInfo' },
-        { text: userProfile.email, style: 'customerInfo' },
-        
-        { text: 'Items:', style: 'subheader', margin: [0, 20, 0, 10] },
-        {
-          table: {
-            headerRows: 1,
-            widths: ['*', 'auto', 'auto', 'auto'],
-            body: [
-              ['Description', 'Qty', 'Unit Price', 'Amount'],
-              [
-                transaction.pricing_plans.name + 
-                (transaction.credits_purchased ? 
-                  ` (${transaction.credits_purchased} Credits)` : 
-                  ` (${transaction.pricing_plans.billing_period} plan)`),
-                '1',
-                `$${transaction.amount.toFixed(2)}`,
-                `$${transaction.amount.toFixed(2)}`
-              ]
-            ]
-          }
-        },
-        
-        {
-          table: {
-            widths: ['*', 'auto'],
-            body: [
-              ['', ''],
-              ['Total', `$${transaction.amount.toFixed(2)}`]
-            ]
-          },
-          layout: 'noBorders',
-          style: 'totalTable',
-          margin: [0, 30, 0, 0]
-        },
-        
-        { text: 'Payment Information:', style: 'subheader', margin: [0, 30, 0, 5] },
-        { text: `Payment Method: ${transaction.payment_method || 'PayPal'}`, style: 'paymentInfo' },
-        { text: `Transaction ID: ${transaction.payment_id || 'Not available'}`, style: 'paymentInfo' },
-        { text: `Status: ${transaction.status}`, style: 'paymentInfo' },
-        
-        { text: 'Thank you for your business!', style: 'thankYou', margin: [0, 30, 0, 0] }
-      ],
-      styles: {
-        header: {
-          fontSize: 24,
-          bold: true,
-          alignment: 'center',
-          margin: [0, 0, 0, 5]
-        },
-        invoiceNumber: {
-          fontSize: 14,
-          alignment: 'center',
-          margin: [0, 0, 0, 20]
-        },
-        date: {
-          fontSize: 12,
-          alignment: 'right'
-        },
-        subheader: {
-          fontSize: 16,
-          bold: true
-        },
-        customerInfo: {
-          fontSize: 12,
-          margin: [0, 0, 0, 2]
-        },
-        totalTable: {
-          margin: [0, 10, 0, 0],
-          alignment: 'right',
-          bold: true
-        },
-        paymentInfo: {
-          fontSize: 12,
-          margin: [0, 0, 0, 2]
-        },
-        thankYou: {
-          fontSize: 14,
-          bold: true,
-          alignment: 'center'
-        }
-      },
-      defaultStyle: {
-        fontSize: 12
-      }
-    };
-
-    // Generate the PDF content
-    console.log("Generating PDF invoice");
-    
     // Create a simple text-based invoice since PDF generation is challenging in Deno environment
     const invoiceText = `
 INVOICE: ${invoiceNumber}

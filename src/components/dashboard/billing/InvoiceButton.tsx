@@ -23,6 +23,9 @@ export function InvoiceButton({ transactionId }: InvoiceButtonProps) {
       if (invoiceUrl) {
         // Open the invoice in a new tab
         window.open(invoiceUrl, '_blank');
+        toast.success("Invoice opened successfully");
+      } else {
+        toast.error("Failed to generate invoice");
       }
     } catch (error) {
       console.error("Error handling invoice:", error);
