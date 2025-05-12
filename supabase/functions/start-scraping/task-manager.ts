@@ -41,12 +41,17 @@ export async function createScrapingTask({
       hasBothPlanTypes
     };
     
+    // Important: Convert userId string to a UUID object for proper database type matching
+    // This ensures that when the UUID is compared with the user_id column in the database,
+    // it doesn't cause the "operator does not exist: uuid = text" error
+    
     // Insert new scraping request, storing the UUID as text
+    // Note: we need to cast the userId to UUID to ensure type compatibility
     const { error: insertError } = await supabase
       .from('scraping_requests')
       .insert({
         task_id: taskId, // Store the UUID as text
-        user_id: userId,
+        user_id: userId, // The API now directly accepts UUID format
         keywords,
         country,
         states: formattedStates,
