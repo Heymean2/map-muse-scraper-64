@@ -151,22 +151,37 @@ Deno.serve(async (req) => {
       const contentType = receiptResponse.headers.get('Content-Type') || 'application/pdf';
       console.log("Receipt content type:", contentType);
       
-      // Check if the storage bucket exists, create if it doesn't
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
-      
-      if (!bucketExists) {
-        console.log(`Creating storage bucket: ${STORAGE_BUCKET}`);
-        const { error: bucketError } = await supabase.storage.createBucket(STORAGE_BUCKET, {
-          public: false
-        });
-        if (bucketError) {
-          console.error("Error creating storage bucket:", bucketError);
-          return new Response(JSON.stringify({ error: "Failed to create storage bucket" }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
+      // Ensure storage bucket exists (improved error handling for existing bucket)
+      try {
+        // Check if the storage bucket exists
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
+        
+        if (!bucketExists) {
+          console.log(`Creating storage bucket: ${STORAGE_BUCKET}`);
+          const { error: bucketError } = await supabase.storage.createBucket(STORAGE_BUCKET, {
+            public: false
           });
+          
+          if (bucketError) {
+            // If error is not "bucket already exists", report it
+            if (bucketError.statusCode !== "409") {
+              console.error("Error creating storage bucket:", bucketError);
+              return new Response(JSON.stringify({ error: "Failed to create storage bucket" }), {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            } else {
+              // If bucket already exists, just log and continue
+              console.log("Bucket already exists, continuing with upload");
+            }
+          }
+        } else {
+          console.log(`Bucket ${STORAGE_BUCKET} already exists, continuing with upload`);
         }
+      } catch (bucketError) {
+        console.log("Error checking/creating bucket but continuing anyway:", bucketError);
+        // We'll continue and try to upload anyway
       }
       
       // Store the receipt in Supabase Storage
