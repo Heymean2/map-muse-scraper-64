@@ -1,8 +1,7 @@
-
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getScrapingResults, sendTaskToBackend } from "@/services/scraper";
+import { getScrapingResults } from "@/services/scraper";
 import { toast } from "@/components/ui/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
@@ -24,19 +23,8 @@ export default function TaskDetail() {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // If we have a taskId and user, send the task to the external backend
-    if (taskId && user?.id) {
-      console.log("TaskDetail: Sending task to external backend:", taskId);
-      sendTaskToBackend(user.id, taskId)
-        .then(success => {
-          if (!success) {
-            console.error("TaskDetail: Failed to send task to external backend");
-          }
-        })
-        .catch(error => {
-          console.error("TaskDetail: Exception sending task to external backend:", error);
-        });
-    }
+    // We no longer send to backend here - task should have already been sent from FormSubmissionHandler
+    console.log("TaskDetail: Displaying task:", taskId);
   }, [taskId, user]);
 
   // Get the current task's results
@@ -58,11 +46,8 @@ export default function TaskDetail() {
       description: "Getting the latest results for you."
     });
     
-    // Also send the task to the external backend on refresh
-    if (taskId && user?.id) {
-      sendTaskToBackend(user.id, taskId)
-        .catch(error => console.error("Failed to send task on refresh:", error));
-    }
+    // We no longer send to backend here - just refresh the data from Supabase
+    console.log("TaskDetail: Refreshing data for task:", taskId);
   };
 
   // Helper function to ensure fields is an array before using join

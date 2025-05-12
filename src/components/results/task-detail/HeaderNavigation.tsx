@@ -28,6 +28,7 @@ export default function HeaderNavigation({ onRefresh }: HeaderNavigationProps) {
         size="sm"
         variant="outline"
         className="gap-2"
+        title="Refresh data from database"
       >
         <RefreshCw className="h-3.5 w-3.5" />
         <span>Refresh</span>

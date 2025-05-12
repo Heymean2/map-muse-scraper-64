@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { getScrapingResults, sendTaskToBackend } from "@/services/scraper";
+import { getScrapingResults } from "@/services/scraper";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import TaskDetail from "@/pages/TaskDetail";
@@ -23,12 +22,9 @@ export default function Results() {
     // Check if there's a task_id in search params
     const taskIdParam = searchParams.get('task_id');
     if (taskIdParam && user?.id) {
-      // Send the task to the external backend
-      console.log("Results: Sending task from URL param to external backend:", taskIdParam);
-      sendTaskToBackend(user.id, taskIdParam)
-        .catch(error => console.error("Failed to send task from URL param:", error));
-      
-      // Navigate to the task detail page
+      console.log("Results: Task from URL param detected:", taskIdParam);
+      // We no longer send to backend here - this is already handled in FormSubmissionHandler
+      // Instead, just navigate to the task detail page
       navigate(`/dashboard/results/scrape/${taskIdParam}`);
     }
   }, [searchParams, user]);
@@ -43,12 +39,8 @@ export default function Results() {
   const handleTaskSelect = (taskId: string) => {
     setSelectedTaskId(taskId);
     
-    // Send the task to the external backend when selected
-    if (user?.id) {
-      console.log("Results: Sending selected task to external backend:", taskId);
-      sendTaskToBackend(user.id, taskId)
-        .catch(error => console.error("Failed to send selected task:", error));
-    }
+    // No longer send to backend here - we only send once from FormSubmissionHandler
+    console.log("Results: Selected task:", taskId);
     
     navigate(`/dashboard/results/scrape/${taskId}`);
   };

@@ -38,6 +38,13 @@ export {
 
 // Export backend integration functions
 export {
-  sendTaskToBackend
+  sendTaskToBackend,
+  refreshTaskData
 } from './backendIntegration';
 
+// Export task tracking functions
+export {
+  hasTaskBeenSent,
+  markTaskAsSent,
+  clearSentTasksHistory
+} from './requestTracker';

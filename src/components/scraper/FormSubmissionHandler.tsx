@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -145,11 +144,12 @@ export default function FormSubmissionHandler({
       if (result.success) {
         toast.success("Scraping started successfully");
 
-        // Send the task to the external backend for processing
+        // Send the task to the external backend for processing - THIS IS THE ONLY PLACE
+        // WE SHOULD BE SENDING THE TASK TO THE BACKEND
         if (result.task_id && user?.id) {
-          console.log("Sending task to external backend:", result.task_id);
+          console.log("FormSubmissionHandler: Initial sending of task to external backend:", result.task_id);
           
-          // Fire and forget - we don't wait for this to complete
+          // This will track the task as sent to prevent duplicate requests
           sendTaskToBackend(user.id, result.task_id)
             .then(success => {
               if (success) {
