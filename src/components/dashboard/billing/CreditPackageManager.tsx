@@ -22,7 +22,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
 
   // Format price with proper precision
   const formatPricePerCredit = (price: number) => {
-    if (!price || price < 0.001) return "0.00299";
+    if (!price || price < 0.001) return "0.002";
     return price.toFixed(5).replace(/0+$/, '').replace(/\.$/, '.00');
   };
 
@@ -61,7 +61,7 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
     }
   };
 
-  // Calculate total price
+  // Calculate total price - no discount applied
   const totalPrice = (creditAmount * pricePerCredit).toFixed(2);
   const formattedPricePerCredit = formatPricePerCredit(pricePerCredit);
 
@@ -134,7 +134,6 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
               </div>
             </div>
             
-            {/* Purchase button with updated violet background color */}
             <Button 
               onClick={handlePurchase}
               disabled={isProcessing}

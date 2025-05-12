@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
@@ -133,65 +134,6 @@ async function syncTransactionWithPayPal(orderId, userId) {
   }
 }
 
-// Function to update user credits
-async function updateUserCredits(userId, credits, pricePerCredit, planId) {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error("Supabase credentials not configured");
-  }
-  
-  console.log(`Updating user ${userId} with ${credits} credits`);
-  
-  // Update user's credits in profiles table
-  const profileUpdateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userId}`, {
-    method: "PATCH",
-    headers: {
-      "apikey": supabaseServiceKey,
-      "Authorization": `Bearer ${supabaseServiceKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=minimal"
-    },
-    body: JSON.stringify({
-      credits: credits
-    })
-  });
-  
-  if (!profileUpdateResponse.ok) {
-    throw new Error("Failed to update user credits");
-  }
-  
-  // Record the transaction in billing_transactions table
-  const transactionResponse = await fetch(`${supabaseUrl}/rest/v1/billing_transactions`, {
-    method: "POST",
-    headers: {
-      "apikey": supabaseServiceKey,
-      "Authorization": `Bearer ${supabaseServiceKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=minimal"
-    },
-    body: JSON.stringify({
-      user_id: userId,
-      plan_id: planId,
-      amount: (credits * pricePerCredit).toFixed(2),
-      credits_purchased: credits,
-      status: "completed",
-      payment_method: "paypal",
-      metadata: {
-        price_per_credit: pricePerCredit
-      }
-    })
-  });
-  
-  if (!transactionResponse.ok) {
-    console.error("Failed to record transaction:", await transactionResponse.text());
-    // Don't throw error here, as credits have been updated
-  }
-  
-  return true;
-}
-
 serve(async (req) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
@@ -317,20 +259,14 @@ serve(async (req) => {
         actualPricePerCredit = plans[0].price_per_credit;
         console.log(`Using DB price per credit: ${actualPricePerCredit}`);
       } else {
-        // Fallback to hardcoded value - no more precision issues!
-        actualPricePerCredit = 0.00299;
+        // Fallback to hardcoded value
+        actualPricePerCredit = 0.002; // Changed from 0.00299 to 0.002 to match the current pricing
         console.log(`Using fallback price per credit: ${actualPricePerCredit}`);
       }
       
-      // Update user's credits
-      await updateUserCredits(user.id, newCredits, actualPricePerCredit, plan);
-      
-    } else {
-      // For subscription plans - handle in a separate subscription manager
-      // For now, just record the transaction
-      
-      const transactionResponse = await fetch(`${supabaseUrl}/rest/v1/billing_transactions`, {
-        method: "POST",
+      // Update user's credits in profiles table - DO NOT create an additional transaction
+      const profileUpdateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+        method: "PATCH",
         headers: {
           "apikey": supabaseServiceKey,
           "Authorization": `Bearer ${supabaseServiceKey}`,
@@ -338,18 +274,17 @@ serve(async (req) => {
           "Prefer": "return=minimal"
         },
         body: JSON.stringify({
-          user_id: user.id,
-          plan_id: plan,
-          amount: plans[0].price,
-          status: "completed",
-          payment_method: "paypal",
-          billing_period: plans[0].billing_period
+          credits: newCredits
         })
       });
       
-      if (!transactionResponse.ok) {
-        console.error("Failed to record subscription transaction:", await transactionResponse.text());
+      if (!profileUpdateResponse.ok) {
+        throw new Error("Failed to update user credits");
       }
+      
+    } else {
+      // For subscription plans - handle in a separate subscription manager
+      // For now, just record the transaction
       
       // Update user's plan in profiles
       const profileUpdateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {

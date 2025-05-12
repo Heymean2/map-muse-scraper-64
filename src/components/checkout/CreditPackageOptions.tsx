@@ -47,36 +47,19 @@ export function CreditPackageOptions({
     }
   };
   
-  // Format price with discount calculation
+  // Format price with NO discount calculation - removed all discount logic
   const calculatePrice = (credits: number, basePrice: number): number => {
     // Make sure we have a valid price, use fallback if needed
-    const priceToUse = basePrice > 0.00001 ? basePrice : 0.00299;
+    const priceToUse = basePrice > 0.00001 ? basePrice : 0.002;
     
-    // Apply discount based on volume
-    let discount = 0;
-    if (credits >= 100000) {
-      discount = 0.15; // 15% discount for 100k+
-    } else if (credits >= 50000) {
-      discount = 0.10; // 10% discount for 50k+
-    } else if (credits >= 10000) {
-      discount = 0.05; // 5% discount for 10k+
-    }
-    
-    return credits * priceToUse * (1 - discount);
+    // No discount applied - straight calculation
+    return credits * priceToUse;
   };
   
   // Format the price per credit with consistent precision
   const formatPricePerCredit = (price: number) => {
     // Always display with 5 decimal places for consistency
-    return (price || 0.00299).toFixed(5);
-  };
-  
-  // Get discount percentage based on credit amount
-  const getDiscountPercentage = (credits: number): number => {
-    if (credits >= 100000) return 15;
-    if (credits >= 50000) return 10;
-    if (credits >= 10000) return 5;
-    return 0;
+    return (price || 0.002).toFixed(5);
   };
   
   // Sync local state when prop changes
@@ -86,8 +69,7 @@ export function CreditPackageOptions({
     }
   }, [creditQuantity, customAmount]);
 
-  // Calculate values
-  const discount = getDiscountPercentage(customAmount);
+  // Calculate values - no discount
   const totalPrice = calculatePrice(customAmount, creditPrice);
   const formattedPricePerCredit = formatPricePerCredit(creditPrice);
 
@@ -133,12 +115,6 @@ export function CreditPackageOptions({
               <p className="text-sm font-medium">
                 Credits: <span className="font-bold">{customAmount.toLocaleString()}</span>
               </p>
-              
-              {discount > 0 && (
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                  {discount}% discount applied
-                </span>
-              )}
             </div>
             
             <p className="text-sm text-slate-700">
