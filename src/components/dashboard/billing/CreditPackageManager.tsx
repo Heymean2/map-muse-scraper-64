@@ -134,11 +134,11 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
               </div>
             </div>
             
-            {/* Purchase button moved here, below the price information */}
+            {/* Purchase button with updated violet background color */}
             <Button 
               onClick={handlePurchase}
               disabled={isProcessing}
-              className="bg-google-blue hover:bg-google-blue/90 text-white gap-2 w-full py-2 rounded-lg hover:shadow-md transition-all"
+              className="bg-violet-primary hover:bg-violet-primary/90 text-white gap-2 w-full py-2 rounded-lg hover:shadow-md transition-all"
             >
               {isProcessing ? (
                 <>

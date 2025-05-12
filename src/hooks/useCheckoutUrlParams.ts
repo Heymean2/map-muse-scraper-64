@@ -57,8 +57,9 @@ export function useCheckoutUrlParams(plansData: any[], setSelectedPlan: (plan: a
           setCreditPrice(pricePerCredit);
           console.log("Credit plan selected:", creditPlan, "Price per credit:", pricePerCredit);
         } else {
-          console.error("Credit plan not found in available plans");
-          toast.error("Credit plan not found. Please try again.");
+          // Instead of showing an error in the console, we'll fetch the credit plan directly
+          // This is handled in the second useEffect below
+          console.log("Will fetch credit plan directly since it wasn't found in plansData");
         }
       } else {
         // For subscription plans, find by ID
