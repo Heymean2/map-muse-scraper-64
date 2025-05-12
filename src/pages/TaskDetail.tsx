@@ -1,12 +1,14 @@
+
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getScrapingResults } from "@/services/scraper/taskManagement";
+import { getScrapingResults, sendTaskToBackend } from "@/services/scraper";
 import { toast } from "@/components/ui/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 import TaskDetailLayout from "@/components/results/layout/TaskDetailLayout";
 import TaskHeader from "@/components/results/task-detail/TaskHeader";
@@ -16,11 +18,26 @@ import { ScrapingResultSingle, ScrapingResultMultiple } from "@/services/scraper
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [taskId]);
+    
+    // If we have a taskId and user, send the task to the external backend
+    if (taskId && user?.id) {
+      console.log("TaskDetail: Sending task to external backend:", taskId);
+      sendTaskToBackend(user.id, taskId)
+        .then(success => {
+          if (!success) {
+            console.error("TaskDetail: Failed to send task to external backend");
+          }
+        })
+        .catch(error => {
+          console.error("TaskDetail: Exception sending task to external backend:", error);
+        });
+    }
+  }, [taskId, user]);
 
   // Get the current task's results
   const { 
@@ -40,6 +57,12 @@ export default function TaskDetail() {
       title: "Refreshing data",
       description: "Getting the latest results for you."
     });
+    
+    // Also send the task to the external backend on refresh
+    if (taskId && user?.id) {
+      sendTaskToBackend(user.id, taskId)
+        .catch(error => console.error("Failed to send task on refresh:", error));
+    }
   };
 
   // Helper function to ensure fields is an array before using join

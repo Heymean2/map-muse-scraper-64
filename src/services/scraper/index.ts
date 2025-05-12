@@ -35,3 +35,8 @@ export {
   getScraperDataTypes,
   getScraperRatings 
 } from './formOptions';
+
+// Export backend integration functions
+export {
+  sendTaskToBackend
+} from './backendIntegration';

@@ -1,7 +1,8 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { startScraping, getUserPlanInfo } from "@/services/scraper";
+import { startScraping, getUserPlanInfo, sendTaskToBackend } from "@/services/scraper";
 import { useAuth } from "@/contexts/AuthContext";
 import FormError from "./FormError";
 import LoadingButton from "./LoadingButton";
@@ -32,7 +33,7 @@ export default function FormSubmissionHandler({
   children
 }: FormSubmissionHandlerProps) {
   const navigate = useNavigate();
-  const { refreshSession, session } = useAuth();
+  const { refreshSession, session, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   
@@ -143,6 +144,25 @@ export default function FormSubmissionHandler({
       
       if (result.success) {
         toast.success("Scraping started successfully");
+
+        // Send the task to the external backend for processing
+        if (result.task_id && user?.id) {
+          console.log("Sending task to external backend:", result.task_id);
+          
+          // Fire and forget - we don't wait for this to complete
+          sendTaskToBackend(user.id, result.task_id)
+            .then(success => {
+              if (success) {
+                console.log("Task successfully sent to external backend");
+              } else {
+                console.error("Failed to send task to external backend");
+              }
+            })
+            .catch(error => {
+              console.error("Exception sending task to external backend:", error);
+            });
+        }
+        
         // Redirect to results page with task ID
         navigate(`/result${result.task_id ? `?task_id=${result.task_id}` : ''}`);
       } else {
