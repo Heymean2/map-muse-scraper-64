@@ -1,17 +1,18 @@
 
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, CreditCard } from "lucide-react";
 
 interface TransactionDescriptionProps {
-  credits_purchased?: number;
+  credits_purchased?: number | null;
   plan_name?: string;
 }
 
 export function TransactionDescription({ credits_purchased, plan_name }: TransactionDescriptionProps) {
-  if (credits_purchased) {
+  if (credits_purchased && credits_purchased > 0) {
     return (
       <div className="flex items-center">
-        <span className="font-medium text-green-700">
-          {credits_purchased} Credits Purchase
+        <CreditCard className="h-4 w-4 mr-1 text-google-blue" />
+        <span className="font-medium text-google-blue">
+          {credits_purchased.toLocaleString()} Credits Purchase
         </span>
         <ArrowUp className="h-4 w-4 ml-1 text-green-600" />
       </div>
@@ -20,7 +21,7 @@ export function TransactionDescription({ credits_purchased, plan_name }: Transac
 
   return (
     <div className="flex items-center">
-      <span>{plan_name} Subscription</span>
+      <span>{plan_name || "Subscription"}</span>
     </div>
   );
 }

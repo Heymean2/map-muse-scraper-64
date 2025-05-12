@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTransactionHistory } from "./hooks/useTransactionHistory";
 
 interface CreditPackageProps {
   pricePerCredit: number;
@@ -19,6 +20,9 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
   const [creditAmount, setCreditAmount] = useState<number>(1000);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
+  
+  // Use the transaction hook to get current credits
+  const { currentCredits, isLoading: creditsLoading } = useTransactionHistory(1);
 
   // Format price with proper precision
   const formatPricePerCredit = (price: number) => {
@@ -159,7 +163,9 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-google-green" />
-            <p className="font-medium text-lg">Current Credits: <span className="text-google-green">{userPlan?.credits || 0}</span></p>
+            <p className="font-medium text-lg">
+              Current Credits: <span className="text-google-green">{creditsLoading ? "Loading..." : currentCredits.toLocaleString()}</span>
+            </p>
           </div>
           <p className="text-sm text-muted-foreground">Each credit allows you to extract one row of data</p>
         </div>
