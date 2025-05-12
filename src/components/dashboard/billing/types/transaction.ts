@@ -18,3 +18,13 @@ export interface Transaction {
   invoice_file_path?: string | null;
   running_balance?: number;
 }
+
+export interface TransactionHistoryState {
+  transactions: Transaction[];
+  isLoading: boolean;
+  isError: boolean;
+  currentCredits: number;
+  currentPage: number;
+  totalPages: number;
+  hasRetried: boolean;
+}
