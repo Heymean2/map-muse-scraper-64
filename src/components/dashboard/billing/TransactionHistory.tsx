@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, RefreshCw } from "lucide-react";
+import { Download, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { toast } from "sonner";
 
 interface Transaction {
   id: string;
@@ -22,28 +24,51 @@ interface Transaction {
 export function TransactionHistory() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [currentCredits, setCurrentCredits] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasRetried, setHasRetried] = useState(false);
+  const transactionsPerPage = 5;
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (retrying = false) => {
     setIsLoading(true);
+    setIsError(false);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        setIsError(true);
+        toast.error("Authentication required");
         return;
       }
       
       // Get user's current credits first
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('credits')
         .eq('id', user.id)
         .single();
         
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        if (!retrying) {
+          // Auto-retry once
+          setHasRetried(true);
+          setTimeout(() => fetchTransactions(true), 1000);
+        } else {
+          setIsError(true);
+          toast.error("Failed to load credit balance");
+        }
+        return;
+      }
+      
       if (profileData) {
         setCurrentCredits(profileData.credits || 0);
       }
       
+      // Fetch all transactions
       const { data, error } = await supabase
         .from('billing_transactions')
         .select(`
@@ -51,16 +76,31 @@ export function TransactionHistory() {
           pricing_plans (name)
         `)
         .eq('user_id', user.id)
-        .order('transaction_date', { ascending: false });
+        .order('transaction_date', { ascending: true }); // Changed to chronological order (oldest first)
       
       if (error) {
         console.error('Error fetching transactions:', error);
+        setIsError(true);
+        toast.error("Failed to load transactions");
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        setTransactions([]);
+        setTotalPages(1);
+        setIsLoading(false);
         return;
       }
       
       // Format the transactions and calculate running balance
-      let runningBalance = currentCredits;
+      // Start with 0 and build up the balance chronologically
+      let runningBalance = 0;
       const formattedTransactions = data.map((transaction: any) => {
+        // Only add credits to the balance if the transaction is completed
+        if (transaction.credits_purchased && transaction.status === 'completed') {
+          runningBalance += transaction.credits_purchased;
+        }
+        
         const transObj = {
           id: transaction.id,
           amount: transaction.amount,
@@ -73,20 +113,21 @@ export function TransactionHistory() {
           running_balance: runningBalance
         };
         
-        // Adjust running balance by subtracting the credits purchased
-        // for the next transaction (moving backwards in time)
-        if (transaction.credits_purchased && transaction.status === 'completed') {
-          runningBalance -= transaction.credits_purchased;
-        }
-        
         return transObj;
       });
       
-      setTransactions(formattedTransactions);
+      // Reverse again to display newest first in the UI
+      const reversedTransactions = [...formattedTransactions].reverse();
+      setTransactions(reversedTransactions);
+      setTotalPages(Math.max(1, Math.ceil(reversedTransactions.length / transactionsPerPage)));
+      
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Error in transaction history:', error);
+      setIsError(true);
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
+      setHasRetried(false);
     }
   };
 
@@ -94,31 +135,98 @@ export function TransactionHistory() {
     fetchTransactions();
   }, []);
 
-  // Function to generate a receipt for a transaction - now with running credit balance
+  // Get current page transactions
+  const getCurrentPageTransactions = () => {
+    const startIndex = (currentPage - 1) * transactionsPerPage;
+    const endIndex = startIndex + transactionsPerPage;
+    return transactions.slice(startIndex, endIndex);
+  };
+
+  // Navigate between pages
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Enhanced receipt generator with better formatting
   const generateReceipt = (transaction: Transaction) => {
+    // Better formatting with sections and clear indicator of transaction type
+    const transactionType = transaction.credits_purchased 
+      ? 'Credit Purchase' 
+      : 'Subscription Payment';
+      
     const receiptContent = `
-Receipt
--------
+----------------------------------------------
+                RECEIPT
+----------------------------------------------
 Transaction ID: ${transaction.id}
 Date: ${format(new Date(transaction.transaction_date), 'PPP')}
-Amount: $${transaction.amount.toFixed(2)}
+Transaction Type: ${transactionType}
+
+----------------------------------------------
+PAYMENT DETAILS
+----------------------------------------------
+Amount: $${transaction.amount.toFixed(2)} USD
 Payment Method: ${transaction.payment_method === 'paypal' ? 'PayPal' : 'Credit Card'}
-Status: ${transaction.status}
-${transaction.credits_purchased ? `Credits Purchased: ${transaction.credits_purchased}` : ''}
+Status: ${transaction.status.toUpperCase()}
+
+----------------------------------------------
+TRANSACTION DETAILS
+----------------------------------------------
+${transaction.credits_purchased ? `Credits Added: ${transaction.credits_purchased}` : ''}
 ${transaction.plan_name ? `Plan: ${transaction.plan_name}` : ''}
 ${transaction.billing_period ? `Billing Period: ${transaction.billing_period}` : ''}
-${transaction.running_balance !== undefined ? `Credit Balance After Transaction: ${transaction.running_balance}` : ''}
+
+----------------------------------------------
+ACCOUNT SUMMARY
+----------------------------------------------
+Credit Balance After Transaction: ${transaction.running_balance}
+
+----------------------------------------------
     `.trim();
     
     const blob = new Blob([receiptContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `receipt-${transaction.id.substring(0, 8)}.txt`;
+    a.download = `receipt-${format(new Date(transaction.transaction_date), 'yyyy-MM-dd')}-${transaction.id.substring(0, 8)}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    toast.success("Receipt downloaded successfully");
+  };
+
+  // Get status badge styling based on transaction status
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
+  // Get status display text
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completed';
+      case 'pending':
+        return 'Pending';
+      default:
+        return 'Failed';
+    }
   };
 
   return (
@@ -126,58 +234,115 @@ ${transaction.running_balance !== undefined ? `Credit Balance After Transaction:
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Transaction History</CardTitle>
-          <CardDescription>Your recent payments and subscription changes</CardDescription>
+          <CardDescription>Your recent payments and credit changes</CardDescription>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchTransactions} disabled={isLoading}>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => fetchTransactions()} 
+          disabled={isLoading}
+        >
           <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </CardHeader>
       <CardContent>
-        {transactions.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Credit Balance</TableHead>
-                <TableHead>Receipt</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>{format(new Date(transaction.transaction_date), 'PP')}</TableCell>
-                  <TableCell>
-                    {transaction.credits_purchased 
-                      ? `${transaction.credits_purchased} Credits Purchase` 
-                      : `${transaction.plan_name} Subscription`}
-                  </TableCell>
-                  <TableCell>${transaction.amount.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      transaction.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                      transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {transaction.status === 'completed' ? 'Completed' : 
-                       transaction.status === 'pending' ? 'Pending' : 'Failed'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {transaction.running_balance !== undefined ? transaction.running_balance : '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => generateReceipt(transaction)}>
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+        {isError ? (
+          <div className="py-8 text-center">
+            <p className="text-red-500 mb-2">Failed to load transaction history</p>
+            <Button onClick={() => fetchTransactions(true)} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
+        ) : transactions.length > 0 ? (
+          <>
+            <div className="mb-4 p-3 bg-slate-50 rounded-md border flex justify-between items-center">
+              <div>
+                <span className="text-sm text-muted-foreground">Current Credit Balance:</span>
+                <span className="text-2xl font-semibold ml-2">{currentCredits}</span>
+              </div>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right font-medium">Credit Balance</TableHead>
+                  <TableHead className="text-center">Receipt</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {getCurrentPageTransactions().map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="whitespace-nowrap">
+                      {format(new Date(transaction.transaction_date), 'MMM d, yyyy')}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.credits_purchased ? (
+                        <div className="flex items-center">
+                          <span className="font-medium text-green-700">
+                            {transaction.credits_purchased} Credits Purchase
+                          </span>
+                          <ArrowUp className="h-4 w-4 ml-1 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <span>{transaction.plan_name} Subscription</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${transaction.amount.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(transaction.status)}`}>
+                        {getStatusText(transaction.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {transaction.running_balance !== undefined ? 
+                        transaction.running_balance : 
+                        '-'}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button variant="ghost" size="sm" onClick={() => generateReceipt(transaction)}>
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={handlePreviousPage} 
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    <PaginationItem className="flex items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={handleNextPage} 
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
         ) : (
           <div className="py-8 text-center">
             {isLoading ? (
