@@ -1,24 +1,20 @@
 
 export interface Transaction {
   id: string;
+  user_id: string;
+  plan_id: number | null;
   amount: number;
-  payment_method: string;
-  status: string;
   transaction_date: string;
+  credits_purchased: number | null;
+  metadata?: Record<string, any>;
+  currency: string;
+  status: string;
+  payment_method: string;
+  payment_id: string | null;
+  billing_period: string | null;
   plan_name?: string;
-  credits_purchased?: number;
-  billing_period?: string;
+  receipt_url?: string | null;
+  receipt_file_path?: string | null;
+  invoice_file_path?: string | null;
   running_balance?: number;
-  payment_id?: string;
-  receipt_url?: string;
-}
-
-export interface TransactionHistoryState {
-  transactions: Transaction[];
-  isLoading: boolean;
-  isError: boolean;
-  currentCredits: number;
-  currentPage: number;
-  totalPages: number;
-  hasRetried: boolean;
 }

@@ -1,9 +1,10 @@
 
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionReceipt } from "./TransactionReceipt";
 import { Transaction } from "./types/transaction";
 import { downloadReceipt } from "./utils/transactionDisplayUtils";
+import { InvoiceButton } from "./InvoiceButton";
 
 interface TransactionActionsProps {
   transaction: Transaction;
@@ -19,9 +20,14 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       >
         <Download className="h-4 w-4" />
       </Button>
+      
       <TransactionReceipt 
         receiptUrl={transaction.receipt_url} 
         transactionId={transaction.id} 
+      />
+      
+      <InvoiceButton
+        transactionId={transaction.id}
       />
     </div>
   );
