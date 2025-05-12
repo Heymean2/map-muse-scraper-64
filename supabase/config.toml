@@ -1,8 +1,1 @@
-
 project_id = "culwnizfggplctdtujsz"
-
-[functions.getReceipt]
-verify_jwt = true
-
-[functions.generateInvoice]
-verify_jwt = true
