@@ -14,7 +14,7 @@ export function CreditBalanceDisplay({ currentCredits }: CreditBalanceDisplayPro
       </div>
       <div className="flex items-center text-sm text-muted-foreground">
         <ArrowUpCircle className="h-4 w-4 mr-1 text-google-green" />
-        <span>Based on transaction history</span>
+        <span>From user profile</span>
       </div>
     </div>
   );

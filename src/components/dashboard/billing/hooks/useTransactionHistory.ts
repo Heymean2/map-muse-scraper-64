@@ -28,6 +28,20 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
         return;
       }
       
+      // Fetch user profile to get current credits
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      }
+      
+      // Get current credits from profile
+      const currentCreditsFromProfile = profileData?.credits || 0;
+      
       // Fetch all transactions
       const { data, error } = await supabase
         .from('billing_transactions')
@@ -51,7 +65,7 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
           transactions: [], 
           totalPages: 1, 
           isLoading: false,
-          currentCredits: 0
+          currentCredits: currentCreditsFromProfile
         }));
         return;
       }
@@ -77,15 +91,10 @@ export const useTransactionHistory = (transactionsPerPage = 5) => {
         };
       });
       
-      // Get the current total credits by summing up all completed credit purchase transactions
-      const totalAvailableCredits = formattedTransactions
-        .filter(t => t.status === 'completed' && t.credits_purchased)
-        .reduce((sum, transaction) => sum + (transaction.credits_purchased || 0), 0);
-      
       setState(prev => ({
         ...prev,
         transactions: formattedTransactions,
-        currentCredits: totalAvailableCredits,
+        currentCredits: currentCreditsFromProfile,
         totalPages: Math.max(1, Math.ceil(formattedTransactions.length / transactionsPerPage)),
         isLoading: false,
         hasRetried: false
