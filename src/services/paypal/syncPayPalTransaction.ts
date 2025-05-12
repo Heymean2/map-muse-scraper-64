@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -215,6 +214,8 @@ async function updateTransactionInDatabase(
     
     if (existingTransaction) {
       // Update existing transaction
+      const existingMetadata = existingTransaction.metadata || {};
+      
       const { data, error } = await supabase
         .from('billing_transactions')
         .update({
@@ -224,7 +225,7 @@ async function updateTransactionInDatabase(
           payment_id: orderId,
           receipt_url: details.receiptUrl,
           metadata: {
-            ...(existingTransaction.metadata || {}),
+            ...existingMetadata,
             payer_email: details.payerEmail,
             synced_at: new Date().toISOString()
           }
