@@ -122,20 +122,41 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
             />
           </div>
           
-          <div className="bg-primary-subtle p-4 rounded-xl">
-            <div className="flex items-center justify-between mb-1">
-              <p className="font-medium text-gray-600">Price per credit:</p>
-              <p className="font-medium text-google-blue">${formattedPricePerCredit}</p>
+          <div className="bg-primary-subtle p-4 rounded-xl space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="font-medium text-gray-600">Price per credit:</p>
+                <p className="font-medium text-google-blue">${formattedPricePerCredit}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-lg">Total:</p>
+                <p className="font-bold text-xl text-google-blue">${totalPrice}</p>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-lg">Total:</p>
-              <p className="font-bold text-xl text-google-blue">${totalPrice}</p>
-            </div>
+            
+            {/* Purchase button moved here, below the price information */}
+            <Button 
+              onClick={handlePurchase}
+              disabled={isProcessing}
+              className="bg-google-blue hover:bg-google-blue/90 text-white gap-2 w-full py-2 rounded-lg hover:shadow-md transition-all"
+            >
+              {isProcessing ? (
+                <>
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></span>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Purchase Credits
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex items-center bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-google-green" />
@@ -143,23 +164,6 @@ export function CreditPackageManager({ pricePerCredit, userPlan }: CreditPackage
           </div>
           <p className="text-sm text-muted-foreground">Each credit allows you to extract one row of data</p>
         </div>
-        <Button 
-          onClick={handlePurchase}
-          disabled={isProcessing}
-          className="bg-google-blue hover:bg-google-blue/90 text-white gap-2 px-6 rounded-lg hover:shadow-md transition-all"
-        >
-          {isProcessing ? (
-            <>
-              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></span>
-              Processing...
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              Purchase Credits
-            </>
-          )}
-        </Button>
       </div>
     </div>
   );
