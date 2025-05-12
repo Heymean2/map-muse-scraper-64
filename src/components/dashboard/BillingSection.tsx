@@ -29,9 +29,18 @@ interface PlanData {
 }
 
 export default function BillingSection() {
+  // Check if we have a stored active tab preference
+  const storedTab = sessionStorage.getItem('billing_active_tab');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("subscription");
+  const [activeTab, setActiveTab] = useState<string>(storedTab || "subscription");
+  
+  // Effect to clear the stored tab preference once used
+  useEffect(() => {
+    if (storedTab) {
+      sessionStorage.removeItem('billing_active_tab');
+    }
+  }, [storedTab]);
   
   // Get user's current plan info
   const { data: userPlan, isLoading: userPlanLoading, refetch: refetchUserPlan } = useQuery({
