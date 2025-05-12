@@ -40,7 +40,7 @@ export function ActionCards({
         <CardContent className="flex flex-col gap-3 p-6">
           <Button 
             variant="outline" 
-            className="w-full justify-start group hover:border-google-blue hover:bg-google-blue/5"
+            className="w-full justify-start group hover:border-google-blue hover:bg-google-blue/5 hover:text-google-blue"
             onClick={() => navigate('/dashboard/scrape')}
           >
             <FilePlus2 className="mr-2 h-4 w-4 text-google-blue group-hover:scale-110 transition-transform" />
@@ -48,7 +48,7 @@ export function ActionCards({
           </Button>
           <Button 
             variant="outline" 
-            className="w-full justify-start group hover:border-google-green hover:bg-google-green/5"
+            className="w-full justify-start group hover:border-google-green hover:bg-google-green/5 hover:text-google-green"
             onClick={() => navigate('/dashboard/results')}
           >
             <FileText className="mr-2 h-4 w-4 text-google-green group-hover:scale-110 transition-transform" />

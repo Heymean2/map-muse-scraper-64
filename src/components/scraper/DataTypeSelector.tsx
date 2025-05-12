@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,7 +107,7 @@ export default function DataTypeSelector({ selectedDataTypes, setSelectedDataTyp
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-full min-w-[250px]" align="start">
+          <DropdownMenuContent className="w-full min-w-[250px]" align="start" style={{ animationDuration: '200ms' }}>
             <DropdownMenuLabel className="flex justify-between items-center">
               <span>Data Types</span>
               <div className="flex gap-2">
@@ -200,13 +199,7 @@ export default function DataTypeSelector({ selectedDataTypes, setSelectedDataTyp
           </div>
         )}
       </div>
-      
-      {selectedDataTypes.length === 0 && (
-        <p className="text-xs text-amber-500 mt-2 flex items-center">
-          <InfoIcon className="h-3 w-3 mr-1" />
-          Please select at least one data type
-        </p>
-      )}
+      <p className="text-xs text-slate-500 mt-2">Choose the business data fields you want to extract</p>
     </div>
   );
 }

@@ -109,7 +109,7 @@ export default function LocationSelector({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="location">Location</Label>
+      <Label htmlFor="location">2. Location</Label>
       
       <div className="space-y-3">
         {/* Country Selection */}
@@ -166,7 +166,8 @@ export default function LocationSelector({
             </PopoverTrigger>
             
             {selectedCountry && (
-              <PopoverContent className="w-full p-0" align="start">
+              <PopoverContent className="w-full p-0" align="start" sideOffset={5}
+                style={{ animationDuration: '200ms' }}>
                 <Command>
                   <CommandInput placeholder="Search states..." className="h-9" />
                   <CommandEmpty>No state found.</CommandEmpty>
@@ -220,6 +221,7 @@ export default function LocationSelector({
           </div>
         )}
       </div>
+      <p className="text-xs text-slate-500 mt-1">Select the geographic area to search</p>
     </div>
   );
 }

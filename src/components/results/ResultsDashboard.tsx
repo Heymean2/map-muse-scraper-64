@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -100,7 +99,7 @@ export default function ResultsDashboard({
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="gap-1 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+            className="gap-1 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             <span className="hidden sm:inline">Refresh</span>
@@ -108,7 +107,7 @@ export default function ResultsDashboard({
           
           <Button
             onClick={handleNewTask}
-            className="gap-1 bg-violet-primary hover:bg-violet-primary/90 transition-colors"
+            className="gap-1 bg-violet-primary hover:bg-violet-primary/90 hover:text-white transition-colors"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New Task</span>

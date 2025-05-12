@@ -56,7 +56,7 @@ export default function CategorySelector({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label htmlFor="search-type">{useKeyword ? "What are you looking for?" : "Select a category"}</Label>
+        <Label htmlFor="search-type">1. {useKeyword ? "What are you looking for?" : "Select a category"}</Label>
         <div className="flex items-center space-x-2">
           <Label htmlFor="use-keyword" className="text-sm">Use Keyword</Label>
           <Switch 
@@ -94,7 +94,8 @@ export default function CategorySelector({
               <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-full p-0" align="start" sideOffset={5} 
+            style={{ animationDuration: '200ms' }}>
             <Command>
               <CommandInput placeholder="Search category..." className="h-9" />
               <CommandEmpty>No category found.</CommandEmpty>
@@ -127,6 +128,7 @@ export default function CategorySelector({
           </PopoverContent>
         </Popover>
       )}
+      <p className="text-xs text-slate-500 mt-1">Select the business type you want to search for</p>
     </div>
   );
 }
