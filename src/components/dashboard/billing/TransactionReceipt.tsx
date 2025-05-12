@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ExternalLink, FileDown, Loader2 } from "lucide-react";
+import { ExternalLink, FileDown, Loader2, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { syncReceipt } from "@/services/paypal/syncReceipt";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ interface TransactionReceiptProps {
 
 export function TransactionReceipt({ receiptUrl, transactionId }: TransactionReceiptProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   // Handle receipt download or view
   const handleReceipt = async () => {
@@ -24,6 +25,17 @@ export function TransactionReceipt({ receiptUrl, transactionId }: TransactionRec
       if (receiptUrl) {
         // Open the receipt in a new tab
         window.open(receiptUrl, '_blank');
+      } else {
+        // If we haven't retried too many times, try again
+        if (retryCount < 2) {
+          toast.info("Retrying download...");
+          setRetryCount(prev => prev + 1);
+          // Wait a moment before retrying
+          setTimeout(() => handleReceipt(), 1000);
+          return;
+        } else {
+          toast.error("Failed to retrieve receipt after multiple attempts");
+        }
       }
     } catch (error) {
       console.error("Error handling receipt:", error);
@@ -48,6 +60,8 @@ export function TransactionReceipt({ receiptUrl, transactionId }: TransactionRec
     >
       {isLoading ? (
         <Loader2 className="h-3 w-3 animate-spin" />
+      ) : retryCount > 0 ? (
+        <RefreshCcw className="h-3 w-3" />
       ) : (
         <FileDown className="h-3 w-3" />
       )}
