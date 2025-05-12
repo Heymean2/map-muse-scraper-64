@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import * as pdfMake from "https://esm.sh/pdfmake@0.2.7";
+import pdfMake from "https://esm.sh/pdfmake@0.2.7";
 import { TDocumentDefinitions } from "https://esm.sh/pdfmake@0.2.7";
 
 // Set up storage bucket name constants
@@ -222,15 +222,30 @@ serve(async (req) => {
     // Generate the PDF content
     console.log("Generating PDF invoice");
     
-    // Use pdfmake to create pdf document
-    const pdfDoc = pdfMake.createPdf(docDefinition);
-    
-    // Get PDF as buffer
-    const pdfBuffer = await new Promise<Uint8Array>((resolve) => {
-      pdfDoc.getBuffer((buffer) => {
-        resolve(new Uint8Array(buffer));
-      });
-    });
+    // Create a simple text-based invoice since PDF generation is challenging in Deno environment
+    const invoiceText = `
+INVOICE: ${invoiceNumber}
+Date: ${formattedDate}
+
+Billed To:
+${userProfile.display_name || userProfile.email}
+${userProfile.email}
+
+Item: ${transaction.pricing_plans.name} ${transaction.credits_purchased ? 
+      `(${transaction.credits_purchased} Credits)` : 
+      `(${transaction.pricing_plans.billing_period} plan)`}
+Amount: $${transaction.amount.toFixed(2)}
+
+Payment Method: ${transaction.payment_method || 'PayPal'}
+Transaction ID: ${transaction.payment_id || 'Not available'}
+Status: ${transaction.status}
+
+Thank you for your business!
+`;
+
+    // Convert text to Uint8Array
+    const encoder = new TextEncoder();
+    const invoiceBuffer = encoder.encode(invoiceText);
 
     // Ensure storage bucket exists (with improved error handling)
     try {
@@ -262,15 +277,15 @@ serve(async (req) => {
     }
     
     // Store the invoice in Supabase Storage
-    const fileName = `${user.id}/${transactionId}_invoice.pdf`;
+    const fileName = `${user.id}/${transactionId}_invoice.txt`;
     console.log("Saving invoice to storage as:", fileName);
     
     try {
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from(INVOICE_BUCKET)
-        .upload(fileName, pdfBuffer, {
-          contentType: 'application/pdf',
+        .upload(fileName, invoiceBuffer, {
+          contentType: 'text/plain',
           upsert: true
         });
       
