@@ -22,7 +22,7 @@ export function TransactionHistory() {
   } = useTransactionHistory();
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Transaction History</CardTitle>
@@ -49,7 +49,9 @@ export function TransactionHistory() {
         ) : transactions.length > 0 ? (
           <>
             <CreditBalanceDisplay currentCredits={currentCredits} />
-            <TransactionTable transactions={getCurrentPageTransactions()} />
+            <div className="w-full overflow-hidden">
+              <TransactionTable transactions={getCurrentPageTransactions()} />
+            </div>
             
             {/* Pagination */}
             {totalPages > 1 && (

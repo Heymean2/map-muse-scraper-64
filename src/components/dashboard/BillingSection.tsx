@@ -17,6 +17,7 @@ import { Json } from "@/integrations/supabase/types";
 import { UserPlanInfo } from "@/services/scraper/types";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PlanData {
   id: string | number;
@@ -90,7 +91,7 @@ export default function BillingSection() {
   };
   
   return (
-    <Container>
+    <Container className="max-w-screen-xl">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Pricing Plans</h1>
@@ -109,73 +110,75 @@ export default function BillingSection() {
         </Button>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="subscription">Monthly Subscription</TabsTrigger>
-          <TabsTrigger value="credits">Pay-Per-Use Credits</TabsTrigger>
-        </TabsList>
-        
-        {plansLoading || userPlanLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[1, 2].map(i => (
-              <div key={i} className="border rounded-xl p-6 space-y-4">
-                <Skeleton className="h-8 w-1/3" />
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-10 w-1/4" />
-                <div className="space-y-2 pt-4">
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-2/3" />
-                </div>
-                <Skeleton className="h-10 w-full mt-4" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            <TabsContent value="subscription" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {subscriptionPlans?.map((plan) => (
-                  <PlanCard 
-                    key={plan.id}
-                    plan={plan as PlanData}
-                    isActive={isPlanActive(plan.id)}
-                    onSelect={setSelectedPlanId}
-                    features={getPlanFeatures(plan.name)}
-                    planType="subscription"
-                  />
-                ))}
-              </div>
-              
-              <SubscriptionManager 
-                selectedPlanId={selectedPlanId}
-                isActivePlan={selectedPlanId ? isPlanActive(selectedPlanId) : false}
-                isProcessing={isProcessing}
-                setIsProcessing={setIsProcessing}
-              />
-            </TabsContent>
-            
-            <TabsContent value="credits" className="mt-0">
-              {creditPlans?.map((plan) => (
-                <div key={plan.id} className="mb-6">
-                  <h2 className="text-2xl font-semibold mb-2">
-                    {plan.name} - ${plan.price_per_credit?.toFixed(3)} per row
-                  </h2>
-                  <p className="text-muted-foreground mb-4">
-                    Pay only for what you use. Each row extracted costs 1 credit.
-                  </p>
-                  
-                  <CreditPackageManager 
-                    pricePerCredit={plan.price_per_credit || 0.001} 
-                    userPlan={userPlan}
-                  />
+      <ScrollArea className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="subscription">Monthly Subscription</TabsTrigger>
+            <TabsTrigger value="credits">Pay-Per-Use Credits</TabsTrigger>
+          </TabsList>
+          
+          {plansLoading || userPlanLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2].map(i => (
+                <div key={i} className="border rounded-xl p-6 space-y-4">
+                  <Skeleton className="h-8 w-1/3" />
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-10 w-1/4" />
+                  <div className="space-y-2 pt-4">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-2/3" />
+                  </div>
+                  <Skeleton className="h-10 w-full mt-4" />
                 </div>
               ))}
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
+            </div>
+          ) : (
+            <>
+              <TabsContent value="subscription" className="mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {subscriptionPlans?.map((plan) => (
+                    <PlanCard 
+                      key={plan.id}
+                      plan={plan as PlanData}
+                      isActive={isPlanActive(plan.id)}
+                      onSelect={setSelectedPlanId}
+                      features={getPlanFeatures(plan.name)}
+                      planType="subscription"
+                    />
+                  ))}
+                </div>
+                
+                <SubscriptionManager 
+                  selectedPlanId={selectedPlanId}
+                  isActivePlan={selectedPlanId ? isPlanActive(selectedPlanId) : false}
+                  isProcessing={isProcessing}
+                  setIsProcessing={setIsProcessing}
+                />
+              </TabsContent>
+              
+              <TabsContent value="credits" className="mt-0">
+                {creditPlans?.map((plan) => (
+                  <div key={plan.id} className="mb-6">
+                    <h2 className="text-2xl font-semibold mb-2">
+                      {plan.name} - ${plan.price_per_credit?.toFixed(3)} per row
+                    </h2>
+                    <p className="text-muted-foreground mb-4">
+                      Pay only for what you use. Each row extracted costs 1 credit.
+                    </p>
+                    
+                    <CreditPackageManager 
+                      pricePerCredit={plan.price_per_credit || 0.001} 
+                      userPlan={userPlan}
+                    />
+                  </div>
+                ))}
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
+      </ScrollArea>
       
       <Separator className="my-8" />
       
