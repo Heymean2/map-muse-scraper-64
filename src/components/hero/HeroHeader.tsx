@@ -1,12 +1,9 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { withDelay, animationClasses } from "@/lib/animations";
-
 const HeroHeader = () => {
-  return (
-    <>
+  return <>
       <div className={`inline-block px-4 py-1.5 mb-6 text-sm font-medium bg-accent/10 text-accent rounded-full ${withDelay(animationClasses.fadeIn, 100)}`}>
         <span className="relative">Google Maps Data at Your Fingertips</span>
       </div>
@@ -33,20 +30,7 @@ const HeroHeader = () => {
         </Link>
       </div>
 
-      <div className={`mt-12 flex items-center justify-center gap-6 ${withDelay(animationClasses.fadeIn, 500)}`}>
-        <div className="flex -space-x-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-300 flex items-center justify-center text-xs font-medium">
-              {String.fromCharCode(65 + i)}
-            </div>
-          ))}
-        </div>
-        <div className="text-sm text-slate-600">
-          <span className="font-semibold">2,500+</span> companies already scraping
-        </div>
-      </div>
-    </>
-  );
+      
+    </>;
 };
-
 export default HeroHeader;
