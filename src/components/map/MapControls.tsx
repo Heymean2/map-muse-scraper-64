@@ -1,28 +1,49 @@
 
 import React from 'react';
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, MapPin, Layers } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface MapControlsProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
 }
 
-export const MapControls: React.FC<MapControlsProps> = ({ onZoomIn, onZoomOut }) => {
+const MapControls = ({ onZoomIn, onZoomOut }: MapControlsProps) => {
   return (
-    <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-      <div 
-        className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50"
-        onClick={onZoomIn}
-      >
-        <Plus size={18} />
+    <motion.div 
+      className="absolute right-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 z-10"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.7, duration: 0.5 }}
+    >
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <button 
+          onClick={onZoomIn} 
+          className="p-2 hover:bg-slate-100 transition-colors flex items-center justify-center"
+        >
+          <Plus size={18} className="text-slate-700" />
+        </button>
+        <div className="h-px bg-slate-200" />
+        <button 
+          onClick={onZoomOut} 
+          className="p-2 hover:bg-slate-100 transition-colors flex items-center justify-center"
+        >
+          <Minus size={18} className="text-slate-700" />
+        </button>
       </div>
-      <div 
-        className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50"
-        onClick={onZoomOut}
-      >
-        <Minus size={18} />
+      
+      <div className="bg-white rounded-lg shadow-md">
+        <button className="p-2 hover:bg-slate-100 transition-colors flex items-center justify-center">
+          <Layers size={18} className="text-slate-700" />
+        </button>
       </div>
-    </div>
+      
+      <div className="bg-white rounded-lg shadow-md">
+        <button className="p-2 hover:bg-slate-100 transition-colors flex items-center justify-center">
+          <MapPin size={18} className="text-violet-primary" />
+        </button>
+      </div>
+    </motion.div>
   );
 };
 
