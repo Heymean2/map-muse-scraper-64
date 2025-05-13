@@ -22,7 +22,7 @@ class CustomMarkerOverlay extends google.maps.OverlayView {
   
   constructor(position: google.maps.LatLng | google.maps.LatLngLiteral, element: HTMLElement) {
     super();
-    this.position = position instanceof google.maps.LatLng ? position : new google.maps.LatLng(position);
+    this.position = position instanceof google.maps.LatLng ? position : new google.maps.LatLng(position.lat, position.lng);
     this.element = element;
   }
   
