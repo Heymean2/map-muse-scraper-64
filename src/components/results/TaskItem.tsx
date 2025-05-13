@@ -31,9 +31,9 @@ export default function TaskItem({ task, onSelect }: TaskItemProps) {
           </span>
         </div>
       </div>
-      {task.total_results !== undefined && (
+      {(task.total_count !== undefined || task.row_count !== undefined) && (
         <div className="mt-2 text-sm">
-          <span className="text-slate-600 font-medium">{task.total_results}</span> results found
+          <span className="text-slate-600 font-medium">{task.total_count || task.row_count}</span> results found
         </div>
       )}
     </div>
