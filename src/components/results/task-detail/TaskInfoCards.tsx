@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Clock, MapPin, FileText, Database, Calendar } from "lucide-react";
 import { getStatusColor } from "./utils/statusUtils";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface TaskInfoCardsProps {
   searchInfo: any;
