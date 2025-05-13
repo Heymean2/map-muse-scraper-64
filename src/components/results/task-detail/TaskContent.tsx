@@ -2,18 +2,15 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import ResultsContent from "@/components/results/ResultsContent";
-import { Button } from "@/components/ui/button";
-import SearchInfoCard from "@/components/results/SearchInfoCard";
 import TaskEmptyState from "./TaskEmptyState";
 import TaskInfoCards from "./TaskInfoCards";
-import TaskNoDataState from "./TaskNoDataState";
-import TaskProgressCard from "./TaskProgressCard";
 import { getSearchInfo } from "./utils/searchInfoUtils";
 import { getTaskProgress } from "@/services/scraper/taskRetrieval";
 import { useNavigate } from "react-router-dom";
 import TaskDetailLoading from "./TaskDetailLoading";
 import TaskDetailError from "./TaskDetailError";
 import TaskDetailNoData from "./TaskDetailNoData";
+import TaskProgressCard from "./TaskProgressCard";
 
 interface TaskContentProps {
   taskId: string | null;
@@ -75,7 +72,7 @@ export default function TaskContent({
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-6"
+        className="space-y-6 max-w-4xl mx-auto px-4"
       >
         <TaskEmptyState 
           results={results} 
@@ -99,7 +96,7 @@ export default function TaskContent({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="max-w-5xl mx-auto px-4 py-6 space-y-6"
+      className="max-w-4xl mx-auto px-4 py-6 space-y-6"
     >
       {/* Only show progress card when status is processing */}
       {taskStatus === "processing" && taskProgress && (
@@ -111,7 +108,7 @@ export default function TaskContent({
       )}
       
       {/* Main results card */}
-      <Card className="overflow-hidden shadow-sm border bg-white">
+      <Card className="overflow-hidden shadow-md border-0 rounded-2xl bg-gradient-to-b from-white to-slate-50">
         <CardContent className="p-0">
           <ResultsContent 
             loading={isLoading}

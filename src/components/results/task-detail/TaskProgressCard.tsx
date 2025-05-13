@@ -32,13 +32,13 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
+        return <CheckCircle className="h-6 w-6 text-green-500" strokeWidth={1.5} />;
       case 'processing':
-        return <RefreshCw className="h-6 w-6 text-blue-500 animate-spin" />;
+        return <RefreshCw className="h-6 w-6 text-blue-500 animate-spin" strokeWidth={1.5} />;
       case 'failed':
-        return <AlertCircle className="h-6 w-6 text-red-500" />;
+        return <AlertCircle className="h-6 w-6 text-red-500" strokeWidth={1.5} />;
       default:
-        return <Clock className="h-6 w-6 text-gray-500" />;
+        return <Clock className="h-6 w-6 text-gray-500" strokeWidth={1.5} />;
     }
   };
   
@@ -51,12 +51,12 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="mb-6 overflow-hidden border rounded-xl shadow-sm bg-white">
+      <Card className="mb-6 overflow-hidden border-0 rounded-2xl shadow-md bg-gradient-to-b from-white to-slate-50">
         <CardContent className="p-8">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               {getStatusIcon()}
-              <h3 className="text-lg font-medium text-slate-800 capitalize">
+              <h3 className="text-xl font-semibold text-slate-800 capitalize">
                 {progress.detailedState || status}
               </h3>
             </div>
@@ -68,7 +68,7 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
           <div className="mb-3">
             <Progress 
               value={progress.percentage} 
-              className="h-3 rounded-full"
+              className="h-4 rounded-full bg-slate-100"
               indicatorClassName={`${getStatusColor()} rounded-full`}
             />
           </div>
@@ -79,7 +79,7 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
           </div>
           
           {/* Stage Timeline */}
-          <div className="flex items-center justify-between relative mt-8">
+          <div className="flex items-center justify-between relative mt-10">
             {/* Connector line for timeline */}
             <div className="absolute top-4 left-0 w-full h-[2px] bg-slate-200 -z-10"></div>
             

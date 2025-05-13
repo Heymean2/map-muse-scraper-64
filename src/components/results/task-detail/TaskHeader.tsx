@@ -32,16 +32,16 @@ export default function TaskHeader({
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-b from-white to-slate-50 border-b sticky top-0 z-10 py-6"
+      className="bg-white sticky top-0 z-10 py-6 border-b border-slate-200 shadow-sm"
     >
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4">
         <div className="flex flex-col gap-5">
           {/* Navigation and Actions */}
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-slate-100 gap-2 text-slate-700 pl-2 pr-4"
+              className="hover:bg-slate-100 gap-2 text-slate-700 pl-2 pr-4 rounded-lg"
               asChild
             >
               <Link to="/dashboard/results">
@@ -54,7 +54,7 @@ export default function TaskHeader({
               onClick={onRefresh}
               size="sm"
               variant="outline"
-              className="gap-2 border-slate-200 shadow-sm"
+              className="gap-2 border-slate-200 shadow-sm rounded-lg"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Refresh</span>
@@ -65,13 +65,13 @@ export default function TaskHeader({
           <div className="flex flex-col gap-3 pt-1">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{title}</h1>
-              <Badge className={`${getStatusColor(status)} px-3 py-1 flex items-center gap-1 capitalize text-xs font-medium`}>
+              <Badge className={`${getStatusColor(status)} px-3 py-1 flex items-center gap-1 capitalize text-xs font-medium rounded-lg`}>
                 {getStatusIcon(status)}
                 <span>{status}</span>
               </Badge>
               
               {stage && stage !== status && (
-                <Badge variant="outline" className="flex items-center gap-1 capitalize text-xs px-3 py-1 font-medium">
+                <Badge variant="outline" className="flex items-center gap-1 capitalize text-xs px-3 py-1 font-medium rounded-lg">
                   <span>{stage}</span>
                 </Badge>
               )}
@@ -104,10 +104,10 @@ export default function TaskHeader({
           
           {/* Export actions */}
           {resultUrl && status === "completed" && (
-            <div className="flex flex-wrap items-center gap-3 py-2 mt-2">
+            <div className="flex flex-wrap items-center gap-3 py-3 mt-2">
               <Button 
                 size="default"
-                className="gap-2 bg-violet-primary hover:bg-violet-light shadow-sm"
+                className="gap-2 bg-violet-primary hover:bg-violet-light shadow-sm rounded-lg"
                 onClick={() => window.open(resultUrl, '_blank')}
               >
                 <Download className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function TaskHeader({
               <Button
                 size="default"
                 variant="outline"
-                className="gap-2 border-slate-200 shadow-sm"
+                className="gap-2 border-slate-200 shadow-sm rounded-lg"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                   alert("Link copied to clipboard!");

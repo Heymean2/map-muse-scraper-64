@@ -17,16 +17,16 @@ export default function TaskDetailError({ onRetry }: TaskDetailErrorProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-5xl mx-auto px-4 py-16"
+      className="max-w-4xl mx-auto px-4 py-16"
     >
-      <Card className="p-12 border rounded-xl bg-white shadow-sm">
+      <Card className="p-10 border-0 rounded-2xl bg-gradient-to-b from-white to-slate-50 shadow-md">
         <div className="flex items-center justify-center flex-col text-center">
-          <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center mb-8">
-            <AlertCircle className="h-10 w-10 text-red-500" />
+          <div className="h-24 w-24 bg-red-50/80 rounded-full flex items-center justify-center mb-8">
+            <AlertCircle className="h-12 w-12 text-red-500" strokeWidth={1.5} />
           </div>
           
-          <h3 className="text-2xl font-medium mb-3 text-slate-800">Error Loading Task</h3>
-          <p className="mb-8 text-slate-600 max-w-lg mx-auto">
+          <h3 className="text-2xl font-semibold mb-3 text-slate-800">Error Loading Task</h3>
+          <p className="mb-8 text-slate-600 max-w-lg mx-auto leading-relaxed">
             We couldn't retrieve this task's details. This could be due to a network issue or the task may have been deleted.
           </p>
           
@@ -34,7 +34,7 @@ export default function TaskDetailError({ onRetry }: TaskDetailErrorProps) {
             <Button 
               variant="destructive" 
               onClick={onRetry} 
-              className="gap-2 px-6"
+              className="gap-2 px-8 rounded-xl shadow-sm"
               size="lg"
             >
               <RefreshCw className="h-4 w-4" />
@@ -45,7 +45,7 @@ export default function TaskDetailError({ onRetry }: TaskDetailErrorProps) {
               variant="outline"
               asChild
               size="lg"
-              className="px-6"
+              className="px-8 rounded-xl"
             >
               <Link to="/dashboard/results" className="inline-flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
