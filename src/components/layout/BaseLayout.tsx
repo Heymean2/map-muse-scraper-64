@@ -40,11 +40,11 @@ export default function BaseLayout({ children, hideRail = false, hideSidebar = f
       
       {/* Show loading state or content */}
       {isLoading ? (
-        <div className="flex-grow pt-20 flex items-center justify-center">
+        <div className="flex-grow pt-8 flex items-center justify-center">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <div className="flex-grow pt-20">
+        <div className="flex-grow pt-8">
           <SidebarProvider>
             <div className="flex min-h-[calc(100vh-5rem)] w-full">
               {!hideSidebar && <DashboardSidebar />}
