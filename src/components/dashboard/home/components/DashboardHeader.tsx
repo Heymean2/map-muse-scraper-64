@@ -1,9 +1,6 @@
-
 import { MapPin } from "lucide-react";
-
 export function DashboardHeader() {
-  return (
-    <div className="mb-8 relative">
+  return <div className="mb-8 relative pt-8">
       <div className="absolute top-0 right-0 w-32 h-32 bg-google-blue/5 rounded-full -z-10 blur-2xl"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-google-red/5 rounded-full -z-10 blur-xl"></div>
       
@@ -12,6 +9,5 @@ export function DashboardHeader() {
         Dashboard
       </h1>
       <p className="text-muted-foreground mt-1">Monitor your scraping tasks and usage</p>
-    </div>
-  );
+    </div>;
 }
