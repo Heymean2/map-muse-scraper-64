@@ -4,97 +4,155 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { withDelay, animationClasses } from "@/lib/animations";
+import { MapPin, Navigation } from "lucide-react";
 
 export default function Hero() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const dotsRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Create animated data points on the map
-    if (dotsRef.current) {
-      const dotPositions = [
-        { x: '20%', y: '30%', delay: 0 },
-        { x: '45%', y: '20%', delay: 1 },
-        { x: '70%', y: '35%', delay: 2 },
-        { x: '30%', y: '60%', delay: 1.5 },
-        { x: '65%', y: '70%', delay: 0.5 },
-        { x: '85%', y: '50%', delay: 2.5 },
+    // Create animated map markers
+    if (markersRef.current) {
+      const markerPositions = [
+        { x: '25%', y: '30%', delay: 0, size: 'md' },
+        { x: '45%', y: '23%', delay: 1, size: 'lg' },
+        { x: '72%', y: '38%', delay: 2, size: 'md' },
+        { x: '35%', y: '65%', delay: 1.5, size: 'lg' },
+        { x: '68%', y: '70%', delay: 0.5, size: 'md' },
+        { x: '85%', y: '50%', delay: 2.5, size: 'lg' },
       ];
       
-      dotPositions.forEach(pos => {
-        const dot = document.createElement('div');
-        dot.className = 'absolute w-3 h-3 bg-accent rounded-full';
-        dot.style.left = pos.x;
-        dot.style.top = pos.y;
-        dot.style.opacity = '0';
-        dot.style.transform = 'scale(0.5)';
-        dot.style.animation = `ping 2s ease-in-out ${pos.delay}s infinite`;
+      markerPositions.forEach(pos => {
+        // Create marker container
+        const marker = document.createElement('div');
+        marker.className = 'absolute cursor-pointer transition-all duration-300';
+        marker.style.left = pos.x;
+        marker.style.top = pos.y;
+        marker.style.transform = 'translate(-50%, -100%) scale(0)';
         
-        const dotPulse = document.createElement('div');
-        dotPulse.className = 'absolute w-3 h-3 bg-accent rounded-full animate-ping opacity-75';
-        dot.appendChild(dotPulse);
+        // Create marker pin
+        const markerPin = document.createElement('div');
+        markerPin.className = `flex items-center justify-center ${pos.size === 'lg' ? 'text-red-500' : 'text-red-400'} drop-shadow-md`;
         
-        const dataText = document.createElement('div');
-        dataText.className = 'absolute left-4 top-0 text-xs font-mono bg-white/90 rounded px-2 py-1 shadow-sm';
-        dataText.textContent = 'Extracting data...';
-        dataText.style.opacity = '0';
-        dataText.style.transform = 'translateY(-10px)';
-        dataText.style.transition = 'all 0.3s ease-in-out';
-        dot.appendChild(dataText);
+        // Use MapPin icon
+        const pinSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        pinSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        pinSvg.setAttribute('width', pos.size === 'lg' ? '32' : '24');
+        pinSvg.setAttribute('height', pos.size === 'lg' ? '32' : '24');
+        pinSvg.setAttribute('viewBox', '0 0 24 24');
+        pinSvg.setAttribute('fill', 'none');
+        pinSvg.setAttribute('stroke', 'currentColor');
+        pinSvg.setAttribute('stroke-width', '2');
+        pinSvg.setAttribute('stroke-linecap', 'round');
+        pinSvg.setAttribute('stroke-linejoin', 'round');
         
-        // Show data text on hover
-        dot.addEventListener('mouseenter', () => {
-          dataText.style.opacity = '1';
-          dataText.style.transform = 'translateY(0)';
+        // Add the path for MapPin icon
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '12');
+        circle.setAttribute('cy', '10');
+        circle.setAttribute('r', '3');
+        
+        pinSvg.appendChild(path);
+        pinSvg.appendChild(circle);
+        markerPin.appendChild(pinSvg);
+        
+        // Add info window (appears on hover)
+        const infoWindow = document.createElement('div');
+        infoWindow.className = 'absolute left-2/4 -translate-x-1/2 -translate-y-full mb-1 bg-white rounded-md p-2 shadow-md border border-gray-200 w-48 opacity-0 transition-opacity pointer-events-none whitespace-nowrap';
+        infoWindow.style.bottom = '100%';
+        infoWindow.innerHTML = `
+          <div class="text-sm font-medium">Restaurant Name</div>
+          <div class="text-xs text-gray-500">Fine Dining • 4.7 ★★★★☆</div>
+          <div class="text-xs text-gray-500">123 Main St, City, State</div>
+        `;
+        
+        // Create marker shadow/pulse effect
+        const markerShadow = document.createElement('div');
+        markerShadow.className = 'absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-1 bg-black/20 rounded-full filter blur-sm';
+        
+        // Add animation effect
+        const pulse = document.createElement('div');
+        pulse.className = 'absolute top-0 left-0 w-full h-full animate-ping rounded-full bg-red-500/30';
+        
+        marker.appendChild(markerShadow);
+        markerPin.appendChild(pulse);
+        marker.appendChild(markerPin);
+        marker.appendChild(infoWindow);
+        
+        // Add event listeners for hover effect
+        marker.addEventListener('mouseenter', () => {
+          infoWindow.style.opacity = '1';
+          marker.style.zIndex = '10';
         });
         
-        dot.addEventListener('mouseleave', () => {
-          dataText.style.opacity = '0';
-          dataText.style.transform = 'translateY(-10px)';
+        marker.addEventListener('mouseleave', () => {
+          infoWindow.style.opacity = '0';
+          marker.style.zIndex = '1';
         });
         
-        dotsRef.current?.appendChild(dot);
+        // Add click event for animation
+        marker.addEventListener('click', () => {
+          const bounce = [
+            { transform: 'translate(-50%, -100%) scale(1)' },
+            { transform: 'translate(-50%, -130%) scale(1.1)', offset: 0.5 },
+            { transform: 'translate(-50%, -100%) scale(1)' }
+          ];
+          
+          marker.animate(bounce, { 
+            duration: 300, 
+            iterations: 1 
+          });
+        });
         
-        // Animate dot appearance
+        markersRef.current?.appendChild(marker);
+        
+        // Animate marker appearance with delay
         setTimeout(() => {
-          dot.style.opacity = '1';
-          dot.style.transform = 'scale(1)';
+          marker.style.transform = 'translate(-50%, -100%) scale(1)';
         }, pos.delay * 1000);
       });
     }
     
-    // Add map rotate animation
-    let mapRotation = 0;
-    let lastScrollY = window.scrollY;
-    
-    const animateMap = () => {
-      if (mapRef.current) {
-        // Subtle rotation based on scroll
-        const currentScrollY = window.scrollY;
-        const scrollDiff = currentScrollY - lastScrollY;
-        mapRotation += scrollDiff * 0.01;
-        lastScrollY = currentScrollY;
+    // Add map pan/zoom effect
+    if (mapRef.current) {
+      let scale = 1;
+      let translateX = 0;
+      let translateY = 0;
+      let lastScrollTop = window.scrollY;
+      
+      const updateMapTransform = () => {
+        const currentScrollTop = window.scrollY;
+        const scrollDirection = currentScrollTop > lastScrollTop ? 1 : -1;
         
-        // Constrain rotation
-        mapRotation = Math.max(-5, Math.min(5, mapRotation));
-        
-        // Apply transform with perspective
-        mapRef.current.style.transform = `perspective(1000px) rotateX(${Math.min(10, window.scrollY * 0.05)}deg) rotateY(${mapRotation}deg)`;
-        
-        // Slowly return to neutral position when not scrolling
-        if (Math.abs(scrollDiff) < 0.1) {
-          mapRotation *= 0.95;
+        // Subtle zoom based on scroll
+        if (currentScrollTop > 100 && scale < 1.1) {
+          scale += 0.0004 * scrollDirection;
+        } else if (currentScrollTop < 100 && scale > 1) {
+          scale -= 0.0004 * Math.abs(scrollDirection);
         }
-      }
-      requestAnimationFrame(animateMap);
-    };
-    
-    animateMap();
+        
+        // Constrain scale
+        scale = Math.max(1, Math.min(1.1, scale));
+        
+        // Add subtle drift
+        translateX = Math.sin(currentScrollTop * 0.001) * 2;
+        translateY = Math.cos(currentScrollTop * 0.001) * 2;
+        
+        mapRef.current!.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+        lastScrollTop = currentScrollTop;
+        
+        requestAnimationFrame(updateMapTransform);
+      };
+      
+      updateMapTransform();
+    }
     
     // Cleanup
     return () => {
-      if (dotsRef.current) {
-        dotsRef.current.innerHTML = '';
+      if (markersRef.current) {
+        markersRef.current.innerHTML = '';
       }
     };
   }, []);
@@ -149,28 +207,84 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Interactive Dashboard Preview */}
+        {/* Interactive Google Maps Preview */}
         <div className={`relative mx-auto max-w-5xl ${withDelay(animationClasses.scaleIn, 600)}`}>
-          <div ref={mapRef} className="aspect-[16/9] rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-200 transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <div className="aspect-[16/9] rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-200 transition-all duration-300">
+            <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-full h-full bg-white/80 backdrop-blur-sm p-6 rounded-xl overflow-hidden">
-                <div className="h-12 w-full bg-slate-100 rounded-lg mb-6 flex items-center px-4">
-                  <div className="w-3/4 h-6 bg-slate-200 rounded"></div>
-                </div>
-                <div className="grid grid-cols-3 gap-6 h-[calc(100%-4rem)]">
-                  <div className="col-span-1 bg-slate-100 rounded-lg p-4">
-                    <div className="h-8 w-1/2 bg-slate-200 rounded mb-4"></div>
-                    <div className="space-y-3">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="h-10 bg-white rounded flex items-center px-3">
-                          <div className="w-full h-4 bg-slate-200 rounded"></div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Search bar simulation */}
+                <div className="h-12 w-full bg-white rounded-lg mb-6 flex items-center px-4 shadow-sm border border-slate-200">
+                  <div className="mr-3 text-slate-400">
+                    <Search size={18} />
                   </div>
-                  <div className="col-span-2 bg-slate-100 rounded-lg relative">
-                    <div ref={dotsRef} className="h-full w-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/0,0,1,0,0/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')] bg-cover bg-center rounded-lg relative">
-                      {/* Data points will be added here dynamically */}
+                  <div className="flex-grow font-medium text-slate-700 text-sm">
+                    restaurants in California, USA
+                  </div>
+                  <div className="ml-2 text-slate-400">
+                    <X size={18} />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-5 gap-6 h-[calc(100%-4rem)]">
+                  {/* Results panel */}
+                  <div className="col-span-2 bg-white rounded-lg p-4 shadow-sm border border-slate-100 overflow-y-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-base font-medium text-slate-800">Results</div>
+                      <div className="text-sm text-blue-600">Share</div>
+                    </div>
+                    
+                    {/* Result items */}
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="mb-4 pb-4 border-b border-slate-100">
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="font-medium text-slate-800">
+                              {["The Elderberry House", "Californios", "Aroma Tavern"][i]}
+                            </div>
+                            <div className="flex items-center text-sm">
+                              <span className="text-amber-500 mr-1">4.7</span>
+                              <span className="text-amber-500">★★★★</span>
+                              <span className="text-amber-300">☆</span>
+                              <span className="text-slate-500 ml-1">({[332, 482, 92][i]})</span>
+                              <span className="mx-1 text-slate-300">•</span>
+                              <span className="text-slate-500">$$$</span>
+                            </div>
+                            <div className="text-sm text-slate-500">Fine Dining</div>
+                            <div className="text-sm text-slate-500">
+                              <span className="text-red-500">Closed</span> • Opens 5 pm
+                            </div>
+                          </div>
+                          <div className="w-16 h-16 bg-slate-200 rounded"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Map container */}
+                  <div className="col-span-3 bg-slate-100 rounded-lg relative overflow-hidden">
+                    <div 
+                      ref={mapRef} 
+                      className="w-full h-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-119.4179,36.7783,5,0,0/1200x800?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA')] bg-cover bg-center rounded-lg relative transition-transform duration-200"
+                    >
+                      {/* Map markers container */}
+                      <div ref={markersRef} className="absolute inset-0">
+                        {/* Markers will be added here dynamically */}
+                      </div>
+                      
+                      {/* Map controls */}
+                      <div className="absolute top-4 right-4 flex flex-col gap-2">
+                        <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
+                          <Plus size={18} />
+                        </div>
+                        <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
+                          <Minus size={18} />
+                        </div>
+                      </div>
+                      
+                      {/* Map attribution */}
+                      <div className="absolute bottom-1 right-1 text-[10px] text-slate-500 bg-white/80 px-1 rounded">
+                        Map data ©2025
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -183,5 +297,81 @@ export default function Hero() {
         </div>
       </Container>
     </section>
+  );
+}
+
+// Import the icons we need
+function Search(props: { size: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size}
+      height={props.size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function X(props: { size: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size}
+      height={props.size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function Plus(props: { size: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size}
+      height={props.size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </svg>
+  );
+}
+
+function Minus(props: { size: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size}
+      height={props.size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+    </svg>
   );
 }
