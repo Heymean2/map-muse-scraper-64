@@ -1,147 +1,150 @@
 
-import { createContext, useContext, useEffect, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { AuthContextType } from "@/types/auth";
-import { useAuthState } from "@/hooks/useAuthState";
-import { fetchUserDetails } from "@/services/userProfiles";
-import { signOut as authSignOut, refreshSession as authRefreshSession } from "@/services/authServices";
 
-// Create the auth context with default values
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  user: null,
-  loading: true,
-  isLoading: true,
-  signOut: async () => {},
-  refreshSession: async () => null,
-  userDetails: null,
-});
+// Define the AuthContext type
+type AuthContextType = {
+  user: any | null;
+  isLoading: boolean;
+  signUp: (email: string, password: string) => Promise<any>;
+  signIn: (email: string, password: string) => Promise<any>;
+  signOut: () => Promise<void>;
+};
 
-export const useAuth = () => useContext(AuthContext);
+// Create the context with a default value
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { 
-    session, setSession,
-    user, setUser,
-    userDetails, setUserDetails,
-    loading, setLoading,
-    isLoading 
-  } = useAuthState();
+// Create a provider component
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  // Add a flag to track if this is the initial session load
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    let mounted = true;
-
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if (!mounted) return;
-        
-        console.log(`Auth state changed: ${event}`);
-        
-        // Update on all auth state changes for better reliability
-        setSession(newSession);
-        setUser(newSession?.user || null);
-        
-        // Fetch user details if we have a user
-        if (newSession?.user) {
-          setTimeout(() => {
-            fetchUserDetails(newSession.user.id).then(details => {
-              if (details) setUserDetails(details);
-            });
-          }, 0);
-        }
-        
-        if (event === "SIGNED_IN") {
-          toast.success("Signed in successfully");
-          
-          // Ensure session is completely set up
-          setTimeout(() => {
-            setLoading(false);
-          }, 300);
-        } else if (event === "SIGNED_OUT") {
-          toast.info("Signed out successfully");
-          setLoading(false);
-          setUserDetails(null);
-        } else if (event === "TOKEN_REFRESHED") {
-          console.log("Auth token refreshed");
-          setLoading(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
+    // Check for session when the component mounts
     const getInitialSession = async () => {
+      console.info("Getting initial session...");
       try {
-        console.log("Getting initial session...");
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Error getting initial session:", error);
-          if (mounted) setLoading(false);
+          console.error("Error getting session:", error);
           return;
         }
         
-        if (mounted) {
-          console.log("Initial session retrieved:", !!data.session);
-          setSession(data.session);
-          setUser(data.session?.user || null);
-          
-          // Fetch user details if we have a user
-          if (data.session?.user) {
-            fetchUserDetails(data.session.user.id).then(details => {
-              if (details) setUserDetails(details);
-            });
-          }
-          
-          setLoading(false);
+        if (data?.session) {
+          setUser(data.session.user);
+          // Don't show toast on initial page load
+          console.info("Initial session retrieved:", !!data.session);
         }
       } catch (error) {
-        console.error("Error getting initial session:", error);
-        if (mounted) setLoading(false);
+        console.error("Unexpected error getting session:", error);
+      } finally {
+        setIsLoading(false);
+        setIsInitialLoad(false);
       }
     };
 
     getInitialSession();
 
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.info("Auth state changed:", event);
+        
+        if (session) {
+          setUser(session.user);
+          
+          // Only show "Signed in successfully" on a genuine sign-in event, not on token refreshes
+          if (event === "SIGNED_IN" && !isInitialLoad) {
+            toast.success("Signed in successfully");
+          }
+        } else {
+          setUser(null);
+          
+          if (event === "SIGNED_OUT") {
+            toast.info("Signed out successfully");
+            navigate("/");
+          }
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Return a cleanup function
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, isInitialLoad]);
 
-  // Wrap the signOut function
-  const handleSignOut = async () => {
-    await authSignOut();
-    setUserDetails(null);
-  };
-
-  // Wrap the refreshSession function
-  const handleRefreshSession = async () => {
-    const newSession = await authRefreshSession();
-    setSession(newSession);
-    setUser(newSession?.user || null);
-    
-    // Fetch user details if we have a user
-    if (newSession?.user) {
-      const details = await fetchUserDetails(newSession.user.id);
-      if (details) setUserDetails(details);
+  // Sign up function
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error signing up:", error);
+      throw error;
     }
-    
-    return newSession;
   };
 
-  const value = {
-    session,
-    user,
-    loading,
-    isLoading,
-    signOut: handleSignOut,
-    refreshSession: handleRefreshSession,
-    userDetails,
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error signing in:", error);
+      throw error;
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // Sign out function
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    }
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        signUp,
+        signIn,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

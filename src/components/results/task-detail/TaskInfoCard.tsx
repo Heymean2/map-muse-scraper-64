@@ -87,7 +87,7 @@ export default function TaskInfoCard({
           
           <div className="flex justify-between">
             <span className="text-sm text-slate-500">Total Count</span>
-            <span className="text-sm font-medium">{totalCount} results</span>
+            <span className="text-sm font-medium">{totalCount || 0} results</span>
           </div>
           
           {completedAt && (

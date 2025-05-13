@@ -66,6 +66,8 @@ export async function getScrapingResults(
     }
     
     if (taskId) {
+      console.log(`Getting scraping results for task: ${taskId}`);
+      
       // Get single task details
       const { data, error } = await supabase
         .from('scraping_requests')
@@ -79,7 +81,10 @@ export async function getScrapingResults(
         throw error;
       }
       
+      console.log("Raw task data from Supabase:", data);
+      
       if (!data) {
+        console.log("No data found for task:", taskId);
         return null;
       }
       
@@ -87,14 +92,17 @@ export async function getScrapingResults(
       const taskWithDefaults = {
         ...data,
         created_at: data.created_at || new Date().toISOString(),
-        task_id: data.task_id ? data.task_id.toString() : undefined
+        task_id: data.task_id ? data.task_id.toString() : undefined,
+        // Ensure total_count is present, defaulting to row_count if available or 0
+        total_count: data.total_results || data.row_count || 0
       };
       
       // Create search_info object
       const searchInfo = {
         keywords: data.keywords,
         location: `${data.country} - ${data.states}`,
-        fields: ensureArray(data.fields)
+        fields: ensureArray(data.fields),
+        rating: data.rating
       };
       
       // Return with additional fields
@@ -102,6 +110,8 @@ export async function getScrapingResults(
         ...taskWithDefaults,
         search_info: searchInfo
       };
+      
+      console.log("Processed scraping result:", result);
       
       return result;
     } else {
@@ -117,11 +127,15 @@ export async function getScrapingResults(
         throw error;
       }
       
+      console.log("Raw tasks data from Supabase:", data);
+      
       // Ensure created_at exists for all records and convert UUID to string
       const tasksWithDefaults = (data || []).map(item => ({
         ...item,
         created_at: item.created_at || new Date().toISOString(),
-        task_id: item.task_id ? item.task_id.toString() : undefined
+        task_id: item.task_id ? item.task_id.toString() : undefined,
+        // Ensure total_count is present
+        total_count: item.total_results || item.row_count || 0
       }));
       
       return { tasks: tasksWithDefaults } as ScrapingResultMultiple;
