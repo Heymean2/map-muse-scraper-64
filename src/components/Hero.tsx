@@ -1,156 +1,131 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { withDelay, animationClasses } from "@/lib/animations";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Search, X, Plus, Minus } from "lucide-react";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+// Set your Mapbox token here - Replace with your actual token when deploying
+// This is a temporary public token for development
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 export default function Hero() {
   const mapRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   
   useEffect(() => {
-    // Create animated map markers
-    if (markersRef.current) {
-      const markerPositions = [
-        { x: '25%', y: '30%', delay: 0, size: 'md' },
-        { x: '45%', y: '23%', delay: 1, size: 'lg' },
-        { x: '72%', y: '38%', delay: 2, size: 'md' },
-        { x: '35%', y: '65%', delay: 1.5, size: 'lg' },
-        { x: '68%', y: '70%', delay: 0.5, size: 'md' },
-        { x: '85%', y: '50%', delay: 2.5, size: 'lg' },
-      ];
+    if (!mapRef.current) return;
+    
+    // Initialize the map
+    const map = new mapboxgl.Map({
+      container: mapRef.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-119.4179, 36.7783], // California
+      zoom: 5,
+      interactive: false, // Disable interactions for the preview map
+    });
+    
+    mapInstanceRef.current = map;
+    
+    map.on('load', () => {
+      setMapLoaded(true);
       
-      markerPositions.forEach(pos => {
-        // Create marker container
-        const marker = document.createElement('div');
-        marker.className = 'absolute cursor-pointer transition-all duration-300';
-        marker.style.left = pos.x;
-        marker.style.top = pos.y;
-        marker.style.transform = 'translate(-50%, -100%) scale(0)';
+      // Add some markers after map is loaded
+      if (markersRef.current) {
+        const markerPositions = [
+          { lngLat: [-122.4194, 37.7749], delay: 0, size: 'md', name: "San Francisco Bistro", rating: "4.8" }, // San Francisco
+          { lngLat: [-118.2437, 34.0522], delay: 1, size: 'lg', name: "LA Gourmet", rating: "4.6" }, // Los Angeles
+          { lngLat: [-117.1611, 32.7157], delay: 2, size: 'md', name: "San Diego Cafe", rating: "4.7" }, // San Diego
+          { lngLat: [-121.4944, 38.5816], delay: 1.5, size: 'lg', name: "Sacramento Restaurant", rating: "4.5" }, // Sacramento
+          { lngLat: [-119.7871, 36.7378], delay: 0.5, size: 'md', name: "Fresno Diner", rating: "4.3" }, // Fresno
+        ];
         
-        // Create marker pin
-        const markerPin = document.createElement('div');
-        markerPin.className = `flex items-center justify-center ${pos.size === 'lg' ? 'text-red-500' : 'text-red-400'} drop-shadow-md`;
-        
-        // Use MapPin icon
-        const pinSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        pinSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        pinSvg.setAttribute('width', pos.size === 'lg' ? '32' : '24');
-        pinSvg.setAttribute('height', pos.size === 'lg' ? '32' : '24');
-        pinSvg.setAttribute('viewBox', '0 0 24 24');
-        pinSvg.setAttribute('fill', 'none');
-        pinSvg.setAttribute('stroke', 'currentColor');
-        pinSvg.setAttribute('stroke-width', '2');
-        pinSvg.setAttribute('stroke-linecap', 'round');
-        pinSvg.setAttribute('stroke-linejoin', 'round');
-        
-        // Add the path for MapPin icon
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z');
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', '12');
-        circle.setAttribute('cy', '10');
-        circle.setAttribute('r', '3');
-        
-        pinSvg.appendChild(path);
-        pinSvg.appendChild(circle);
-        markerPin.appendChild(pinSvg);
-        
-        // Add info window (appears on hover)
-        const infoWindow = document.createElement('div');
-        infoWindow.className = 'absolute left-2/4 -translate-x-1/2 -translate-y-full mb-1 bg-white rounded-md p-2 shadow-md border border-gray-200 w-48 opacity-0 transition-opacity pointer-events-none whitespace-nowrap';
-        infoWindow.style.bottom = '100%';
-        infoWindow.innerHTML = `
-          <div class="text-sm font-medium">Restaurant Name</div>
-          <div class="text-xs text-gray-500">Fine Dining • 4.7 ★★★★☆</div>
-          <div class="text-xs text-gray-500">123 Main St, City, State</div>
-        `;
-        
-        // Create marker shadow/pulse effect
-        const markerShadow = document.createElement('div');
-        markerShadow.className = 'absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-1 bg-black/20 rounded-full filter blur-sm';
-        
-        // Add animation effect
-        const pulse = document.createElement('div');
-        pulse.className = 'absolute top-0 left-0 w-full h-full animate-ping rounded-full bg-red-500/30';
-        
-        marker.appendChild(markerShadow);
-        markerPin.appendChild(pulse);
-        marker.appendChild(markerPin);
-        marker.appendChild(infoWindow);
-        
-        // Add event listeners for hover effect
-        marker.addEventListener('mouseenter', () => {
-          infoWindow.style.opacity = '1';
-          marker.style.zIndex = '10';
-        });
-        
-        marker.addEventListener('mouseleave', () => {
-          infoWindow.style.opacity = '0';
-          marker.style.zIndex = '1';
-        });
-        
-        // Add click event for animation
-        marker.addEventListener('click', () => {
-          const bounce = [
-            { transform: 'translate(-50%, -100%) scale(1)' },
-            { transform: 'translate(-50%, -130%) scale(1.1)', offset: 0.5 },
-            { transform: 'translate(-50%, -100%) scale(1)' }
-          ];
+        markerPositions.forEach(pos => {
+          // Create marker element
+          const markerElement = document.createElement('div');
+          markerElement.className = 'absolute cursor-pointer transition-all duration-300 z-10';
+          markerElement.style.transform = 'scale(0)';
           
-          marker.animate(bounce, { 
-            duration: 300, 
-            iterations: 1 
+          // Create the Mapbox marker
+          const marker = new mapboxgl.Marker({
+            element: markerElement,
+            anchor: 'bottom'
+          })
+            .setLngLat(pos.lngLat)
+            .addTo(map);
+            
+          // Create marker pin
+          const markerPin = document.createElement('div');
+          markerPin.className = `flex items-center justify-center ${pos.size === 'lg' ? 'text-red-500' : 'text-red-400'} drop-shadow-md`;
+          
+          // Use MapPin icon
+          const pinSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          pinSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          pinSvg.setAttribute('width', pos.size === 'lg' ? '32' : '24');
+          pinSvg.setAttribute('height', pos.size === 'lg' ? '32' : '24');
+          pinSvg.setAttribute('viewBox', '0 0 24 24');
+          pinSvg.setAttribute('fill', 'none');
+          pinSvg.setAttribute('stroke', 'currentColor');
+          pinSvg.setAttribute('stroke-width', '2');
+          pinSvg.setAttribute('stroke-linecap', 'round');
+          pinSvg.setAttribute('stroke-linejoin', 'round');
+          
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z');
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', '12');
+          circle.setAttribute('cy', '10');
+          circle.setAttribute('r', '3');
+          
+          pinSvg.appendChild(path);
+          pinSvg.appendChild(circle);
+          markerPin.appendChild(pinSvg);
+          
+          // Add info window (appears on hover)
+          const infoWindow = document.createElement('div');
+          infoWindow.className = 'absolute left-2/4 -translate-x-1/2 -translate-y-full mb-1 bg-white rounded-md p-2 shadow-md border border-gray-200 w-48 opacity-0 transition-opacity pointer-events-none whitespace-nowrap z-20';
+          infoWindow.style.bottom = '100%';
+          infoWindow.innerHTML = `
+            <div class="text-sm font-medium">${pos.name}</div>
+            <div class="text-xs text-gray-500">Fine Dining • ${pos.rating} ★★★★☆</div>
+            <div class="text-xs text-gray-500">123 Main St, California</div>
+          `;
+          
+          // Create marker shadow/pulse effect
+          const pulse = document.createElement('div');
+          pulse.className = 'absolute top-0 left-0 w-full h-full animate-ping rounded-full bg-red-500/30';
+          
+          markerPin.appendChild(pulse);
+          markerElement.appendChild(markerPin);
+          markerElement.appendChild(infoWindow);
+          
+          // Add event listeners for hover effect
+          markerElement.addEventListener('mouseenter', () => {
+            infoWindow.style.opacity = '1';
+            markerElement.style.zIndex = '10';
           });
+          
+          markerElement.addEventListener('mouseleave', () => {
+            infoWindow.style.opacity = '0';
+            markerElement.style.zIndex = '1';
+          });
+          
+          // Animate marker appearance with delay
+          setTimeout(() => {
+            markerElement.style.transform = 'scale(1)';
+          }, pos.delay * 1000);
         });
-        
-        markersRef.current?.appendChild(marker);
-        
-        // Animate marker appearance with delay
-        setTimeout(() => {
-          marker.style.transform = 'translate(-50%, -100%) scale(1)';
-        }, pos.delay * 1000);
-      });
-    }
+      }
+    });
     
-    // Add map pan/zoom effect
-    if (mapRef.current) {
-      let scale = 1;
-      let translateX = 0;
-      let translateY = 0;
-      let lastScrollTop = window.scrollY;
-      
-      const updateMapTransform = () => {
-        const currentScrollTop = window.scrollY;
-        const scrollDirection = currentScrollTop > lastScrollTop ? 1 : -1;
-        
-        // Subtle zoom based on scroll
-        if (currentScrollTop > 100 && scale < 1.1) {
-          scale += 0.0004 * scrollDirection;
-        } else if (currentScrollTop < 100 && scale > 1) {
-          scale -= 0.0004 * Math.abs(scrollDirection);
-        }
-        
-        // Constrain scale
-        scale = Math.max(1, Math.min(1.1, scale));
-        
-        // Add subtle drift
-        translateX = Math.sin(currentScrollTop * 0.001) * 2;
-        translateY = Math.cos(currentScrollTop * 0.001) * 2;
-        
-        mapRef.current!.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
-        lastScrollTop = currentScrollTop;
-        
-        requestAnimationFrame(updateMapTransform);
-      };
-      
-      updateMapTransform();
-    }
-    
-    // Cleanup
+    // Clean up on unmount
     return () => {
+      map.remove();
       if (markersRef.current) {
         markersRef.current.innerHTML = '';
       }
@@ -264,27 +239,29 @@ export default function Hero() {
                   <div className="col-span-3 bg-slate-100 rounded-lg relative overflow-hidden">
                     <div 
                       ref={mapRef} 
-                      className="w-full h-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-119.4179,36.7783,5,0,0/1200x800?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA')] bg-cover bg-center rounded-lg relative transition-transform duration-200"
+                      className="w-full h-full rounded-lg relative transition-transform duration-200"
                     >
-                      {/* Map markers container */}
-                      <div ref={markersRef} className="absolute inset-0">
-                        {/* Markers will be added here dynamically */}
+                      {/* Map will be rendered here by Mapbox */}
+                    </div>
+                    
+                    {/* Map controls */}
+                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                      <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
+                        <Plus size={18} />
                       </div>
-                      
-                      {/* Map controls */}
-                      <div className="absolute top-4 right-4 flex flex-col gap-2">
-                        <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
-                          <Plus size={18} />
-                        </div>
-                        <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
-                          <Minus size={18} />
-                        </div>
+                      <div className="w-8 h-8 bg-white rounded-md shadow flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-50">
+                        <Minus size={18} />
                       </div>
-                      
-                      {/* Map attribution */}
-                      <div className="absolute bottom-1 right-1 text-[10px] text-slate-500 bg-white/80 px-1 rounded">
-                        Map data ©2025
-                      </div>
+                    </div>
+                    
+                    {/* Map markers container */}
+                    <div ref={markersRef} className="absolute inset-0 z-10">
+                      {/* Markers will be added here dynamically */}
+                    </div>
+                    
+                    {/* Map attribution */}
+                    <div className="absolute bottom-1 right-1 text-[10px] text-slate-500 bg-white/80 px-1 rounded z-10">
+                      Map data ©2025
                     </div>
                   </div>
                 </div>
@@ -297,81 +274,5 @@ export default function Hero() {
         </div>
       </Container>
     </section>
-  );
-}
-
-// Import the icons we need
-function Search(props: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={props.size}
-      height={props.size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function X(props: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={props.size}
-      height={props.size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
-
-function Plus(props: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={props.size}
-      height={props.size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M12 5v14" />
-    </svg>
-  );
-}
-
-function Minus(props: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={props.size}
-      height={props.size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-    </svg>
   );
 }
