@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getScrapingResults } from "@/services/scraper";
@@ -18,6 +19,7 @@ export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [pollingInterval, setPollingInterval] = useState<number>(0);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -25,7 +27,12 @@ export default function TaskDetail() {
     
     // We no longer send to backend here - task should have already been sent from FormSubmissionHandler
     console.log("TaskDetail: Displaying task:", taskId);
-  }, [taskId, user]);
+    
+    return () => {
+      // Clean up any intervals when component unmounts
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [taskId, user, pollingInterval]);
 
   // Get the current task's results
   const { 
@@ -38,6 +45,31 @@ export default function TaskDetail() {
     queryFn: () => getScrapingResults(taskId),
     enabled: !!taskId,
   });
+
+  // Set up polling for in-progress tasks
+  useEffect(() => {
+    // Clear any existing interval
+    if (pollingInterval) clearInterval(pollingInterval);
+    
+    // If task is still processing, set up polling
+    if (taskResults && 
+        ('status' in taskResults) && 
+        taskResults.status === 'processing') {
+      
+      // Poll every 10 seconds for updates
+      const interval = window.setInterval(() => {
+        console.log("Polling for task updates...");
+        refetchTaskResults();
+      }, 10000);
+      
+      setPollingInterval(interval);
+    }
+    
+    // Clean up on unmount or when status changes
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [taskResults, refetchTaskResults]);
 
   const handleRefresh = () => {
     refetchTaskResults();
@@ -88,6 +120,7 @@ export default function TaskDetail() {
     const isLimited = 'limited' in singleResult ? singleResult.limited : false;
     const currentPlan = 'current_plan' in singleResult ? singleResult.current_plan : null;
     const status = singleResult.status || 'processing';
+    const stage = singleResult.stage || status;
     
     // Get search info and fields
     let searchInfo = null;
@@ -114,6 +147,7 @@ export default function TaskDetail() {
       isLimited,
       currentPlan,
       status,
+      stage,
       fields
     };
   };
@@ -127,6 +161,7 @@ export default function TaskDetail() {
           <TaskHeader 
             title={taskData.keywords || "Task Details"}
             status={taskData.status}
+            stage={taskData.stage}
             createdAt={taskData.createdAt}
             location={taskData.searchInfo?.location}
             fields={taskData.fields}
@@ -188,7 +223,7 @@ export default function TaskDetail() {
               <Card className="p-5">
                 <h3 className="text-lg font-medium mb-2">No Task Data Available</h3>
                 <p className="mb-4">We couldn't find any information for this task.</p>
-                <Button onClick={() => navigate('/result')}>
+                <Button onClick={() => navigate('/dashboard/results')}>
                   Return to Results
                 </Button>
               </Card>

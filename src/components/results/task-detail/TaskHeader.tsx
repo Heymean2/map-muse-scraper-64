@@ -8,6 +8,7 @@ import HeaderActions from "./HeaderActions";
 interface TaskHeaderProps {
   title: string;
   status: string;
+  stage?: string;
   createdAt?: string;
   location?: string;
   fields?: string[];
@@ -18,6 +19,7 @@ interface TaskHeaderProps {
 export default function TaskHeader({
   title,
   status,
+  stage,
   createdAt,
   location,
   fields,
@@ -31,7 +33,7 @@ export default function TaskHeader({
           <HeaderNavigation onRefresh={onRefresh} />
           
           <div className="space-y-4">
-            <HeaderTitle title={title} status={status} />
+            <HeaderTitle title={title} status={status} stage={stage} />
             <HeaderMetadata createdAt={createdAt} location={location} fields={fields} />
           </div>
           

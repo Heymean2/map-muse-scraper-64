@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ScrapingRequest, ScrapingResultSingle, ScrapingResultMultiple } from "./types";
+import { ScrapingRequest, ScrapingResultSingle, ScrapingResultMultiple, TaskProgress } from "./types";
 
 /**
  * Get user's scraping tasks
@@ -30,7 +29,9 @@ export async function getUserScrapingTasks(): Promise<ScrapingRequest[]> {
     return (data || []).map(item => ({
       ...item,
       created_at: item.created_at || new Date().toISOString(),
-      task_id: item.task_id ? item.task_id.toString() : undefined
+      task_id: item.task_id ? item.task_id.toString() : undefined,
+      // Parse progress to number if it's a string
+      progress: item.progress ? parseFloat(item.progress) : undefined
     }));
   } catch (error: any) {
     console.error("Error getting user scraping tasks:", error);
@@ -50,6 +51,85 @@ function ensureArray(value: any): string[] {
   }
   if (value === null || value === undefined) return [];
   return [String(value)]; // Convert single value to array
+}
+
+/**
+ * Helper function to parse progress value to percentage
+ */
+export function parseProgressValue(progress?: string | number): number {
+  if (progress === undefined || progress === null) return 0;
+  if (typeof progress === 'number') return progress;
+  
+  // Try to parse as number
+  const numValue = parseFloat(progress);
+  if (isNaN(numValue)) return 0;
+  
+  // If it's already a percentage (0-100), return as is
+  if (numValue >= 0 && numValue <= 100) return numValue;
+  
+  // Otherwise convert to percentage (assuming a 0-1 scale)
+  return numValue * 100;
+}
+
+/**
+ * Process and enhance task data with additional metadata
+ */
+function processTaskData(data: any): ScrapingRequest {
+  // Ensure created_at exists and convert UUID to string
+  const taskWithDefaults = {
+    ...data,
+    created_at: data.created_at || new Date().toISOString(),
+    task_id: data.task_id ? data.task_id.toString() : undefined,
+    // Ensure total_count is present
+    total_count: data.total_count || data.row_count || 0,
+    // Parse progress to a number if it's a string
+    progress: parseProgressValue(data.progress)
+  };
+  
+  return taskWithDefaults;
+}
+
+/**
+ * Get task progress details
+ */
+export function getTaskProgress(task: ScrapingRequest): TaskProgress {
+  // Default stage sequence
+  const stages = ['queued', 'collecting', 'processing', 'exporting', 'completed'];
+  
+  // Determine current stage
+  const currentStage = task.stage || (
+    task.status === 'completed' ? 'completed' : 
+    task.status === 'processing' ? 'processing' : 
+    'queued'
+  );
+  
+  // Find current stage index
+  const currentIndex = stages.indexOf(currentStage);
+  
+  // Get previous and next stages
+  const previousStages = currentIndex > 0 ? stages.slice(0, currentIndex) : [];
+  const nextStages = currentIndex < stages.length - 1 ? stages.slice(currentIndex + 1) : [];
+  
+  // Calculate percentage based on progress or status
+  let percentage = 0;
+  if (task.progress !== undefined) {
+    percentage = typeof task.progress === 'number' ? task.progress : parseFloat(task.progress) || 0;
+  } else if (task.status === 'completed') {
+    percentage = 100;
+  } else if (currentIndex >= 0) {
+    // Approximate percentage based on stage
+    percentage = (currentIndex / (stages.length - 1)) * 100;
+  }
+  
+  return {
+    currentStage,
+    previousStages,
+    nextStages,
+    percentage,
+    detailedState: task.current_state || currentStage,
+    startTime: task.created_at,
+    estimatedCompletion: undefined // Could be calculated based on progress rate
+  };
 }
 
 /**
@@ -88,14 +168,8 @@ export async function getScrapingResults(
         return null;
       }
       
-      // Ensure created_at exists and convert UUID to string
-      const taskWithDefaults = {
-        ...data,
-        created_at: data.created_at || new Date().toISOString(),
-        task_id: data.task_id ? data.task_id.toString() : undefined,
-        // Ensure total_count is present, defaulting to row_count if available or 0
-        total_count: data.row_count || 0 // Using row_count since total_results isn't available
-      };
+      // Process task data with enhanced metadata
+      const processedTask = processTaskData(data);
       
       // Create search_info object
       const searchInfo = {
@@ -107,7 +181,7 @@ export async function getScrapingResults(
       
       // Return with additional fields
       const result: ScrapingResultSingle = {
-        ...taskWithDefaults,
+        ...processedTask,
         search_info: searchInfo
       };
       
@@ -129,16 +203,10 @@ export async function getScrapingResults(
       
       console.log("Raw tasks data from Supabase:", data);
       
-      // Ensure created_at exists for all records and convert UUID to string
-      const tasksWithDefaults = (data || []).map(item => ({
-        ...item,
-        created_at: item.created_at || new Date().toISOString(),
-        task_id: item.task_id ? item.task_id.toString() : undefined,
-        // Ensure total_count is present
-        total_count: item.row_count || 0 // Using row_count since total_results isn't available
-      }));
+      // Process all tasks with enhanced metadata
+      const processedTasks = (data || []).map(item => processTaskData(item));
       
-      return { tasks: tasksWithDefaults } as ScrapingResultMultiple;
+      return { tasks: processedTasks } as ScrapingResultMultiple;
     }
   } catch (error: any) {
     console.error("Error getting scraping results:", error);

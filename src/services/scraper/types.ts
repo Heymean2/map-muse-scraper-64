@@ -38,7 +38,11 @@ export interface ScrapingRequest {
   result_url?: string;
   json_result_url?: string;
   row_count?: number;
-  total_count?: number; // Added this field to handle the count data
+  total_count?: number; // Count data
+  stage?: string; // Current processing stage (collecting, processing, exporting)
+  progress?: string | number; // Progress percentage or value
+  current_state?: string; // Detailed state information
+  metadata?: any; // Additional metadata about the task
 }
 
 export interface ScrapingParams {
@@ -67,4 +71,15 @@ export interface ScrapingResultSingle extends ScrapingRequest {
 
 export interface ScrapingResultMultiple {
   tasks: ScrapingRequest[];
+}
+
+// New interface for task progress details
+export interface TaskProgress {
+  currentStage: string;
+  previousStages?: string[];
+  nextStages?: string[];
+  percentage: number;
+  detailedState: string;
+  startTime?: string;
+  estimatedCompletion?: string;
 }

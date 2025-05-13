@@ -8,7 +8,9 @@ import SearchInfoCard from "@/components/results/SearchInfoCard";
 import TaskEmptyState from "./TaskEmptyState";
 import TaskInfoCards from "./TaskInfoCards";
 import TaskNoDataState from "./TaskNoDataState";
+import TaskProgressCard from "./TaskProgressCard";
 import { getSearchInfo } from "./utils/searchInfoUtils";
+import { getTaskProgress } from "@/services/scraper/taskRetrieval";
 import { useNavigate } from "react-router-dom";
 
 interface TaskContentProps {
@@ -47,6 +49,9 @@ export default function TaskContent({
   
   // Get search info
   const searchInfo = getSearchInfo(results);
+  
+  // Get task progress information
+  const taskProgress = results ? getTaskProgress(results) : null;
 
   // Loading state
   if (isLoading) {
@@ -85,7 +90,7 @@ export default function TaskContent({
             <p className="mb-4">We encountered a problem while fetching your task results.</p>
             <Button 
               variant="destructive" 
-              onClick={() => navigate('/result')} 
+              onClick={() => navigate('/dashboard/results')} 
               className="gap-2"
             >
               Try Again
@@ -100,6 +105,15 @@ export default function TaskContent({
   if (results?.status === "completed" && (!searchInfo?.data || !searchInfo?.data.length)) {
     return (
       <>
+        {taskProgress && (
+          <div className="max-w-5xl mx-auto px-4 pt-6">
+            <TaskProgressCard 
+              progress={taskProgress} 
+              status={results.status} 
+              createdAt={results.created_at} 
+            />
+          </div>
+        )}
         <TaskEmptyState 
           results={results} 
           getExportCsvHandler={getExportCsvHandler} 
@@ -119,6 +133,14 @@ export default function TaskContent({
   // Main content with data
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      {taskProgress && (
+        <TaskProgressCard 
+          progress={taskProgress} 
+          status={results.status} 
+          createdAt={results.created_at} 
+        />
+      )}
+      
       <Card className="overflow-hidden shadow-sm border bg-white">
         <CardContent className="p-0">
           <ResultsContent 
@@ -143,11 +165,13 @@ export default function TaskContent({
                 typeof searchInfo.fields === 'string' ? searchInfo.fields.split(',') : [],
               rating: searchInfo.rating
             }}
-            totalCount={results?.total_count || 0}
+            totalCount={results?.total_count || results?.row_count || 0}
             completedAt={results?.updated_at}
           />
         </div>
       )}
+      
+      <TaskInfoCards searchInfo={searchInfo} results={results} />
     </div>
   );
 }
