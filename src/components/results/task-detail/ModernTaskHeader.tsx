@@ -18,7 +18,7 @@ interface ModernTaskHeaderProps {
   stage?: string;
   createdAt?: string;
   location?: string;
-  fields?: string[];
+  fields?: string[] | string; // Updated type to be string[] | string
   resultUrl?: string;
   onRefresh: () => void;
   activeTab: string;
@@ -54,6 +54,31 @@ export default function ModernTaskHeader({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isCollapsed]);
+
+  // Helper function to handle fields rendering with proper type checking
+  const renderFields = () => {
+    if (!fields) return null;
+    
+    // If fields is an array, map through it
+    if (Array.isArray(fields)) {
+      return fields.map((field, index) => (
+        <Badge key={index} variant="secondary" className="text-xs font-normal">
+          {field}
+        </Badge>
+      ));
+    }
+    
+    // If fields is a string, split it and map through the result
+    if (typeof fields === 'string') {
+      return fields.split(',').map((field, index) => (
+        <Badge key={index} variant="secondary" className="text-xs font-normal">
+          {field.trim()}
+        </Badge>
+      ));
+    }
+    
+    return null;
+  };
 
   return (
     <motion.div 
@@ -151,23 +176,11 @@ export default function ModernTaskHeader({
                   </div>
                   
                   {/* Fields */}
-                  {fields && fields.length > 0 && (
+                  {fields && (
                     <div className="flex gap-1.5 flex-wrap">
                       <span className="text-sm text-slate-500 font-medium">Fields:</span>
                       <div className="flex flex-wrap gap-1">
-                        {Array.isArray(fields) 
-                          ? fields.map((field, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs font-normal">
-                                {field}
-                              </Badge>
-                            ))
-                          : typeof fields === 'string' && 
-                              fields.split(',').map((field, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs font-normal">
-                                  {field.trim()}
-                                </Badge>
-                              ))
-                        }
+                        {renderFields()}
                       </div>
                     </div>
                   )}
