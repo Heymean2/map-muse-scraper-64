@@ -91,7 +91,7 @@ export default function BillingSection() {
     refetchUserPlan();
   };
   return <Container className="max-w-screen-xl px-2 sm:px-4 md:px-6">
-      <div className="flex justify-between items-center mb-8 mt-6">
+      <div className="flex justify-between items-center mb-8 mt-7">
         <div>
           <h1 className="text-3xl font-bold">Pricing Plans</h1>
           <p className="text-muted-foreground">Choose the right plan for your data extraction needs</p>
