@@ -3,7 +3,6 @@ import { Container } from "@/components/ui/container";
 import { withDelay, animationClasses } from "@/lib/animations";
 import HeroHeader from "./hero/HeroHeader";
 import MapDisplay from "./map/MapDisplay";
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function Hero() {
   return (
@@ -19,7 +18,7 @@ export default function Hero() {
           <HeroHeader />
         </div>
 
-        {/* Interactive Google Maps Preview */}
+        {/* Data Scraping Wireframe Visualization */}
         <div className={`${withDelay(animationClasses.scaleIn, 600)}`}>
           <MapDisplay />
         </div>
