@@ -9,6 +9,9 @@ interface TaskItemProps {
 }
 
 export default function TaskItem({ task, onSelect }: TaskItemProps) {
+  // Determine the total count from either total_count or row_count
+  const totalCount = task.total_count !== undefined ? task.total_count : task.row_count;
+  
   return (
     <div 
       className="border rounded-lg p-4 cursor-pointer hover:bg-slate-50 transition-colors"
@@ -31,9 +34,9 @@ export default function TaskItem({ task, onSelect }: TaskItemProps) {
           </span>
         </div>
       </div>
-      {(task.total_count !== undefined || task.row_count !== undefined) && (
+      {totalCount !== undefined && (
         <div className="mt-2 text-sm">
-          <span className="text-slate-600 font-medium">{task.total_count || task.row_count}</span> results found
+          <span className="text-slate-600 font-medium">{totalCount}</span> results found
         </div>
       )}
     </div>
