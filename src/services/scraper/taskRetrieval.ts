@@ -94,7 +94,7 @@ export async function getScrapingResults(
         created_at: data.created_at || new Date().toISOString(),
         task_id: data.task_id ? data.task_id.toString() : undefined,
         // Ensure total_count is present, defaulting to row_count if available or 0
-        total_count: data.total_results || data.row_count || 0
+        total_count: data.row_count || 0 // Using row_count since total_results isn't available
       };
       
       // Create search_info object
@@ -135,7 +135,7 @@ export async function getScrapingResults(
         created_at: item.created_at || new Date().toISOString(),
         task_id: item.task_id ? item.task_id.toString() : undefined,
         // Ensure total_count is present
-        total_count: item.total_results || item.row_count || 0
+        total_count: item.row_count || 0 // Using row_count since total_results isn't available
       }));
       
       return { tasks: tasksWithDefaults } as ScrapingResultMultiple;

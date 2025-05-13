@@ -38,7 +38,7 @@ export interface ScrapingRequest {
   result_url?: string;
   json_result_url?: string;
   row_count?: number;
-  total_results?: number;
+  total_count?: number; // Added this field to handle the count data
 }
 
 export interface ScrapingParams {
