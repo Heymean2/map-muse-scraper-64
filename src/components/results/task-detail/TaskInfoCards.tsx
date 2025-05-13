@@ -56,37 +56,37 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
 
   return (
     <motion.div 
-      className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
+      className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
       <motion.div variants={itemVariants}>
-        <Card className="h-full rounded-lg shadow-sm border border-slate-200 overflow-hidden bg-white">
-          <CardContent className="p-5 space-y-3">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-violet-subtle flex items-center justify-center">
-                <MapPin className="h-4 w-4 text-violet-primary" strokeWidth={1.5} />
+        <Card className="h-full rounded-2xl shadow-md border-0 overflow-hidden bg-gradient-to-b from-white to-slate-50">
+          <CardContent className="p-8 space-y-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-violet-subtle flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-violet-primary" strokeWidth={1.5} />
               </div>
-              <h3 className="text-md font-medium text-slate-800">Search Information</h3>
+              <h3 className="text-lg font-semibold text-slate-800">Search Information</h3>
             </div>
             
             {searchInfo?.keywords && (
-              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
                 <span className="text-sm text-slate-500 font-medium">Keywords</span>
                 <span className="text-sm font-medium text-slate-800">{searchInfo.keywords}</span>
               </div>
             )}
             
             {searchInfo?.location && (
-              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
                 <span className="text-sm text-slate-500 font-medium">Location</span>
                 <span className="text-sm font-medium text-slate-800">{searchInfo.location}</span>
               </div>
             )}
             
             {searchInfo?.fields && (
-              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
                 <span className="text-sm text-slate-500 font-medium">Fields</span>
                 <span className="text-sm font-medium text-slate-800">
                   {Array.isArray(searchInfo.fields) 
@@ -99,7 +99,7 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
             )}
             
             {results?.created_at && (
-              <div className="flex justify-between items-center py-2">
+              <div className="flex justify-between items-center py-2.5">
                 <span className="text-sm text-slate-500 font-medium">Created</span>
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.5} />
@@ -114,21 +114,21 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
       </motion.div>
       
       <motion.div variants={itemVariants}>
-        <Card className="h-full rounded-lg shadow-sm border border-slate-200 overflow-hidden bg-white">
-          <CardContent className="p-5 space-y-3">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <FileText className="h-4 w-4 text-blue-600" strokeWidth={1.5} />
+        <Card className="h-full rounded-2xl shadow-md border-0 overflow-hidden bg-gradient-to-b from-white to-slate-50">
+          <CardContent className="p-8 space-y-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-blue-600" strokeWidth={1.5} />
               </div>
-              <h3 className="text-md font-medium text-slate-800">Results Information</h3>
+              <h3 className="text-lg font-semibold text-slate-800">Results Information</h3>
             </div>
             
-            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+            <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
               <span className="text-sm text-slate-500 font-medium">Total Count</span>
               <span className="text-sm font-semibold text-slate-800">{results?.total_count || results?.row_count || 0} results</span>
             </div>
             
-            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+            <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
               <span className="text-sm text-slate-500 font-medium">Available Formats</span>
               <div className="flex gap-2">
                 {results?.result_url && (
@@ -144,7 +144,7 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
             </div>
             
             {results?.updated_at && (
-              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
                 <span className="text-sm text-slate-500 font-medium">Completed At</span>
                 <span className="text-sm font-medium text-slate-800">
                   {format(new Date(results.updated_at), "MMM d, yyyy HH:mm")}
@@ -152,7 +152,7 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
               </div>
             )}
             
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-2.5">
               <span className="text-sm text-slate-500 font-medium">Status</span>
               <Badge className={`${getStatusColor(taskStatus)} px-3 ${taskStatus === "processing" ? "animate-pulse" : ""} rounded-md`}>
                 {taskStatus}
@@ -161,6 +161,57 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
           </CardContent>
         </Card>
       </motion.div>
+      
+      {/* Only show Processing Status card when status is processing */}
+      {taskStatus === 'processing' && (
+        <motion.div variants={itemVariants} className="md:col-span-2">
+          <Card className="border-0 rounded-2xl shadow-md overflow-hidden bg-blue-50/50">
+            <CardContent className="p-8 space-y-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Database className="h-5 w-5 text-blue-600" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800">Processing Details</h3>
+              </div>
+              
+              {/* Stage */}
+              {results?.stage && results.stage !== results.status && (
+                <div className="flex justify-between items-center py-2.5 border-b border-blue-100/50">
+                  <span className="text-sm text-slate-600 font-medium">Current Stage</span>
+                  <span className="text-sm font-medium capitalize text-slate-800">{results.stage}</span>
+                </div>
+              )}
+              
+              {results?.current_state && (
+                <div className="flex justify-between items-center py-2.5 border-b border-blue-100/50">
+                  <span className="text-sm text-slate-600 font-medium">Current State</span>
+                  <span className="text-sm font-medium text-slate-800">{results.current_state}</span>
+                </div>
+              )}
+              
+              {/* Progress Bar */}
+              <div className="pt-2">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-600 font-medium">Progress</span>
+                  <span className="font-semibold text-slate-800">{Math.round(progressValue)}%</span>
+                </div>
+                <Progress 
+                  value={progressValue} 
+                  className="h-4 rounded-full bg-blue-100"
+                  indicatorClassName="bg-blue-600 rounded-full"
+                />
+              </div>
+              
+              {results?.created_at && (
+                <div className="flex items-center gap-2 text-sm text-slate-600 mt-3 py-2.5">
+                  <Clock className="h-4 w-4" strokeWidth={1.5} />
+                  <span>Started {formatDistanceToNow(new Date(results.created_at), { addSuffix: true })}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
