@@ -9,7 +9,7 @@ export default function SidebarHeader() {
       <div className="flex items-center gap-2">
         <MapPin className="h-6 w-6 text-violet-primary" />
         <Link to="/dashboard" className="text-xl font-semibold">
-          MapScraper
+          Mapolio
         </Link>
       </div>
     </Header>

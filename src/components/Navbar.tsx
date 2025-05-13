@@ -23,7 +23,7 @@ export default function Navbar() {
       <Container className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className={`font-semibold text-xl ${withDelay(animationClasses.fadeIn, 100)}`}>
-            MapScraper
+            Mapolio
           </span>
         </div>
 

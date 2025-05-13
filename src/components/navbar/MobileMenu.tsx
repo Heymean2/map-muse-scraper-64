@@ -5,6 +5,7 @@ import { LayoutDashboard, LogOut } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/navbar/NavLink";
+import { useLocation } from "react-router-dom";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export function MobileMenu({
   handleSignOut, 
   onCloseMenu 
 }: MobileMenuProps) {
+  const location = useLocation();
+  
   if (!isOpen) return null;
   
   return (
@@ -33,24 +36,15 @@ export function MobileMenu({
         <ul className="flex flex-col space-y-2">
           {navLinks.map((link) => (
             <li key={link.label}>
-              {link.isPage ? (
-                <Link
-                  to={link.href}
-                  className="flex items-center gap-1 px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
-                  onClick={onCloseMenu}
-                >
-                  {link.label === "Dashboard" && <LayoutDashboard size={16} />}
-                  {link.label}
-                </Link>
-              ) : (
-                <a
-                  href={link.href}
-                  className="block px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
-                  onClick={onCloseMenu}
-                >
-                  {link.label}
-                </a>
-              )}
+              <NavLink
+                href={link.href}
+                isPage={link.isPage}
+                onClick={onCloseMenu}
+                className="flex items-center gap-1 px-4 py-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all"
+              >
+                {link.label === "Dashboard" && <LayoutDashboard size={16} />}
+                {link.label}
+              </NavLink>
             </li>
           ))}
           <li className="pt-2 flex flex-col space-y-2">
