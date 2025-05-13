@@ -49,7 +49,7 @@ export function CombinedPlanInfo({ userPlan, formatPricePerCredit }: CombinedPla
             You have {userPlan?.credits} credits available for use after your subscription.
           </p>
           <div className="text-xs text-muted-foreground">
-            ${formatPricePerCredit(userPlan?.price_per_credit)} per credit
+            $0.002 per credit
           </div>
         </div>
       </div>
