@@ -1,12 +1,9 @@
-
 import { Container } from "@/components/ui/container";
 import { withDelay, animationClasses } from "@/lib/animations";
 import HeroHeader from "./hero/HeroHeader";
 import MapDisplay from "./map/MapDisplay";
-
 export default function Hero() {
-  return (
-    <section id="home" className="pt-32 pb-24 overflow-hidden">
+  return <section id="home" className="pt-32 pb-0 overflow-hidden">
       <Container className="relative">
         {/* Background gradients */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -19,10 +16,7 @@ export default function Hero() {
         </div>
 
         {/* Simple Map Display */}
-        <div>
-          <MapDisplay />
-        </div>
+        
       </Container>
-    </section>
-  );
+    </section>;
 }
