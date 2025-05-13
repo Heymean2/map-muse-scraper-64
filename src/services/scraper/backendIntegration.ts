@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { hasTaskBeenSent, markTaskAsSent } from "./requestTracker";
 
-const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://tender-socks-cry.loca.lt";
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://map-nine-omega.vercel.app";
 const CHECK_REQUEST_ENDPOINT = "/check_request";
 
 /**
