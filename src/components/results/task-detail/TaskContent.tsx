@@ -34,6 +34,7 @@ export default function TaskContent({
 }: TaskContentProps) {
   const navigate = useNavigate();
   
+  // CSV Export handler
   const getExportCsvHandler = () => {
     if (results && results.result_url) {
       return () => window.open(results.result_url, '_blank');
@@ -71,16 +72,11 @@ export default function TaskContent({
   // Display empty state for completed task with no data
   if (results?.status === "completed" && (!searchInfo?.data || !searchInfo?.data.length)) {
     return (
-      <div className="space-y-6">
-        {taskStatus === "processing" && taskProgress && (
-          <div className="max-w-5xl mx-auto px-4 pt-6">
-            <TaskProgressCard 
-              progress={taskProgress} 
-              status={results.status} 
-              createdAt={results.created_at} 
-            />
-          </div>
-        )}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
         <TaskEmptyState 
           results={results} 
           getExportCsvHandler={getExportCsvHandler} 
@@ -88,7 +84,7 @@ export default function TaskContent({
           searchInfo={searchInfo}
         />
         <TaskInfoCards searchInfo={searchInfo} results={results} />
-      </div>
+      </motion.div>
     );
   }
 
@@ -99,7 +95,12 @@ export default function TaskContent({
 
   // Main content with data
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-5xl mx-auto px-4 py-6 space-y-6"
+    >
       {/* Only show progress card when status is processing */}
       {taskStatus === "processing" && taskProgress && (
         <TaskProgressCard 
@@ -109,6 +110,7 @@ export default function TaskContent({
         />
       )}
       
+      {/* Main results card */}
       <Card className="overflow-hidden shadow-sm border bg-white">
         <CardContent className="p-0">
           <ResultsContent 
@@ -123,23 +125,8 @@ export default function TaskContent({
         </CardContent>
       </Card>
       
-      {searchInfo && (
-        <div>
-          <SearchInfoCard 
-            searchInfo={{
-              keywords: searchInfo.keywords,
-              location: searchInfo.location,
-              fields: Array.isArray(searchInfo.fields) ? searchInfo.fields : 
-                typeof searchInfo.fields === 'string' ? searchInfo.fields.split(',') : [],
-              rating: searchInfo.rating
-            }}
-            totalCount={results?.total_count || results?.row_count || 0}
-            completedAt={results?.updated_at}
-          />
-        </div>
-      )}
-      
+      {/* Info cards */}
       <TaskInfoCards searchInfo={searchInfo} results={results} />
-    </div>
+    </motion.div>
   );
 }

@@ -3,7 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, CheckCircle, FileText, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface TaskEmptyStateProps {
@@ -20,7 +20,7 @@ export default function TaskEmptyState({
   searchInfo
 }: TaskEmptyStateProps) {
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-6">
       <Card className="overflow-hidden border bg-white shadow-sm">
         <CardContent className="p-8">
           <motion.div
@@ -29,71 +29,64 @@ export default function TaskEmptyState({
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center text-center"
           >
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mb-6">
+              <CheckCircle className="h-8 w-8" />
             </div>
             
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Task Completed Successfully</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Task Completed Successfully</h2>
             <p className="text-gray-600 max-w-lg mb-8">
-              Your data is ready to be downloaded. No preview is available, but you can download the full files.
+              Your search was completed successfully, but there were no results to display. You can download the empty file or start a new search.
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-lg">
               {results.result_url && (
-                <div className="border rounded-md p-4 bg-white">
-                  <h4 className="font-medium mb-2 flex items-center gap-1.5">CSV Format</h4>
+                <Card className="border-blue-100 p-4 bg-blue-50/50">
+                  <h4 className="font-medium mb-3 flex items-center gap-1.5 text-blue-700">
+                    <FileText className="h-4 w-4" />
+                    CSV Format
+                  </h4>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="gap-2" 
+                      className="gap-2 bg-blue-600 hover:bg-blue-700" 
                       onClick={getExportCsvHandler()}
                     >
                       <Download className="h-4 w-4" />
                       Download CSV
                     </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => {
-                        // This is just a placeholder since we can't directly preview from this view
-                        window.open(results.result_url, '_blank');
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                      Preview CSV
-                    </Button>
                   </div>
-                </div>
+                </Card>
               )}
               
               {results.json_result_url && (
-                <div className="border rounded-md p-4 bg-white">
-                  <h4 className="font-medium mb-2 flex items-center gap-1.5">JSON Format</h4>
+                <Card className="border-purple-100 p-4 bg-purple-50/50">
+                  <h4 className="font-medium mb-3 flex items-center gap-1.5 text-purple-700">
+                    <FileText className="h-4 w-4" />
+                    JSON Format
+                  </h4>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="gap-2" 
+                      className="gap-2 bg-purple-600 hover:bg-purple-700" 
                       onClick={getExportJsonHandler()}
                     >
                       <Download className="h-4 w-4" />
                       Download JSON
                     </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => {
-                        // This is just a placeholder since we can't directly preview from this view
-                        window.open(results.json_result_url, '_blank');
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                      Preview JSON
-                    </Button>
                   </div>
-                </div>
+                </Card>
               )}
+            </div>
+            
+            <div className="mt-6">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                asChild
+              >
+                <Link to="/">
+                  <Search className="h-4 w-4" />
+                  Start New Search
+                </Link>
+              </Button>
             </div>
           </motion.div>
         </CardContent>

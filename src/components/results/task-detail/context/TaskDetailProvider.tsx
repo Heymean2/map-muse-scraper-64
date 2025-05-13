@@ -71,12 +71,15 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
     enabled: !!taskId,
   });
 
-  // Type guard to determine if we have a single result
-  const isSingleResult = (result: any): result is ScrapingResultSingle => 
-    result && !('tasks' in result);
+  // Proper type guard to determine if we have a single result
+  const isSingleResult = (result: any): result is ScrapingResultSingle => {
+    if (!result) return false;
+    // Check if it's not the multi-result format (which would have a 'tasks' property)
+    return !('tasks' in result) && 'status' in result;
+  };
     
   // Extract the single task result or null
-  const taskResults = rawTaskResults && isSingleResult(rawTaskResults) 
+  const taskResults: ScrapingResultSingle | null = rawTaskResults && isSingleResult(rawTaskResults) 
     ? rawTaskResults 
     : null;
 
@@ -130,36 +133,33 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
   const getTaskData = () => {
     if (!taskResults) return null;
     
-    // Now we know we're working with a single result
-    const singleResult = taskResults;
-    
     // Extract task-specific properties safely
-    const keywords = singleResult.keywords || 
-                    (singleResult.search_info?.keywords) || 
+    const keywords = taskResults.keywords || 
+                    (taskResults.search_info?.keywords) || 
                     'Task Details';
                     
-    const createdAt = singleResult.created_at || null;
-    const resultUrl = singleResult.result_url || null;
-    const isLimited = 'limited' in singleResult ? singleResult.limited : false;
-    const currentPlan = 'current_plan' in singleResult ? singleResult.current_plan : null;
-    const status = singleResult.status || 'processing';
-    const stage = singleResult.stage || status;
+    const createdAt = taskResults.created_at || null;
+    const resultUrl = taskResults.result_url || null;
+    const isLimited = 'limited' in taskResults ? taskResults.limited : false;
+    const currentPlan = 'current_plan' in taskResults ? taskResults.current_plan : null;
+    const status = taskResults.status || 'processing';
+    const stage = taskResults.stage || status;
     
     // Get search info and fields
     let searchInfo = null;
     let fields: string[] = [];
     
-    if (singleResult.search_info) {
-      searchInfo = singleResult.search_info;
+    if (taskResults.search_info) {
+      searchInfo = taskResults.search_info;
       fields = searchInfo.fields ? ensureArray(searchInfo.fields) : [];
     } else {
       // Fallback if search_info doesn't exist
       searchInfo = {
         keywords,
-        location: `${singleResult.country || ''} - ${singleResult.states || ''}`,
-        fields: singleResult.fields ? ensureArray(singleResult.fields) : []
+        location: `${taskResults.country || ''} - ${taskResults.states || ''}`,
+        fields: taskResults.fields ? ensureArray(taskResults.fields) : []
       };
-      fields = ensureArray(singleResult.fields);
+      fields = ensureArray(taskResults.fields);
     }
     
     return {
@@ -177,7 +177,8 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
   
   const taskData = getTaskData();
 
-  const value = {
+  // Ensure we're only passing a ScrapingResultSingle to the context value
+  const contextValue: TaskDetailContextType = {
     taskId,
     taskResults,
     isLoading,
@@ -188,7 +189,7 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
   };
 
   return (
-    <TaskDetailContext.Provider value={value}>
+    <TaskDetailContext.Provider value={contextValue}>
       {children}
     </TaskDetailContext.Provider>
   );

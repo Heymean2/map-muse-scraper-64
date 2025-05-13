@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileX, ArrowLeft } from "lucide-react";
+import { FileX, ArrowLeft, Search } from "lucide-react";
 
 interface TaskNoDataStateProps {
   message?: string;
@@ -18,23 +18,36 @@ export default function TaskDetailNoData({ message = "We couldn't find any infor
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="max-w-5xl mx-auto px-4 py-12 text-center"
+      className="max-w-5xl mx-auto px-4 py-12"
     >
-      <Card className="p-8 shadow-sm">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-500 mb-6">
-          <FileX className="h-8 w-8" />
+      <Card className="p-8 shadow-sm border border-slate-200 bg-white">
+        <div className="flex flex-col items-center text-center">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-500 mb-6">
+            <FileX className="h-8 w-8" />
+          </div>
+          
+          <h3 className="text-xl font-medium mb-2 text-gray-800">No Task Data Available</h3>
+          <p className="mb-6 text-gray-600 max-w-lg">{message}</p>
+          
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => navigate('/dashboard/results')}
+              className="gap-2"
+              variant="outline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Return to Results
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/')}
+              className="gap-2"
+            >
+              <Search className="h-4 w-4" />
+              Start New Search
+            </Button>
+          </div>
         </div>
-        
-        <h3 className="text-xl font-medium mb-2 text-gray-800">No Task Data Available</h3>
-        <p className="mb-6 text-gray-600 max-w-lg mx-auto">{message}</p>
-        
-        <Button 
-          onClick={() => navigate('/dashboard/results')}
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Return to Results
-        </Button>
       </Card>
     </motion.div>
   );

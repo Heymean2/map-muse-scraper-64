@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TaskDetailLoading() {
   return (
@@ -11,17 +12,36 @@ export default function TaskDetailLoading() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="max-w-5xl mx-auto px-4 py-12 space-y-6"
+      className="max-w-5xl mx-auto px-4 py-6 space-y-6"
     >
+      {/* Header skeleton */}
+      <div className="space-y-4 mb-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <div>
+          <Skeleton className="h-8 w-64 mb-2" />
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-48" />
+        </div>
+      </div>
+
       {/* Progress Card */}
       <Card className="overflow-hidden border shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-blue-500 animate-pulse"></div>
-              <div className="h-6 w-32 bg-slate-200 animate-pulse rounded"></div>
+              <Skeleton className="h-5 w-32" />
             </div>
-            <div className="h-4 w-24 bg-slate-200 animate-pulse rounded"></div>
+            <Skeleton className="h-4 w-24" />
           </div>
           
           {/* Loading progress bar */}
@@ -42,7 +62,7 @@ export default function TaskDetailLoading() {
                   index === 1 ? 'bg-blue-500 animate-pulse' : 
                   index < 1 ? 'bg-blue-200' : 'bg-slate-200'
                 }`}></div>
-                <div className="h-3 w-16 bg-slate-200 animate-pulse rounded mt-1"></div>
+                <Skeleton className="h-3 w-16 mt-1" />
               </div>
             ))}
           </div>
@@ -51,15 +71,15 @@ export default function TaskDetailLoading() {
       
       {/* Main content shimmer */}
       <Card className="overflow-hidden shadow-sm border">
-        <CardHeader className="bg-slate-50 border-b">
-          <div className="h-6 w-32 bg-slate-200 animate-pulse rounded"></div>
+        <CardHeader className="bg-slate-50 border-b p-4">
+          <Skeleton className="h-6 w-32" />
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex flex-col space-y-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex justify-between items-center">
-                <div className="h-4 w-24 bg-slate-200 animate-pulse rounded"></div>
-                <div className="h-4 w-32 bg-slate-200 animate-pulse rounded"></div>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
               </div>
             ))}
           </div>
@@ -70,15 +90,15 @@ export default function TaskDetailLoading() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[...Array(2)].map((_, i) => (
           <Card key={i} className="overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b">
-              <div className="h-6 w-24 bg-slate-200 animate-pulse rounded"></div>
+            <CardHeader className="bg-slate-50 border-b p-4">
+              <Skeleton className="h-6 w-24" />
             </CardHeader>
             <CardContent className="p-5">
               <div className="space-y-4">
                 {[...Array(4)].map((_, j) => (
                   <div key={j} className="flex justify-between">
-                    <div className="h-4 w-20 bg-slate-200 animate-pulse rounded"></div>
-                    <div className="h-4 w-28 bg-slate-200 animate-pulse rounded"></div>
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-28" />
                   </div>
                 ))}
               </div>
