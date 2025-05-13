@@ -16,10 +16,7 @@ const HeroHeader = () => {
       
       <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${withDelay(animationClasses.slideUp, 400)}`}>
         <Link to="/auth?tab=signup">
-          <Button size="lg" className="min-w-[150px] h-12 text-base group">
-            <span>Start Scraping Now</span>
-            <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
-          </Button>
+          
         </Link>
         <Link to="/dashboard/scrape">
           <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base group">
