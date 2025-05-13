@@ -1,0 +1,52 @@
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { withDelay, animationClasses } from "@/lib/animations";
+
+const HeroHeader = () => {
+  return (
+    <>
+      <div className={`inline-block px-4 py-1.5 mb-6 text-sm font-medium bg-accent/10 text-accent rounded-full ${withDelay(animationClasses.fadeIn, 100)}`}>
+        <span className="relative">Google Maps Data at Your Fingertips</span>
+      </div>
+      
+      <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 ${withDelay(animationClasses.slideUp, 200)}`}>
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Extract Valuable Data</span> from Google Maps with Ease
+      </h1>
+      
+      <p className={`text-xl text-slate-600 max-w-2xl mx-auto mb-8 ${withDelay(animationClasses.slideUp, 300)}`}>
+        The most powerful and intuitive tool for extracting business data from Google Maps. Save hours of manual research and get more leads.
+      </p>
+      
+      <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${withDelay(animationClasses.slideUp, 400)}`}>
+        <Link to="/auth?tab=signup">
+          <Button size="lg" className="min-w-[150px] h-12 text-base group">
+            <span>Start Scraping Now</span>
+            <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+          </Button>
+        </Link>
+        <Link to="#how-it-works">
+          <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base">
+            Watch Demo
+          </Button>
+        </Link>
+      </div>
+
+      <div className={`mt-12 flex items-center justify-center gap-6 ${withDelay(animationClasses.fadeIn, 500)}`}>
+        <div className="flex -space-x-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-300 flex items-center justify-center text-xs font-medium">
+              {String.fromCharCode(65 + i)}
+            </div>
+          ))}
+        </div>
+        <div className="text-sm text-slate-600">
+          <span className="font-semibold">2,500+</span> companies already scraping
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default HeroHeader;
