@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { saveRoute, getLastRoute, isAuthRoute } from "@/services/routeMemory";
+import { MobileMenuTrigger } from "@/components/layout/MobileMenuTrigger";
 
 interface BaseLayoutProps {
   children: ReactNode;
@@ -49,6 +50,7 @@ export default function BaseLayout({ children, hideRail = false, hideSidebar = f
             <div className="flex min-h-[calc(100vh-5rem)] w-full">
               {!hideSidebar && <DashboardSidebar />}
               {!hideRail && !hideSidebar && <SidebarRail />}
+              {!hideSidebar && <MobileMenuTrigger />}
               <SidebarInset className={`p-4 md:p-6 w-full ${hideSidebar ? 'ml-0' : ''}`}>
                 {children}
               </SidebarInset>
