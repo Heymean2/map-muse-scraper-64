@@ -5,12 +5,11 @@ import ResultsContent from "@/components/results/ResultsContent";
 import TaskEmptyState from "./TaskEmptyState";
 import TaskInfoCards from "./TaskInfoCards";
 import { getSearchInfo } from "./utils/searchInfoUtils";
-import { getTaskProgress } from "@/services/scraper/taskRetrieval";
 import { useNavigate } from "react-router-dom";
 import TaskDetailLoading from "./TaskDetailLoading";
 import TaskDetailError from "./TaskDetailError";
 import TaskDetailNoData from "./TaskDetailNoData";
-import TaskProgressCard from "./TaskProgressCard";
+import EnhancedProgressCard from "./EnhancedProgressCard";
 
 interface TaskContentProps {
   taskId: string | null;
@@ -51,7 +50,11 @@ export default function TaskContent({
   const searchInfo = getSearchInfo(results);
   
   // Get task progress information
-  const taskProgress = results ? getTaskProgress(results) : null;
+  const progressValue = results?.progress 
+    ? (typeof results.progress === 'number' 
+        ? results.progress 
+        : parseFloat(results.progress) || 0)
+    : results?.status === 'completed' ? 100 : 50;
   
   // Get task status
   const taskStatus = results?.status || 'processing';
@@ -72,7 +75,7 @@ export default function TaskContent({
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-6 max-w-4xl mx-auto px-4"
+        className="space-y-6 max-w-6xl mx-auto px-4"
       >
         <TaskEmptyState 
           results={results} 
@@ -96,19 +99,27 @@ export default function TaskContent({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="max-w-4xl mx-auto px-4 py-6 space-y-6"
+      className="max-w-6xl mx-auto px-4 py-6 space-y-6"
     >
       {/* Only show progress card when status is processing */}
-      {taskStatus === "processing" && taskProgress && (
-        <TaskProgressCard 
-          progress={taskProgress} 
-          status={results.status} 
-          createdAt={results.created_at} 
+      {taskStatus === "processing" && (
+        <EnhancedProgressCard 
+          progress={progressValue} 
+          status={taskStatus}
+          stage={results?.stage}
+          detailedState={results?.current_state}
+          createdAt={results?.created_at}
+          estimatedTimeRemaining="3 minutes"
+          currentStep={
+            results?.stage === 'exporting' ? 4 :
+            results?.stage === 'processing' ? 3 :
+            results?.stage === 'collecting' ? 2 : 1
+          }
         />
       )}
       
       {/* Main results card */}
-      <Card className="overflow-hidden shadow-md border-0 rounded-2xl bg-gradient-to-b from-white to-slate-50">
+      <Card className="overflow-hidden border border-slate-200 shadow-sm rounded-lg">
         <CardContent className="p-0">
           <ResultsContent 
             loading={isLoading}
