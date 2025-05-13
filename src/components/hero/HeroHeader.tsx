@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -23,8 +24,10 @@ const HeroHeader = () => {
             <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
           </Button>
         </Link>
-        <Link to="#how-it-works">
-          
+        <Link to="/dashboard/scrape">
+          <Button variant="outline" size="lg" className="min-w-[150px] h-12 text-base">
+            Go to Scraper
+          </Button>
         </Link>
       </div>
 
