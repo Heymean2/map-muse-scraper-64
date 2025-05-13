@@ -12,7 +12,7 @@ const HeroHeader = () => {
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Extract Valuable Data</span> from Google Maps with Ease
       </h1>
       
-      <p className={`text-xl text-slate-600 max-w-2xl mx-auto mb-8 ${withDelay(animationClasses.slideUp, 300)}`}>The most powerful and intuitive tool for extracting business data from Google Maps. Save hours of manual getting data from map. Specially best for the directories</p>
+      <p className={`text-xl text-slate-600 max-w-2xl mx-auto mb-8 ${withDelay(animationClasses.slideUp, 300)}`}>The most powerful and intuitive tool for extracting business data from Google Maps. Save hours of manual getting data from map. Specially best for the directories.</p>
       
       <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${withDelay(animationClasses.slideUp, 400)}`}>
         <Link to="/auth?tab=signup">
