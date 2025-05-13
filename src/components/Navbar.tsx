@@ -7,6 +7,7 @@ import { DesktopNav } from "@/components/navbar/DesktopNav";
 import { MobileMenu } from "@/components/navbar/MobileMenu";
 import { useNavbar } from "@/components/navbar/useNavbar";
 import { navLinks } from "@/components/navbar/navConstants";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const { isScrolled, isMenuOpen, user, handleSignOut, toggleMenu, closeMenu } = useNavbar();
@@ -22,9 +23,11 @@ export default function Navbar() {
     >
       <Container className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`font-semibold text-xl ${withDelay(animationClasses.fadeIn, 100)}`}>
-            Mapolio
-          </span>
+          <Link to="/">
+            <span className={`font-semibold text-xl ${withDelay(animationClasses.fadeIn, 100)}`}>
+              Mapolio
+            </span>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
