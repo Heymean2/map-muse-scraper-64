@@ -24,9 +24,7 @@ const HeroHeader = () => {
           </Button>
         </Link>
         <Link to="#how-it-works">
-          <Button size="lg" variant="outline" className="min-w-[150px] h-12 text-base">
-            Watch Demo
-          </Button>
+          
         </Link>
       </div>
 
