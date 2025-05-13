@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
@@ -6,37 +5,35 @@ import { withDelay, animationClasses } from "@/lib/animations";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import FormContainer from "./scraper/FormContainer";
-
 export default function ScraperForm() {
   const navigate = useNavigate();
-  const { user, session } = useAuth();
+  const {
+    user,
+    session
+  } = useAuth();
 
   // Redirect to auth if not logged in
   useEffect(() => {
     if (!user && !session) {
       toast.error("You must be logged in to use this feature");
-      navigate("/auth", { 
-        state: { 
-          returnTo: "/dashboard/scrape" 
+      navigate("/auth", {
+        state: {
+          returnTo: "/dashboard/scrape"
         }
       });
     }
   }, [user, session, navigate]);
-  
+
   // Show loading state while checking authentication
   if (!user && !session) {
-    return (
-      <Container className="max-w-4xl">
+    return <Container className="max-w-4xl">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
-      </Container>
-    );
+      </Container>;
   }
-
-  return (
-    <Container className="max-w-4xl">
-      <div className="text-center max-w-3xl mx-auto mb-8">
+  return <Container className="max-w-4xl">
+      <div className="text-center max-w-3xl mx-auto mb-8 mt-7">
         <h2 className={`text-3xl font-bold mb-4 ${withDelay(animationClasses.slideUp, 100)}`}>
           Start Scraping in Minutes
         </h2>
@@ -53,6 +50,5 @@ export default function ScraperForm() {
           <FormContainer />
         </div>
       </div>
-    </Container>
-  );
+    </Container>;
 }
