@@ -71,3 +71,8 @@ declare namespace google {
     }
   }
 }
+
+// Declare google on window object
+interface Window {
+  google: typeof google;
+}
