@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -25,9 +24,7 @@ const HeroHeader = () => {
           </Button>
         </Link>
         <Link to="/dashboard/scrape">
-          <Button variant="outline" size="lg" className="min-w-[150px] h-12 text-base">
-            Go to Scraper
-          </Button>
+          
         </Link>
       </div>
 
