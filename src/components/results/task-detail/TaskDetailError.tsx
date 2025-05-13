@@ -1,8 +1,9 @@
 
 import { motion } from "framer-motion";
-import { AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface TaskDetailErrorProps {
   onRetry: () => void;
@@ -18,18 +19,34 @@ export default function TaskDetailError({ onRetry }: TaskDetailErrorProps) {
       transition={{ duration: 0.3 }}
       className="max-w-5xl mx-auto px-4 py-12"
     >
-      <Card className="p-5 border rounded bg-red-50 text-red-700 flex items-center justify-center flex-col">
-        <AlertCircle className="h-10 w-10 mb-4 text-red-500" />
+      <Card className="p-8 border rounded bg-white text-gray-700 shadow-sm flex items-center justify-center flex-col">
+        <div className="h-16 w-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
+          <AlertCircle className="h-8 w-8 text-red-500" />
+        </div>
+        
         <div className="text-center">
-          <h3 className="text-lg font-medium mb-2">Error Loading Results</h3>
-          <p className="mb-4">We encountered a problem while fetching your task results.</p>
-          <Button 
-            variant="destructive" 
-            onClick={onRetry} 
-            className="gap-2"
-          >
-            Try Again
-          </Button>
+          <h3 className="text-xl font-medium mb-2">Error Loading Results</h3>
+          <p className="mb-6 text-gray-600">We encountered a problem while fetching your task results.</p>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button 
+              variant="destructive" 
+              onClick={onRetry} 
+              className="gap-2"
+            >
+              Try Again
+            </Button>
+            
+            <Button 
+              variant="outline"
+              asChild
+            >
+              <Link to="/dashboard/results" className="inline-flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Results
+              </Link>
+            </Button>
+          </div>
         </div>
       </Card>
     </motion.div>

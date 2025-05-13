@@ -61,7 +61,7 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
 
   // Get the current task's results
   const { 
-    data: taskResults,
+    data: rawTaskResults,
     isLoading,
     error,
     refetch: refetchTaskResults
@@ -70,6 +70,15 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
     queryFn: () => getScrapingResults(taskId),
     enabled: !!taskId,
   });
+
+  // Type guard to determine if we have a single result
+  const isSingleResult = (result: any): result is ScrapingResultSingle => 
+    result && !('tasks' in result);
+    
+  // Extract the single task result or null
+  const taskResults = rawTaskResults && isSingleResult(rawTaskResults) 
+    ? rawTaskResults 
+    : null;
 
   // Set up polling for in-progress tasks
   useEffect(() => {
@@ -120,16 +129,6 @@ export const TaskDetailProvider = ({ children }: TaskDetailProviderProps) => {
   // Safely access task data regardless of structure
   const getTaskData = () => {
     if (!taskResults) return null;
-    
-    // Type guard to determine if we have a single result or multiple results
-    const isSingleResult = (result: any): result is ScrapingResultSingle => 
-      !('tasks' in result);
-    
-    if (!isSingleResult(taskResults)) {
-      // This is a multiple result, which shouldn't happen when we have a taskId
-      // But handle it gracefully anyway
-      return null;
-    }
     
     // Now we know we're working with a single result
     const singleResult = taskResults;

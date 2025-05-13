@@ -34,13 +34,16 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
   // Parse current progress
   const progressValue = getProgressValue();
   
+  // Get task status
+  const taskStatus = results?.status || 'processing';
+
   return (
-    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="bg-slate-50 border-b">
           <CardTitle className="text-lg font-medium">Search Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-5 space-y-4">
           {searchInfo?.keywords && (
             <div className="flex justify-between">
               <span className="text-sm text-slate-500">Keywords</span>
@@ -71,10 +74,10 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
       </Card>
       
       <Card>
-        <CardHeader>
+        <CardHeader className="bg-slate-50 border-b">
           <CardTitle className="text-lg font-medium">Results</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-5 space-y-4">
           <div className="flex justify-between">
             <span className="text-sm text-slate-500">Total Count</span>
             <span className="text-sm font-medium">{results?.total_count || results?.row_count || 0} results</span>
@@ -109,56 +112,61 @@ export default function TaskInfoCards({ searchInfo, results }: TaskInfoCardsProp
               </span>
             </div>
           )}
+          
+          {/* Status Badge */}
+          <div className="flex justify-between pt-2 border-t border-slate-100">
+            <span className="text-sm text-slate-500">Status</span>
+            <Badge className={getStatusColor(taskStatus)}>
+              {taskStatus}
+            </Badge>
+          </div>
         </CardContent>
       </Card>
       
-      <Card className="md:col-span-2 lg:col-span-1">
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Processing Status</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Status and Stage */}
-          <div className="flex justify-between">
-            <span className="text-sm text-slate-500">Status</span>
-            <Badge className={getStatusColor(results?.status || "processing")}>
-              {results?.status || "processing"}
-            </Badge>
-          </div>
-          
-          {results?.stage && results.stage !== results.status && (
-            <div className="flex justify-between">
-              <span className="text-sm text-slate-500">Current Stage</span>
-              <span className="text-sm font-medium capitalize">{results.stage}</span>
+      {/* Only show Processing Status card when status is processing */}
+      {taskStatus === 'processing' && (
+        <Card className="md:col-span-2">
+          <CardHeader className="bg-slate-50 border-b">
+            <CardTitle className="text-lg font-medium">Processing Status</CardTitle>
+          </CardHeader>
+          <CardContent className="p-5 space-y-4">
+            {/* Stage */}
+            {results?.stage && results.stage !== results.status && (
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500">Current Stage</span>
+                <span className="text-sm font-medium capitalize">{results.stage}</span>
+              </div>
+            )}
+            
+            {results?.current_state && (
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500">Current State</span>
+                <span className="text-sm font-medium">{results.current_state}</span>
+              </div>
+            )}
+            
+            {/* Progress Bar */}
+            <div className="pt-2">
+              <div className="flex justify-between text-sm mb-1">
+                <span>Progress</span>
+                <span>{Math.round(progressValue)}%</span>
+              </div>
+              <Progress 
+                value={progressValue} 
+                className="animate-pulse"
+                indicatorClassName="bg-blue-500"
+              />
             </div>
-          )}
-          
-          {results?.current_state && (
-            <div className="flex justify-between">
-              <span className="text-sm text-slate-500">Current State</span>
-              <span className="text-sm font-medium">{results.current_state}</span>
-            </div>
-          )}
-          
-          {/* Progress Bar */}
-          <div className="pt-2">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progress</span>
-              <span>{Math.round(progressValue)}%</span>
-            </div>
-            <Progress 
-              value={progressValue} 
-              className={`${results?.status === 'processing' ? 'animate-pulse' : ''}`}
-            />
-          </div>
-          
-          {results?.created_at && (
-            <div className="flex items-center gap-1 text-sm text-slate-500 mt-2">
-              <Clock className="h-3 w-3" />
-              <span>Started {format(new Date(results.created_at), "MMM d, yyyy HH:mm")}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {results?.created_at && (
+              <div className="flex items-center gap-1 text-sm text-slate-500 mt-2">
+                <Clock className="h-3 w-3" />
+                <span>Started {format(new Date(results.created_at), "MMM d, yyyy HH:mm")}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
