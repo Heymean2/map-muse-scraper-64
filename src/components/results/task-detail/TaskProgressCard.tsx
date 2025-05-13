@@ -32,13 +32,13 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
       case 'processing':
-        return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
+        return <RefreshCw className="h-6 w-6 text-blue-500 animate-spin" />;
       case 'failed':
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
+        return <AlertCircle className="h-6 w-6 text-red-500" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-500" />;
+        return <Clock className="h-6 w-6 text-gray-500" />;
     }
   };
   
@@ -49,14 +49,14 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.5 }}
     >
-      <Card className="mb-6 overflow-hidden border shadow-sm bg-white">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+      <Card className="mb-6 overflow-hidden border rounded-xl shadow-sm bg-white">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
               {getStatusIcon()}
-              <h3 className="font-medium text-slate-800 capitalize">
+              <h3 className="text-lg font-medium text-slate-800 capitalize">
                 {progress.detailedState || status}
               </h3>
             </div>
@@ -65,42 +65,42 @@ export default function TaskProgressCard({ progress, status, createdAt }: TaskPr
             </span>
           </div>
           
-          <div className="mb-2">
+          <div className="mb-3">
             <Progress 
               value={progress.percentage} 
-              className="h-2"
-              indicatorClassName={getStatusColor()}
+              className="h-3 rounded-full"
+              indicatorClassName={`${getStatusColor()} rounded-full`}
             />
           </div>
           
-          <div className="flex justify-between items-center text-xs text-slate-600">
-            <span>{Math.round(progress.percentage)}% complete</span>
+          <div className="flex justify-between items-center text-sm text-slate-600 mb-8">
+            <span className="font-medium">{Math.round(progress.percentage)}% complete</span>
             <span className="capitalize">{progress.currentStage}</span>
           </div>
           
           {/* Stage Timeline */}
-          <div className="mt-5 flex items-center justify-between relative">
+          <div className="flex items-center justify-between relative mt-8">
             {/* Connector line for timeline */}
-            <div className="absolute top-4 left-0 w-full h-[2px] bg-gray-200 -z-10"></div>
+            <div className="absolute top-4 left-0 w-full h-[2px] bg-slate-200 -z-10"></div>
             
             {stages.map((stage, index) => {
               const isCompleted = currentStageIndex >= index;
               const isCurrent = progress.currentStage === stage;
               
               return (
-                <div key={stage} className="flex flex-col items-center z-10">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                <div key={stage} className="flex flex-col items-center z-10 px-1">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     isCurrent ? getStatusColor() : 
-                    isCompleted ? 'bg-green-200' : 'bg-gray-200'
+                    isCompleted ? 'bg-green-100 border border-green-200' : 'bg-slate-100 border border-slate-200'
                   }`}>
                     {isCompleted && !isCurrent && (
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     )}
                     {isCurrent && (
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                      <div className="w-3 h-3 rounded-full bg-white"></div>
                     )}
                   </div>
-                  <span className={`text-xs mt-1.5 ${isCurrent ? 'font-medium' : 'text-slate-500'}`}>
+                  <span className={`text-xs mt-2 ${isCurrent ? 'font-medium text-slate-800' : 'text-slate-500'}`}>
                     {stage.charAt(0).toUpperCase() + stage.slice(1)}
                   </span>
                 </div>

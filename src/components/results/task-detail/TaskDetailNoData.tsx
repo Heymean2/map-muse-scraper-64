@@ -18,21 +18,22 @@ export default function TaskDetailNoData({ message = "We couldn't find any infor
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="max-w-5xl mx-auto px-4 py-12"
+      transition={{ duration: 0.4 }}
+      className="max-w-5xl mx-auto px-4 py-16"
     >
-      <Card className="p-8 shadow-sm border border-slate-200 bg-white">
-        <div className="flex flex-col items-center text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-500 mb-6">
-            <FileX className="h-8 w-8" />
+      <Card className="p-12 shadow-sm border border-slate-200 rounded-xl bg-white text-center">
+        <div className="flex flex-col items-center">
+          <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-8">
+            <FileX className="h-10 w-10" />
           </div>
           
-          <h3 className="text-xl font-medium mb-2 text-gray-800">No Task Data Available</h3>
-          <p className="mb-6 text-gray-600 max-w-lg">{message}</p>
+          <h3 className="text-2xl font-medium mb-3 text-slate-800">No Task Data Available</h3>
+          <p className="mb-8 text-slate-600 max-w-md mx-auto">{message}</p>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Button 
               onClick={() => navigate('/dashboard/results')}
-              className="gap-2"
+              className="gap-2 px-6"
               variant="outline"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -41,7 +42,7 @@ export default function TaskDetailNoData({ message = "We couldn't find any infor
             
             <Button 
               onClick={() => navigate('/')}
-              className="gap-2"
+              className="gap-2 px-6"
             >
               <Search className="h-4 w-4" />
               Start New Search
