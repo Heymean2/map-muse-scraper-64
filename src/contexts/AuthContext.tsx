@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Add a flag to track if this is the initial session load
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  // Add a ref to track the previous auth state
+  const prevSessionRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch user profile details when user changes
@@ -58,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Check for session when the component mounts
     const getInitialSession = async () => {
-      console.info("Getting initial session...");
       try {
         const { data, error } = await supabase.auth.getSession();
         
@@ -70,8 +71,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (data?.session) {
           setUser(data.session.user);
           setSession(data.session);
-          // Don't show toast on initial page load
-          console.info("Initial session retrieved:", !!data.session);
+          // Store the session ID to compare later
+          prevSessionRef.current = data.session.access_token;
         }
       } catch (error) {
         console.error("Unexpected error getting session:", error);
@@ -86,15 +87,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.info("Auth state changed:", event);
+        const isNewSignIn = event === "SIGNED_IN" && 
+                            !isInitialLoad && 
+                            prevSessionRef.current !== newSession?.access_token;
         
         if (newSession) {
           setUser(newSession.user);
           setSession(newSession);
           
-          // Only show "Signed in successfully" on a genuine sign-in event, not on token refreshes
-          if (event === "SIGNED_IN" && !isInitialLoad) {
+          // Only show "Signed in successfully" on a genuine new sign-in event
+          if (isNewSignIn) {
             toast.success("Signed in successfully");
+            prevSessionRef.current = newSession.access_token;
           }
         } else {
           setUser(null);
