@@ -1,19 +1,14 @@
-
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-
 import ProfileSection from "@/components/dashboard/ProfileSection";
 import UserProfileCard from "@/components/dashboard/UserProfileCard";
-
 export default function Profile() {
-  return (
-    <Container>
-      <div className="flex items-center justify-between mb-6">
+  return <Container>
+      <div className="flex items-center justify-between mb-6 mt-7">
         <div>
           <h1 className="text-3xl font-bold">Account Settings</h1>
           <p className="text-muted-foreground">Manage your account information and settings</p>
@@ -46,6 +41,5 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
       </div>
-    </Container>
-  );
+    </Container>;
 }
