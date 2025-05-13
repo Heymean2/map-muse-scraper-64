@@ -18,8 +18,8 @@ export default function Hero() {
           <HeroHeader />
         </div>
 
-        {/* Data Scraping Wireframe Visualization */}
-        <div className={`${withDelay(animationClasses.scaleIn, 600)}`}>
+        {/* Simple Map Display */}
+        <div>
           <MapDisplay />
         </div>
       </Container>
